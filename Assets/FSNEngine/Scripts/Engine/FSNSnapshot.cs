@@ -192,6 +192,9 @@ public class FSNSnapshot
 	public bool LinkToBackward { get; set; }
 
 
+	// TODO : 실행 중 세팅값들도 필요한 것들은 Snapshot에 보관되어야함
+
+
 	//========================================================================================
 
 	public FSNSnapshot()
