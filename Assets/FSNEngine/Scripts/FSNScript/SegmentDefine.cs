@@ -23,6 +23,9 @@ public class TextSegment : FSNSequence.Segment
 		get { return Type.Text; }
 	}
 
+	/// <summary>
+	/// 한번에 표시되는 텍스트
+	/// </summary>
 	public string Text;
 }
 

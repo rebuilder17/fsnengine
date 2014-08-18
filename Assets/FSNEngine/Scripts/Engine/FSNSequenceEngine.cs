@@ -8,5 +8,5 @@ using System.Collections.Generic;
 /// </summary>
 public class FSNSequenceEngine : MonoBehaviour
 {
-
+	
 }
