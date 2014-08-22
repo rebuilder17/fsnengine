@@ -11,8 +11,8 @@ using System.Collections;
 public abstract class FSNModule : MonoBehaviour
 {
 	// Awake 나 Start는 아예 오버라이드하지 못하게 한다
-	void Awake() { }
-	void Start() { }
+	//void Awake() { }
+	//void Start() { }
 
 
 	/// <summary>

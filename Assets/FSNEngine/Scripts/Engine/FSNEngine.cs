@@ -3,6 +3,49 @@ using System.Collections;
 using System.Collections.Generic;
 
 
+/// <summary>
+/// 게임 내 실행중 스크립트로 조작하는 세팅. 초기화 값이 곧 디폴트 세팅값
+/// </summary>
+public sealed class FSNInGameSetting
+{
+	/// <summary>
+	/// 진행 방향
+	/// </summary>
+	public enum FlowDirection
+	{
+		Up,
+		Down,
+		Left,
+		Right,
+	}
+
+	//==============================================================================
+
+
+	/// <summary>
+	/// 현재 진행 방향
+	/// </summary>
+	public FlowDirection CurrentFlowDirection	= FlowDirection.Down;
+
+	/// <summary>
+	/// 폰트 크기
+	/// </summary>
+	public int	FontSize	= 18;
+
+	//===============================================================================
+
+	/// <summary>
+	/// 디폴트 인게임 세팅 (static)
+	/// </summary>
+	public static FSNInGameSetting DefaultInGameSetting { get; private set; }
+
+	static FSNInGameSetting()
+	{
+		DefaultInGameSetting	= new FSNInGameSetting();
+	}
+}
+
+
 public sealed class FSNEngine : MonoBehaviour
 {
 	/// <summary>
@@ -23,7 +66,7 @@ public sealed class FSNEngine : MonoBehaviour
 	// Members
 
 	Dictionary<string, FSNModule>	m_moduleRefDict;								// 모듈들
-
+	FSNInGameSetting				m_inGameSetting;								// 현재 인게임 세팅
 
 
 	// Statics

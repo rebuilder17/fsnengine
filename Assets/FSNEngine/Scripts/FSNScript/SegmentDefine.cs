@@ -1,32 +1,34 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-
-/// <summary>
-/// Period 세그먼트
-/// </summary>
-public class PeriodSegment : FSNSequence.Segment
+namespace Segments
 {
-	public override Type type
+	/// <summary>
+	/// Period 세그먼트
+	/// </summary>
+	public class PeriodSegment : FSNSequence.Segment
 	{
-		get { return Type.Period; }
-	}
-}
-
-/// <summary>
-/// 텍스트 세그먼트
-/// </summary>
-public class TextSegment : FSNSequence.Segment
-{
-	public override Type type
-	{
-		get { return Type.Text; }
+		public override Type type
+		{
+			get { return Type.Period; }
+		}
 	}
 
 	/// <summary>
-	/// 한번에 표시되는 텍스트
+	/// 텍스트 세그먼트
 	/// </summary>
-	public string Text;
+	public class TextSegment : FSNSequence.Segment
+	{
+		public override Type type
+		{
+			get { return Type.Text; }
+		}
+
+		/// <summary>
+		/// 한번에 표시되는 텍스트
+		/// </summary>
+		public string Text;
+	}
 }
 
 
