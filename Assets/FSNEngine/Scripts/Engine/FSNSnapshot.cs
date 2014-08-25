@@ -194,6 +194,11 @@ public class FSNSnapshot
 
 	// TODO : 실행 중 세팅값들도 필요한 것들은 Snapshot에 보관되어야함
 
+	/// <summary>
+	/// 현재 스냅샷의 인게임 세팅
+	/// </summary>
+	public FSNInGameSetting InGameSetting { get; set; }
+
 
 	//========================================================================================
 
@@ -202,7 +207,7 @@ public class FSNSnapshot
 		m_layerIDList	= new Dictionary<string, int>();
 		m_layerList		= new Dictionary<int, Layer>();
 
-		
+		InGameSetting	= FSNInGameSetting.DefaultInGameSetting;
 	}
 
 	static FSNSnapshot()

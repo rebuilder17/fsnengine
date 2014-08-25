@@ -9,7 +9,10 @@ namespace LayerObjects
 	/// </summary>
 	public abstract class TextLayerObject : FSNLayerObject
 	{
+		public TextLayerObject(GameObject gameObj) : base(gameObj)
+		{
 
+		}
 	}
 }
 

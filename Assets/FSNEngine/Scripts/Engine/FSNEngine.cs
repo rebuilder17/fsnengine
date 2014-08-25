@@ -26,6 +26,21 @@ public sealed class FSNInGameSetting
 	/// 현재 진행 방향
 	/// </summary>
 	public FlowDirection CurrentFlowDirection	= FlowDirection.Down;
+	/// <summary>
+	/// 반대 방향 구하기
+	/// </summary>
+	public FlowDirection BackwardFlowDirection
+	{
+		get
+		{
+			return GetOppositeFlowDirection(CurrentFlowDirection);
+		}
+	}
+
+	/// <summary>
+	/// Swipe할 시의 "무게감" (얼만큼 swipe해야 다음으로 넘어가는가)
+	/// </summary>
+	public float SwipeWeight	= 0.3f;
 
 	/// <summary>
 	/// 폰트 크기
@@ -33,6 +48,9 @@ public sealed class FSNInGameSetting
 	public int	FontSize	= 18;
 
 	//===============================================================================
+
+
+	private static Dictionary<FlowDirection, FlowDirection>	s_oppositeDirection;	// FlowDirection의 반대방향 딕셔너리 (검색용)
 
 	/// <summary>
 	/// 디폴트 인게임 세팅 (static)
@@ -42,6 +60,33 @@ public sealed class FSNInGameSetting
 	static FSNInGameSetting()
 	{
 		DefaultInGameSetting	= new FSNInGameSetting();
+
+		s_oppositeDirection	= new Dictionary<FlowDirection, FlowDirection>();
+		s_oppositeDirection[FlowDirection.Down]		= FlowDirection.Up;
+		s_oppositeDirection[FlowDirection.Up]		= FlowDirection.Down;
+		s_oppositeDirection[FlowDirection.Left]		= FlowDirection.Right;
+		s_oppositeDirection[FlowDirection.Right]	= FlowDirection.Left;
+	}
+
+	/// <summary>
+	/// 반대 방향 FlowDirection 구하기
+	/// </summary>
+	/// <param name="direction"></param>
+	/// <returns></returns>
+	public static FlowDirection GetOppositeFlowDirection(FlowDirection direction)
+	{
+		return s_oppositeDirection[direction];
+	}
+
+	/// <summary>
+	/// 서로 반대방향인지
+	/// </summary>
+	/// <param name="direction"></param>
+	/// <param name="another"></param>
+	/// <returns></returns>
+	public static bool IsOppositeDirection(FlowDirection direction, FlowDirection another)
+	{
+		return s_oppositeDirection[direction] == another;
 	}
 }
 

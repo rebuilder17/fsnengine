@@ -6,9 +6,90 @@ using System.Collections.Generic;
 /// <summary>
 /// 레이어 하나의 오브젝트
 /// </summary>
-public class FSNLayerObject
+public abstract class FSNLayerObject
 {
+	// Members
 
+	Vector3		m_position;		// 현재 스냅샷에서의 위치 (트랜지션 거치기 전)
+	Color		m_color;		// 색조
+	float		m_alpha;		// 트랜지션 알파 (유저 컨트롤 아님, Color에 곱해짐)
+
+	GameObject	m_object;		// 이 FSNLayerObject가 맞물린 GameObject
+	Transform	m_trans;		// Transform 캐시
+
+
+	protected GameObject gameObject
+	{
+		get { return m_object; }
+	}
+
+	protected Transform transform
+	{
+		get { return m_trans; }
+	}
+
+	protected Vector3 Position
+	{
+		get { return m_position; }
+		set
+		{
+			m_position	= value;
+			UpdatePosition(m_position);
+		}
+	}
+
+	protected Color Color
+	{
+		get { return m_color; }
+		set
+		{
+			m_color	= value;
+			UpdateColor(FinalColor);
+		}
+	}
+
+
+	Color		m_finalColor;
+	/// <summary>
+	/// 알파까지 곱해진 최종 컬러
+	/// </summary>
+	protected Color FinalColor
+	{
+		get
+		{
+			m_finalColor.r	= m_color.r;
+			m_finalColor.g	= m_color.g;
+			m_finalColor.b	= m_color.b;
+			m_finalColor.a	= m_color.a * m_alpha;
+
+			return m_finalColor;
+		}
+	}
+
+
+	public FSNLayerObject(GameObject realObject)
+	{
+		m_object	= realObject;
+		m_trans		= m_object.transform;
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="position"></param>
+	protected virtual void UpdatePosition(Vector3 position)
+	{
+		m_trans.localPosition	= position;
+	}
+
+	/// <summary>
+	/// * color에 트랜지션 alpha까지 미리 합쳐져있음
+	/// </summary>
+	/// <param name="color"></param>
+	protected virtual void UpdateColor(Color color)
+	{
+		//
+	}
 }
 
 /// <summary>
@@ -52,7 +133,8 @@ public abstract class FSNLayerModule<ObjT> : FSNModule
 	/// </summary>
 	/// <param name="toLayer"></param>
 	/// <param name="ratio">트랜지션 비율. 0 : 현재 상태 그대로, 1 : 완전히 toLayer 상태로</param>
-	public void OldElementOnlyTransition(FSNSnapshot.Layer toLayer, float ratio)
+	/// <param name="direction">현재 swipe한 방향</param>
+	public void OldElementOnlyTransition(FSNSnapshot.Layer toLayer, float ratio, FSNInGameSetting.FlowDirection direction)
 	{
 
 	}
@@ -61,8 +143,9 @@ public abstract class FSNLayerModule<ObjT> : FSNModule
 	/// 트랜지션 시작. 현재 레이어에 이미 존재하고 있던 오브젝트만 한정
 	/// </summary>
 	/// <param name="toLayer"></param>
-	/// <param name="startRatio"></param>
-	public void StartOldElementTransition(FSNSnapshot.Layer toLayer, float startRatio)
+	/// <param name="startRatio">시작 트랜지션 비율</param>
+	/// <param name="direction">현재 swipe한 방향</param>
+	public void StartOldElementTransition(FSNSnapshot.Layer toLayer, float startRatio, FSNInGameSetting.FlowDirection direction)
 	{
 
 	}
@@ -71,7 +154,8 @@ public abstract class FSNLayerModule<ObjT> : FSNModule
 	/// 새 요소 트랜지션 시작. 새 레이어에만 존재하는 오브젝트 한정
 	/// </summary>
 	/// <param name="toLayer"></param>
-	public void StartNewElementTransition(FSNSnapshot.Layer toLayer)
+	/// <param name="direction">현재 swipe한 방향</param>
+	public void StartNewElementTransition(FSNSnapshot.Layer toLayer, FSNInGameSetting.FlowDirection direction)
 	{
 
 	}
