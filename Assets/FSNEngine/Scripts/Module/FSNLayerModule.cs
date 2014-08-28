@@ -12,7 +12,7 @@ public abstract class FSNLayerObject
 
 	Vector3		m_position;		// 현재 스냅샷에서의 위치 (트랜지션 거치기 전)
 	Color		m_color;		// 색조
-	float		m_alpha;		// 트랜지션 알파 (유저 컨트롤 아님, Color에 곱해짐)
+	float		m_alpha	= 1f;	// 트랜지션 알파 (유저 컨트롤 아님, Color에 곱해짐)
 
 	GameObject	m_object;		// 이 FSNLayerObject가 맞물린 GameObject
 	Transform	m_trans;		// Transform 캐시
@@ -96,7 +96,8 @@ public abstract class FSNLayerObject
 /// Snapshot의 특정 종류의 Layer를 담당해서 표시하는 모듈
 /// </summary>
 /// <typeparam name="ObjT">이 모듈이 컨트롤할 FSNLayerObject 타입</typeparam>
-public abstract class FSNLayerModule<ObjT> : FSNModule
+public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule
+	where ElmT : FSNSnapshot.IElement
 	where ObjT : FSNLayerObject
 {
 	// Members
@@ -133,8 +134,8 @@ public abstract class FSNLayerModule<ObjT> : FSNModule
 	/// </summary>
 	/// <param name="toLayer"></param>
 	/// <param name="ratio">트랜지션 비율. 0 : 현재 상태 그대로, 1 : 완전히 toLayer 상태로</param>
-	/// <param name="direction">현재 swipe한 방향</param>
-	public void OldElementOnlyTransition(FSNSnapshot.Layer toLayer, float ratio, FSNInGameSetting.FlowDirection direction)
+	/// <param name="backward">진행 반대 방향으로 swipe를 한 경우에는 false</param>
+	public void OldElementOnlyTransition(FSNSnapshot.Layer toLayer, float ratio, bool backward)
 	{
 
 	}
@@ -144,8 +145,8 @@ public abstract class FSNLayerModule<ObjT> : FSNModule
 	/// </summary>
 	/// <param name="toLayer"></param>
 	/// <param name="startRatio">시작 트랜지션 비율</param>
-	/// <param name="direction">현재 swipe한 방향</param>
-	public void StartOldElementTransition(FSNSnapshot.Layer toLayer, float startRatio, FSNInGameSetting.FlowDirection direction)
+	/// <param name="backward">진행 반대 방향으로 swipe를 한 경우에는 false</param>
+	public void StartOldElementTransition(FSNSnapshot.Layer toLayer, float startRatio, bool backward)
 	{
 
 	}
@@ -154,9 +155,9 @@ public abstract class FSNLayerModule<ObjT> : FSNModule
 	/// 새 요소 트랜지션 시작. 새 레이어에만 존재하는 오브젝트 한정
 	/// </summary>
 	/// <param name="toLayer"></param>
-	/// <param name="direction">현재 swipe한 방향</param>
-	public void StartNewElementTransition(FSNSnapshot.Layer toLayer, FSNInGameSetting.FlowDirection direction)
+	/// <param name="backward">진행 반대 방향으로 swipe를 한 경우에는 false</param>
+	public void StartNewElementTransition(FSNSnapshot.Layer toLayer, bool backward)
 	{
-
+		// Object한테 직접 Snapshot Elem 을 넘겨줘서 자기가 보고 트랜지션하게 할 것인가, 아니면 일일히 속성값을 줄것인가....
 	}
 }

@@ -20,7 +20,7 @@ namespace LayerObjects
 /// <summary>
 /// 텍스트 모듈, 기본형
 /// </summary>
-public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.TextSegment, ObjT>
+public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.TextSegment, SnapshotElems.Text, ObjT>
 	where ObjT : FSNLayerObject
 {
 	public override string ModuleName

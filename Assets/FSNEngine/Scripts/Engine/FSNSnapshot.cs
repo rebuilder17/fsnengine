@@ -9,16 +9,48 @@ using System.Collections.Generic;
 public class FSNSnapshot
 {
 	/// <summary>
+	/// (interface) 스냅샷 하나를 구성하는 각 요소
+	/// </summary>
+	public interface IElement
+	{
+		int UniqueID { get; }
+
+		/// <summary>
+		/// 이 Element를 복제한 Element를 만든다. (Clone의 IElement 버전)
+		/// </summary>
+		/// <returns></returns>
+		IElement GenericClone();
+
+		/// <summary>
+		/// 생성 당시의 초기 상태. 이 상태에서 최초로 지정된 상태로 transition한다
+		/// (예 : 화면 바깥 -> 안쪽으로 등장할 때, InitialState는 화면 바깥 좌표)
+		/// </summary>
+		IElement GenericInitialState { get; }
+
+		/// <summary>
+		/// 사라질 시의 마지막 상태. 맨 마지막 상태에서 이 상태로 transition한다
+		/// (예 : 화면 가장자리 -> 바깥으로 움직이며 사라질 때, FinalState는 화면 바깥 좌표)
+		/// </summary>
+		IElement GenericFinalState { get; }
+	}
+
+	/// <summary>
 	/// 스냅샷 하나를 구성하는 각 요소
 	/// </summary>
-	public abstract class Element
+	public abstract class Element<SelfT> : IElement
+		where SelfT : Element<SelfT>, new()
 	{
-		private static int globalIDCount	= 0;		// Element마다 고유 ID를 부여하기 위한 static
+		private static int globalIDCount	= 1;		// Element마다 고유 ID를 부여하기 위한 static
 
 		/// <summary>
 		/// 이 Element의 고유 ID
 		/// </summary>
 		public int UniqueID { get; private set; }
+
+		/// <summary>
+		/// 사용 가능한지 여부. 즉, MakeItUnique가 호출되었었는지/혹은 제대로 Clone되었는지
+		/// </summary>
+		public bool CanUse { get { return UniqueID != 0; } }
 
 
 		/// <summary>
@@ -31,11 +63,33 @@ public class FSNSnapshot
 		/// </summary>
 		public Color Color { get; set; }
 
+
+		/// <summary>
+		/// 생성 당시의 초기 상태. 이 상태에서 최초로 지정된 상태로 transition한다
+		/// (예 : 화면 바깥 -> 안쪽으로 등장할 때, InitialState는 화면 바깥 좌표)
+		/// </summary>
+		public SelfT InitialState	{ get; private set; }
+
+		/// <summary>
+		/// 사라질 시의 마지막 상태. 맨 마지막 상태에서 이 상태로 transition한다
+		/// (예 : 화면 가장자리 -> 바깥으로 움직이며 사라질 때, FinalState는 화면 바깥 좌표)
+		/// </summary>
+		public SelfT FinalState		{ get; private set; }
+
+		
+
 		//=============================================
 
-		public Element()
+		/// <summary>
+		/// 이 오브젝트에 고유 ID 발급, 시작/끝상태를 새로 추가한다. 사실상의 초기화 루틴
+		/// Clone하지 않는 오브젝트는 반드시 이를 호출해줘야함
+		/// </summary>
+		public void MakeItUnique()
 		{
-			UniqueID = globalIDCount++;			// 고유 ID 발급
+			UniqueID		= globalIDCount++;		// 고유 ID 발급
+
+			InitialState	= Clone();				// InitialState/FinalState 를 자기 복제로 만들어둔다
+			FinalState		= Clone();
 		}
 
 		/// <summary>
@@ -43,31 +97,39 @@ public class FSNSnapshot
 		/// 동일한 UniqueID를 지니게 되며, 현재 스냅샷 - 다음 스냅샷으로 계승되는 Element를 만들어내기 위해 필요
 		/// </summary>
 		/// <returns></returns>
-		public Element Clone()
+		public SelfT Clone()
 		{
-			Element newElem		= MakeInstance();
+			if(!CanUse)
+			{
+				throw new System.InvalidOperationException("Element is not valid. If it's an original object, call MakeItUnique before any use.");
+			}
+
+			//SelfT newElem		= MakeInstance();
+			SelfT newElem		= new SelfT();
 			newElem.UniqueID	= UniqueID;			// UniqueID 복제
 			CopyDataTo(newElem);					// 기타 데이터 복제
 
 			return newElem;
 		}
 
+
 		/// <summary>
 		/// 현재 데이터를 to 로 복제한다. 오버라이드해서 상속한 클래스의 데이터도 복제하는 코드를 추가한다
 		/// </summary>
 		/// <param name="to"></param>
-		protected virtual void CopyDataTo(Element to)
+		protected virtual void CopyDataTo(SelfT to)
 		{
 			to.Position	= Position;
 			to.Color	= Color;
 		}
 
-		/// <summary>
-		/// 현재 클래스의 인스턴스를 생성한다. 반드시 상속한 클래스 내에서 정의한다.
-		/// 그냥 자기 자신을 new해서 리턴하면 됨.
-		/// </summary>
-		/// <returns></returns>
-		protected abstract Element MakeInstance();
+
+
+
+		// IElement 구현. 이 클래스에 구현된 내용 랩핑
+		public IElement GenericInitialState { get { return InitialState; } }
+		public IElement GenericFinalState { get { return FinalState; } }
+		public IElement GenericClone()	{ return Clone(); }
 	}
 
 	/// <summary>
@@ -96,18 +158,18 @@ public class FSNSnapshot
 
 		//==========================================================
 
-		private Dictionary<int, Element>	m_elements;		// 레이어에 포함된 Element
+		private Dictionary<int, IElement>	m_elements;		// 레이어에 포함된 Element
 
 		public Layer()
 		{
-			m_elements	= new Dictionary<int, Element>();
+			m_elements	= new Dictionary<int, IElement>();
 		}
 
 		/// <summary>
 		/// Element 추가
 		/// </summary>
 		/// <param name="elem"></param>
-		public void AddElement(Element elem)
+		public void AddElement(IElement elem)
 		{
 			m_elements.Add(elem.UniqueID, elem);
 		}
@@ -117,7 +179,7 @@ public class FSNSnapshot
 		/// </summary>
 		/// <param name="uId"></param>
 		/// <returns></returns>
-		public Element GetElement(int uId)
+		public IElement GetElement(int uId)
 		{
 			return m_elements[uId];
 		}
@@ -131,9 +193,9 @@ public class FSNSnapshot
 		{
 			Layer newLayer	= new Layer();
 
-			foreach(Element elem in m_elements.Values)						// 가지고 있는 Element 를 모두 복제한다. (UniqueID까지 복사)
+			foreach(IElement elem in m_elements.Values)						// 가지고 있는 Element 를 모두 복제한다. (UniqueID까지 복사)
 			{
-				newLayer.AddElement(elem.Clone());
+				newLayer.AddElement(elem.GenericClone());
 			}
 
 			return newLayer;
