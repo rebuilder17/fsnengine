@@ -32,6 +32,11 @@ public class FSNSnapshot
 		/// (예 : 화면 가장자리 -> 바깥으로 움직이며 사라질 때, FinalState는 화면 바깥 좌표)
 		/// </summary>
 		IElement GenericFinalState { get; }
+
+		Vector3 Position { get; }
+		Color Color { get; }
+		float Alpha { get; }
+		float TransitionTime { get; }
 	}
 
 	/// <summary>
@@ -62,6 +67,17 @@ public class FSNSnapshot
 		/// 해당 요소의 색상 (Tint)
 		/// </summary>
 		public Color Color { get; set; }
+
+		/// <summary>
+		/// Color 에 추가로 적용되는 Alpha
+		/// </summary>
+		public float Alpha { get; set; }
+
+		/// <summary>
+		/// 트랜지션 애니메이션 시간.
+		/// 특정적으로, InitialState/FinalState 에서는 처음 등장/마지막 사라지는 시간을 나타낸다
+		/// </summary>
+		public float TransitionTime { get; set; }
 
 
 		/// <summary>
@@ -182,6 +198,27 @@ public class FSNSnapshot
 		public IElement GetElement(int uId)
 		{
 			return m_elements[uId];
+		}
+
+		/// <summary>
+		/// 해당 UniqueID 를 지닌 element가 있는지 여부
+		/// </summary>
+		/// <param name="uId"></param>
+		/// <returns></returns>
+		public bool HasElement(int uId)
+		{
+			return m_elements.ContainsKey(uId);
+		}
+
+		/// <summary>
+		/// 현재 포함되어있는 ID 목록
+		/// </summary>
+		public ICollection<int> UniqueIDList
+		{
+			get
+			{
+				return m_elements.Keys;
+			}
 		}
 
 		/// <summary>

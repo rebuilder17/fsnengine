@@ -9,8 +9,8 @@ using System.Collections;
 /// <typeparam name="ObjT">이 모듈이 컨트롤할 FSNLayerObject 타입</typeparam>
 public abstract class FSNProcessModule<SegT, ElmT, ObjT> : FSNLayerModule<ElmT, ObjT>
 	where SegT : FSNSequence.Segment
-	where ElmT : FSNSnapshot.IElement
-	where ObjT : FSNLayerObject
+	where ElmT : class, FSNSnapshot.IElement
+	where ObjT : FSNLayerObject<ElmT>
 {
 	/// <summary>
 	/// 해당 layer와 다음 명령어 조각을 사용해서 다음 layer 상태를 생성하여 리턴한다.
