@@ -5,9 +5,6 @@ using System.Collections;
 /// <summary>
 /// Engine에서 사용하는 module 기본 정의
 /// </summary>
-#if UNITY_4_5
-[DisallowMultipleComponentAttribute]
-#endif
 public abstract class FSNModule : MonoBehaviour
 {
 	// Awake 나 Start는 아예 오버라이드하지 못하게 한다

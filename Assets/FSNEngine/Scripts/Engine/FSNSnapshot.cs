@@ -37,6 +37,11 @@ public class FSNSnapshot
 		Color Color { get; }
 		float Alpha { get; }
 		float TransitionTime { get; }
+
+		/// <summary>
+		/// 사용 가능한지 여부
+		/// </summary>
+		bool CanUse { get; }
 	}
 
 	/// <summary>
@@ -135,8 +140,13 @@ public class FSNSnapshot
 		/// <param name="to"></param>
 		protected virtual void CopyDataTo(SelfT to)
 		{
+			to.InitialState	= InitialState;
+			to.FinalState	= FinalState;
+
 			to.Position	= Position;
 			to.Color	= Color;
+			to.Alpha	= Alpha;
+			to.TransitionTime	= TransitionTime;
 		}
 
 
@@ -174,7 +184,39 @@ public class FSNSnapshot
 
 		//==========================================================
 
+
+		// Members
+		
 		private Dictionary<int, IElement>	m_elements;		// 레이어에 포함된 Element
+
+
+
+		// Static Memebers
+
+		static Dictionary<string, int>		s_nameAlias;	// Layer 이름
+		static Layer()
+		{
+			s_nameAlias	= new Dictionary<string, int>();
+		}
+		/// <summary>
+		/// 정수 ID를 대신하는 string 이름 지정하기
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="name"></param>
+		public static void AddLayerNameAlias(int id, string name)
+		{
+			s_nameAlias[name]	= id;
+		}
+		/// <summary>
+		/// string 이름에서 정수 ID 가져오기
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public static int GetLayerIdFromAlias(string name)
+		{
+			return s_nameAlias[name];
+		}
+
 
 		public Layer()
 		{
@@ -187,6 +229,9 @@ public class FSNSnapshot
 		/// <param name="elem"></param>
 		public void AddElement(IElement elem)
 		{
+			if(!elem.CanUse)						// MakeItUnique 혹은 Clone을 거치지 않은 IElement는 사용할 수 없다
+				throw new System.InvalidOperationException("Element is not valid. If it's an original object, call MakeItUnique before any use.");
+
 			m_elements.Add(elem.UniqueID, elem);
 		}
 
@@ -219,6 +264,11 @@ public class FSNSnapshot
 			{
 				return m_elements.Keys;
 			}
+		}
+
+		public bool IsEmpty
+		{
+			get { return m_elements.Count == 0; }
 		}
 
 		/// <summary>
@@ -262,6 +312,11 @@ public class FSNSnapshot
 			result.OnlyInOther		= FSNUtils.MakeArray<int>(inOther);
 			return result;
 		}
+
+		/// <summary>
+		/// 빈 레이어
+		/// </summary>
+		public static readonly Layer Empty	= new Layer();
 	}
 
 	/// <summary>
@@ -275,7 +330,7 @@ public class FSNSnapshot
 	//=========================================================================================
 
 	private Dictionary<int, Layer>	m_layerList;			// 레이어 목록
-	private Dictionary<string, int>	m_layerIDList;			// 레이어 ID 목록
+	//private Dictionary<string, int>	m_layerIDList;			// 레이어 ID 목록
 
 	private static PreDefinedLayers[]	PreDefinedLayerIDs;	// 미리 정의된 레이어 ID 목록
 
@@ -303,7 +358,7 @@ public class FSNSnapshot
 
 	public FSNSnapshot()
 	{
-		m_layerIDList	= new Dictionary<string, int>();
+		//m_layerIDList	= new Dictionary<string, int>();
 		m_layerList		= new Dictionary<int, Layer>();
 
 		InGameSetting	= FSNInGameSetting.DefaultInGameSetting;
@@ -350,7 +405,9 @@ public class FSNSnapshot
 	/// <returns></returns>
 	public Layer GetLayer(int layerID)
 	{
-		return m_layerList[layerID];
+		Layer layer	= null;
+		m_layerList.TryGetValue(layerID, out layer);
+		return layer;
 	}
 
 	/// <summary>
@@ -360,8 +417,15 @@ public class FSNSnapshot
 	/// <returns></returns>
 	public Layer GetLayer(string layerName)
 	{
-		int layerID	= m_layerIDList[layerName];
+		int layerID	= Layer.GetLayerIdFromAlias(layerName);
 		return GetLayer(layerID);
+	}
+
+	public Layer MakeNewLayer(int layerID)
+	{
+		var newLayer			= new Layer();
+		m_layerList[layerID]	= newLayer;
+		return newLayer;
 	}
 }
 

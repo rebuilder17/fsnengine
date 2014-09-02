@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// <summary>
 /// 스냅샷 리스트. 컨트롤을 위한 요소들도 같이 시퀀스에 포함되어있음.
 /// </summary>
-public sealed class FSNSnapshotSequence
+public sealed partial class FSNSnapshotSequence
 {
 	/// <summary>
 	/// 스냅샷 종류 (컨트롤과 관련)
@@ -95,6 +95,14 @@ public sealed class FSNSnapshotSequence
 		{
 			return Flows[(int)dir].Linked;
 		}
+		/// <summary>
+		/// 연결 설정
+		/// </summary>
+		/// <param name="dir"></param>
+		public void SetFlow(FSNInGameSetting.FlowDirection dir, FlowInfo flow)
+		{
+			Flows[(int)dir]	= flow;
+		}
 	}
 
 
@@ -136,6 +144,24 @@ public sealed class FSNSnapshotSequence
 
 
 		/// <summary>
+		/// 외부에서 함부로 생성 못하게
+		/// </summary>
+		private Traveler() { }
+
+		/// <summary>
+		/// Traveler 생성
+		/// </summary>
+		/// <param name="sequence"></param>
+		/// <returns></returns>
+		public static Traveler GenerateFrom(FSNSnapshotSequence sequence)
+		{
+			var newtr		= new Traveler();
+			newtr.m_current	= sequence.Get(0);				// 첫번째 세그먼트부터 시작
+
+			return newtr;
+		}
+
+		/// <summary>
 		/// 현재 스냅샷
 		/// </summary>
 		public FSNSnapshot Current { get { return m_current.snapshot; } }
@@ -172,7 +198,7 @@ public sealed class FSNSnapshotSequence
 		{
 			if(m_current.CanFlowTo(dir))
 				return m_current.GetLinked(dir).snapshot;
-
+			
 			return null;
 		}
 

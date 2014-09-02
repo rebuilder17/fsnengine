@@ -111,8 +111,15 @@ public sealed class FSNEngine : MonoBehaviour
 	// Members
 
 	Dictionary<string, FSNModule>	m_moduleRefDict;								// 모듈들
-	FSNInGameSetting				m_inGameSetting;								// 현재 인게임 세팅
+	//FSNInGameSetting				m_inGameSetting;								// 현재 인게임 세팅
 
+	FSNSequenceEngine				m_seqEngine;									//
+
+
+	public ICollection<FSNModule>	AllModules
+	{
+		get { return m_moduleRefDict.Values; }
+	}
 
 	// Statics
 
@@ -137,6 +144,9 @@ public sealed class FSNEngine : MonoBehaviour
 		}
 		s_instance			= this;
 
+
+		// 모듈 초기화
+
 		m_moduleRefDict		= new Dictionary<string, FSNModule>();
 
 		var modulesFound	= GetComponentsInChildren<FSNModule>();					// 오브젝트 구조 안에서 모듈 컴포넌트 찾기
@@ -156,6 +166,12 @@ public sealed class FSNEngine : MonoBehaviour
 		}
 
 		InitAllModules();															// 찾아낸 모듈 모두 초기화
+
+
+		// 보조 컴포넌트 초기화
+
+		m_seqEngine				= GetComponent<FSNSequenceEngine>();
+		m_seqEngine.Initialize();
 	}
 
 	/// <summary>

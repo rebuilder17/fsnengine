@@ -187,13 +187,31 @@ public abstract class FSNLayerObject<ElmT>
 }
 
 /// <summary>
+/// (interface) Snapshot의 특정 종류의 Layer를 담당해서 표시하는 모듈
+/// </summary>
+public interface IFSNLayerModule
+{
+	void OldElementOnlyTransition(FSNSnapshot.Layer toLayer, float ratio, bool backward);
+	float StartTransition(FSNSnapshot.Layer toLayer, float startRatioForOlds, bool backward);
+	int LayerID { get; }
+}
+
+/// <summary>
 /// Snapshot의 특정 종류의 Layer를 담당해서 표시하는 모듈
 /// </summary>
 /// <typeparam name="ObjT">이 모듈이 컨트롤할 FSNLayerObject 타입</typeparam>
-public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule
+public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	where ElmT : class, FSNSnapshot.IElement
 	where ObjT : FSNLayerObject<ElmT>
 {
+	// Properties
+
+	[SerializeField]
+	protected int	m_layerID;												// 이 모듈이 나타내는 레이어 ID
+	[SerializeField]
+	Transform		m_objectRootTransform;									// LayerObject가 배치될 루트
+
+
 	// Members
 
 
@@ -202,11 +220,39 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule
 	/// </summary>
 	Dictionary<int, ObjT>	m_objectDict	= new Dictionary<int,ObjT>();
 
-	FSNSnapshot.Layer		m_curLayerRef	= new FSNSnapshot.Layer();		// 현재 표시중인 레이어 레퍼런스
+	FSNSnapshot.Layer		m_curLayerRef	= FSNSnapshot.Layer.Empty;		// 현재 표시중인 레이어 레퍼런스
 
 	FSNSnapshot.Layer		m_lastTargetLayerRef	= null;					// 가장 최근에 비교한 트랜지션 타겟 레이어
 	FSNSnapshot.Layer.Match	m_lastTargetLayerDiff;							// 가장 최근에 비교한 내역
 
+
+	/// <summary>
+	/// 오브젝트가 배치될 루트
+	/// </summary>
+	public Transform ObjectRoot
+	{
+		get
+		{
+			if(m_objectRootTransform == null)								// 루트 트랜스폼이 지정되지 않은 경우, 자기 자신의 것을 대입
+				m_objectRootTransform	= transform;
+			return m_objectRootTransform;
+		}
+	}
+
+	/// <summary>
+	/// 모든 오브젝트 리스트
+	/// </summary>
+	protected ICollection<ObjT> AllObjects
+	{
+		get { return m_objectDict.Values; }
+	}
+
+	/// <summary>
+	/// 모듈이 표시할 레이어 ID
+	/// </summary>
+	public int LayerID { get { return m_layerID; } }
+
+	//=============================================================================
 
 	/// <summary>
 	/// 새 레이어 오브젝트 인스턴스 생성
@@ -258,6 +304,11 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule
 		}
 	}
 
+	/// <summary>
+	/// 이터레이션을 위한 유틸리티
+	/// </summary>
+	/// <param name="uIdArray"></param>
+	/// <param name="action"></param>
 	static void IterateUIDArray(int[] uIdArray, System.Action<int> action)
 	{
 		int count	= uIdArray.Length;
@@ -332,20 +383,20 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule
 
 			m_objectDict[uId].DoTransition(finalElem as ElmT, startRatioForOlds, trTime, true);
 
+			m_objectDict.Remove(uId);											// 딕셔너리에서 해당 오브젝트 제거
+
 			if(longestDuration < trTime) longestDuration = trTime;				// 제일 긴 트랜지션 시간 추적하기
 		});
 
 		// *** 다음에 처음 등장하는 오브젝트들
 		IterateOnlyInOtherUIDs((int uId) =>
 		{
-			var currentElem	= m_curLayerRef.GetElement(uId) as ElmT;
+			var currentElem	= toLayer.GetElement(uId) as ElmT;
 			var initialElem	= backward? currentElem.GenericFinalState : currentElem.GenericInitialState;	// 역방향이면 finalState, 정방향이면 InitialState 로 초기세팅한다
 			float trTime	= initialElem.TransitionTime;						// 현재 상태로 transition하지만 시간값은 최초 상태값에 지정된 걸 사용한다.
 
 			var newobj		= AddNewLayerObject(initialElem as ElmT);
 			newobj.DoTransition(currentElem, 0, trTime, false);
-
-			m_objectDict.Remove(uId);											// 딕셔너리에서 해당 오브젝트 제거
 
 			if(longestDuration < trTime) longestDuration = trTime;				// 제일 긴 트랜지션 시간 추적하기
 		});

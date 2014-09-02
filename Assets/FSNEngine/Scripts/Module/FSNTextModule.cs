@@ -9,11 +9,49 @@ namespace LayerObjects
 	/// </summary>
 	public abstract class TextLayerObject : FSNLayerObject<SnapshotElems.Text>
 	{
+		public enum TextAlign
+		{
+			Left,
+			Center,
+			Right,
+		}
+
+		//=========================================================================
+
+
+		string			m_text	= "";
+		/// <summary>
+		/// 텍스트
+		/// </summary>
+		public string Text
+		{
+			get
+			{
+				return m_text;
+			}
+			set
+			{
+				m_text	= value == null? "" : value;
+				UpdateText(m_text);
+			}
+		}
+		/// <summary>
+		/// 정렬
+		/// </summary>
+		public TextAlign Align	{get;set;}
+
+
 		public TextLayerObject(FSNModule parent, GameObject gameObj)
 			: base(parent, gameObj)
 		{
 
 		}
+
+		/// <summary>
+		/// 텍스트 업데이트
+		/// </summary>
+		/// <param name="newText"></param>
+		protected abstract void UpdateText(string newText);
 	}
 }
 
@@ -34,7 +72,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.TextSegmen
 
 	public override void Initialize()
 	{
-		// 
+		m_layerID	= (int)FSNSnapshot.PreDefinedLayers.Text;		// 레이어 ID 강제지정
 	}
 
 

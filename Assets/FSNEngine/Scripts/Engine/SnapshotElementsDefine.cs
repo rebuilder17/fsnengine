@@ -9,6 +9,12 @@ namespace SnapshotElems
 	/// </summary>
 	public class Text : FSNSnapshot.Element<Text>
 	{
+		public string text;
 
+		protected override void CopyDataTo(Text to)
+		{
+			base.CopyDataTo(to);
+			to.text	= text;
+		}
 	}
 }
