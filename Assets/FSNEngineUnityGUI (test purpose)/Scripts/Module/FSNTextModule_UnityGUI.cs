@@ -24,6 +24,22 @@ namespace LayerObjects
 		{
 			gameObject.guiText.text	= newText;
 		}
+
+		protected override void UpdatePosition(Vector3 position)
+		{
+			//base.UpdatePosition(position);
+			Vector2 pixelPos;
+			pixelPos.x		= position.x;
+			pixelPos.y		= Screen.height - position.y;
+			gameObject.guiText.pixelOffset	= pixelPos;
+		}
+
+		protected override void UpdateColor(Color color)
+		{
+			//base.UpdateColor(color);
+
+			gameObject.guiText.color	= color;
+		}
 	}
 }
 

@@ -52,6 +52,13 @@ namespace LayerObjects
 		/// </summary>
 		/// <param name="newText"></param>
 		protected abstract void UpdateText(string newText);
+
+		public override void SetStateFully(SnapshotElems.Text to)
+		{
+			base.SetStateFully(to);
+
+			Text	= to.text;
+		}
 	}
 }
 

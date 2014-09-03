@@ -11,12 +11,15 @@ public class FSNSequenceEngine : MonoBehaviour
 	// Constants
 
 	const float			c_maxSwipeToTransitionRatio	= 0.5f;				// 최대로 Swipe했을 때의 Transition 진행율
+	//const float			c_maxSwipeToTransitionRatio	= 0.0f;				// 최대로 Swipe했을 때의 Transition 진행율
 
 
 	// Members
 
 	FSNSnapshotSequence.Traveler			m_snapshotTraveler;			// 스냅샷 트라벨러
 	SortedDictionary<int, IFSNLayerModule>	m_layerModules;				// 레이어 모듈
+
+	float									m_swipeAvailableTime;		// swipe가 가능해지는 시간. (이 시간이 지나야 가능해짐)
 
 	/// <summary>
 	/// 현재 InGame 세팅
@@ -33,6 +36,17 @@ public class FSNSequenceEngine : MonoBehaviour
 			{
 				return FSNInGameSetting.DefaultInGameSetting;
 			}
+		}
+	}
+
+	/// <summary>
+	/// Swipe 가능한지 여부
+	/// </summary>
+	public bool CanSwipe
+	{
+		get
+		{
+			return Time.time > m_swipeAvailableTime;
 		}
 	}
 
@@ -70,6 +84,9 @@ public class FSNSequenceEngine : MonoBehaviour
 	/// <param name="backward">반대 방향으로 swipe하는 경우인지 여부</param>
 	public void PartialSwipe(FSNInGameSetting.FlowDirection direction, float ratio)
 	{
+		if(!CanSwipe)														// Swipe 불가능한 상태면 리턴
+			return;
+
 		var nextshot	= m_snapshotTraveler.GetLinkedSnapshot(direction);
 		if(nextshot != null)												// * 넘길 수 있는 경우만 처리
 		{
@@ -97,11 +114,15 @@ public class FSNSequenceEngine : MonoBehaviour
 	/// <param name="direction"></param>
 	public void FullSwipe(FSNInGameSetting.FlowDirection direction)
 	{
-		Debug.Log("full swipe : " + direction);
+		if(!CanSwipe)														// Swipe 불가능한 상태면 리턴
+			return;
+
 		var nextshot	= m_snapshotTraveler.GetLinkedSnapshot(direction);
 		if(nextshot != null)												// * 실제로 가능한 경우만 처리
 		{
 			var curshot	= m_snapshotTraveler.Current;
+
+			float transTime		= 0f;										// 트랜지션 시간
 
 			foreach(var module in m_layerModules.Values)					// 현재 로드된 모든 LayerModule 에 맞는 레이어를 찾아 각각 처리한다
 			{
@@ -109,18 +130,17 @@ public class FSNSequenceEngine : MonoBehaviour
 				var oldLayer	= curshot.GetLayer(layerID)	?? FSNSnapshot.Layer.Empty;
 				var newLayer	= nextshot.GetLayer(layerID) ?? FSNSnapshot.Layer.Empty;
 
-				if(oldLayer == FSNSnapshot.Layer.Empty)
-					Debug.Log("oldLayer is FSNSnapshot.Layer.Empty");
-				if(newLayer == FSNSnapshot.Layer.Empty)
-					Debug.Log("newLayer is FSNSnapshot.Layer.Empty");
-
 				if(oldLayer.IsEmpty && newLayer.IsEmpty)					// * 둘 다 비어있으면 아무것도 하지 않는다
 					continue;
 
-				Debug.Log("there is something to show");
 				bool isBackward	= InGameSetting.BackwardFlowDirection == direction;
-				module.StartTransition(newLayer, c_maxSwipeToTransitionRatio, isBackward);	// 트랜지션
+				float curtt		= module.StartTransition(newLayer, c_maxSwipeToTransitionRatio, isBackward);	// 트랜지션
+
+				if(transTime < curtt)										// 제일 긴 트랜지션 시간 추적
+					transTime = curtt;
 			}
+
+			m_swipeAvailableTime	= Time.time + transTime;				// 현재 시간 + 트랜지션에 걸리는 시간 뒤에 swipe가 가능해짐
 
 			m_snapshotTraveler.TravelTo(direction);							// 해당 방향으로 넘기기
 		}

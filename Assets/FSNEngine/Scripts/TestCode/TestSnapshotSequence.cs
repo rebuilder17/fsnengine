@@ -81,6 +81,10 @@ public partial class FSNSnapshotSequence
 		sshot_01	.SetFlow(FSNInGameSetting.FlowDirection.Down, new Segment.FlowInfo() { Linked = sshot_02 });
 		sshot_02	.SetFlow(FSNInGameSetting.FlowDirection.Down, new Segment.FlowInfo() { Linked = sshot_end });
 
+		sshot_01	.SetFlow(FSNInGameSetting.FlowDirection.Up, new Segment.FlowInfo() { Linked = sshot_start });
+		sshot_02	.SetFlow(FSNInGameSetting.FlowDirection.Up, new Segment.FlowInfo() { Linked = sshot_01 });
+		sshot_end	.SetFlow(FSNInGameSetting.FlowDirection.Up, new Segment.FlowInfo() { Linked = sshot_02 });
+
 		return sequence;
 	}
 }

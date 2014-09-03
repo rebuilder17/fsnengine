@@ -72,6 +72,13 @@ public abstract class FSNLayerObject<ElmT>
 		}
 	}
 
+	protected void SetColorAndAlpha(Color color, float alpha)
+	{
+		m_color	= color;
+		m_alpha	= alpha;
+		UpdateColor(FinalColor);
+	}
+
 
 	Color		m_finalColor;
 	/// <summary>
@@ -159,9 +166,10 @@ public abstract class FSNLayerObject<ElmT>
 	{
 		float startTime	= Time.time;								// 시작 시간 기록
 		float elapsed;
-		while((elapsed = Time.time - startTime) <= duration)		// 지속시간동안 매 프레임마다 루프
+		while((elapsed = Time.time - startTime) <= duration)		// 지속시간동안 매 프레임마다 루프, 각 시점마다 진행율에 따라서 트랜지션
 		{
-			TransitionWith(to, Mathf.Lerp(startRatio, 1, elapsed / duration));
+			float t		= Mathf.Pow(elapsed / duration, 0.5f);		// TODO : Transition 애니메이션 시 t 곡선 커스터마이징 가능하게
+			TransitionWith(to, Mathf.Lerp(startRatio, 1, t));
 			yield return null;
 		}
 
