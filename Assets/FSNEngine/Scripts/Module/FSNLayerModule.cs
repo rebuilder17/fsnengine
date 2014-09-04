@@ -20,6 +20,9 @@ public abstract class FSNLayerObject<ElmT>
 	FSNModule	m_module;		// 이 오브젝트를 생성한 모듈
 	FSNCoroutineComponent m_coComp;	// 코루틴 컴포넌트
 
+	int			m_uId;			// Unique ID
+	System.Action<int>	m_killedDel;	// 오브젝트 Kill 시 호출할 델리게이트
+
 
 	/// <summary>
 	/// 이 오브젝트를 생성한 모듈
@@ -185,12 +188,20 @@ public abstract class FSNLayerObject<ElmT>
 
 	//============================================================================
 
+	public void ConenctKillEvent(System.Action<int> del, int uId)
+	{
+		m_uId		= uId;
+		m_killedDel	= del;
+	}
+
 	/// <summary>
 	/// GameObject 를 포함하여 클린업
 	/// </summary>
 	public virtual void Kill()
 	{
 		GameObject.Destroy(gameObject);
+		if(m_killedDel != null)
+			m_killedDel(m_uId);
 	}
 }
 
@@ -287,7 +298,8 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	/// <param name="backward"></param>
 	ObjT AddNewLayerObject(ElmT element)
 	{
-		ObjT newObj	= MakeNewLayerObject();
+		ObjT newObj		= MakeNewLayerObject();
+		newObj.ConenctKillEvent(OnObjectKilled, element.UniqueID);
 		newObj.SetStateFully(element);
 		m_objectDict[element.UniqueID]	= newObj;
 
@@ -391,7 +403,7 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 
 			m_objectDict[uId].DoTransition(finalElem as ElmT, startRatioForOlds, trTime, true);
 
-			m_objectDict.Remove(uId);											// 딕셔너리에서 해당 오브젝트 제거
+			//m_objectDict.Remove(uId);											// 딕셔너리에서 해당 오브젝트 제거
 
 			if(longestDuration < trTime) longestDuration = trTime;				// 제일 긴 트랜지션 시간 추적하기
 		});
@@ -415,5 +427,14 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 		
 
 		return longestDuration;
+	}
+
+	/// <summary>
+	/// 오브젝트가 Kill되었을 때
+	/// </summary>
+	/// <param name="uId"></param>
+	protected void OnObjectKilled(int uId)
+	{
+		m_objectDict.Remove(uId);	// 딕셔너리에서 삭제
 	}
 }

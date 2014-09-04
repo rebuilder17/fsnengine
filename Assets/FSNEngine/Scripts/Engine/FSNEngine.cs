@@ -29,13 +29,7 @@ public sealed class FSNInGameSetting
 	/// <summary>
 	/// 반대 방향 구하기
 	/// </summary>
-	public FlowDirection BackwardFlowDirection
-	{
-		get
-		{
-			return GetOppositeFlowDirection(CurrentFlowDirection);
-		}
-	}
+	public FlowDirection BackwardFlowDirection	= FlowDirection.Up;
 
 	/// <summary>
 	/// Swipe할 시의 "무게감" (얼만큼 swipe해야 다음으로 넘어가는가)

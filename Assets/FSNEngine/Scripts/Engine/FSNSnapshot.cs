@@ -117,8 +117,9 @@ public class FSNSnapshot
 		/// 이 Element를 복제한 Element를 만든다.
 		/// 동일한 UniqueID를 지니게 되며, 현재 스냅샷 - 다음 스냅샷으로 계승되는 Element를 만들어내기 위해 필요
 		/// </summary>
+		/// <param name="cloneInitialFinalState">시작/끝 상태도 복제할 것인지. false면 복제하지 않고 원본의 것을 그대로 사용한다. (레퍼런싱)</param>
 		/// <returns></returns>
-		public SelfT Clone()
+		public SelfT Clone(bool cloneInitialFinalState = false)
 		{
 			if(!CanUse)
 			{
@@ -128,6 +129,12 @@ public class FSNSnapshot
 			//SelfT newElem		= MakeInstance();
 			SelfT newElem		= new SelfT();
 			newElem.UniqueID	= UniqueID;			// UniqueID 복제
+			if(cloneInitialFinalState)				// 플래그가 있을 경우, Initial/Final State도 복제
+			{
+				InitialState	= InitialState.Clone();
+				FinalState		= FinalState.Clone();
+			}
+
 			CopyDataTo(newElem);					// 기타 데이터 복제
 
 			return newElem;

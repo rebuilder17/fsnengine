@@ -90,6 +90,7 @@ public class FSNSequenceEngine : MonoBehaviour
 		var nextshot	= m_snapshotTraveler.GetLinkedSnapshot(direction);
 		if(nextshot != null)												// * 넘길 수 있는 경우만 처리
 		{
+			//Debug.Log("Link available");
 			var curshot	= m_snapshotTraveler.Current;
 
 			foreach(var module in m_layerModules.Values)				// 현재 로드된 모든 LayerModule 에 맞는 레이어를 찾아 각각 처리한다
@@ -100,7 +101,7 @@ public class FSNSequenceEngine : MonoBehaviour
 
 				if(oldLayer.IsEmpty && newLayer.IsEmpty)				// * 둘 다 비어있으면 아무것도 하지 않는다
 					continue;
-
+				//Debug.Log("Layer processing");
 				bool isBackward	= InGameSetting.BackwardFlowDirection == direction;
 				float trRatio	= ratio * c_maxSwipeToTransitionRatio;
 				module.OldElementOnlyTransition(newLayer, trRatio, isBackward);	// 트랜지션

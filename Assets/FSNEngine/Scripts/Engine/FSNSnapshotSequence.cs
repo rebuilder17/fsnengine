@@ -54,10 +54,7 @@ public sealed partial class FSNSnapshotSequence
 		/// <summary>
 		/// 반대방향
 		/// </summary>
-		public FSNInGameSetting.FlowDirection BackDirection
-		{
-			get { return FSNInGameSetting.GetOppositeFlowDirection(FlowDirection); }
-		}
+		public FSNInGameSetting.FlowDirection BackDirection;
 
 		/// <summary>
 		/// 방향마다 정보 (다음 세그먼트 등)
@@ -67,7 +64,7 @@ public sealed partial class FSNSnapshotSequence
 		/// <summary>
 		/// 파라미터
 		/// </summary>
-		public object Parameter;
+		public object Parameter	= null;
 
 
 		//=======================================================================
