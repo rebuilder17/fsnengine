@@ -8,6 +8,8 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class FSNInGameSetting
 {
+	// TODO : 세팅을 완전히 덮어쓰는 것이 아닌 일부만 세팅할 수 있게 하는 시스템이 필요함
+
 	/// <summary>
 	/// 진행 방향
 	/// </summary>

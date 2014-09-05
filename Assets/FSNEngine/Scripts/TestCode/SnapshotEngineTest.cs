@@ -66,8 +66,16 @@ public class SnapshotEngineTest : MonoBehaviour
 	void Start()
 	{
 		m_seqEngine	= GetComponent<FSNSequenceEngine>();
+		//
 
+		// 테스트 1.
 		m_seqEngine.StartSnapshotSequence(FSNSnapshotSequence.GenerateTestSequence());
+
+
+		// 테스트 2.
+		FSNSequence	rawSeq	= FSNSequence.GenerateTestSequence();	// FSNSequence 테스트. 나중에 SnapshotSequence 를 만드는 테스트를 할거임
+
+
 	}
 
 	void Update()

@@ -62,7 +62,25 @@ public class FSNSequence
 
 	#region TEST CODE
 
+	public static FSNSequence GenerateTestSequence()
+	{
+		var sequence		= new FSNSequence();
+		Segments.TextSegment	tempTextSeg;
 
+		tempTextSeg			= new Segments.TextSegment();
+		tempTextSeg.Text	= "테스트 01";
+		sequence.m_segments.Add(tempTextSeg);
+
+		tempTextSeg			= new Segments.TextSegment();
+		tempTextSeg.Text	= "테스트 02";
+		sequence.m_segments.Add(tempTextSeg);
+
+		tempTextSeg			= new Segments.TextSegment();
+		tempTextSeg.Text	= "테스트 03";
+		sequence.m_segments.Add(tempTextSeg);
+
+		return sequence;
+	}
 
 	#endregion
 }
