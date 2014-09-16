@@ -52,6 +52,10 @@ public class FSNSequence
 	List<Segment>			m_segments;				// Sequence에 포함된 모든 segments
 	Dictionary<string, int>	m_labelToIndex;			// Label => list의 Index로
 
+	public FSNSequence()
+	{
+		m_segments = new List<Segment>();
+	}
 
 	//=====================================================================================
 
