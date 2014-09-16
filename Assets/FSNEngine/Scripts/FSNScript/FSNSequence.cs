@@ -50,7 +50,7 @@ public class FSNSequence
 	// Members
 
 	List<Segment>			m_segments;				// Sequence에 포함된 모든 segments
-
+	Dictionary<string, int>	m_labelToIndex;			// Label => list의 Index로
 
 
 	//=====================================================================================
@@ -65,19 +65,27 @@ public class FSNSequence
 	public static FSNSequence GenerateTestSequence()
 	{
 		var sequence		= new FSNSequence();
+		sequence.m_segments	= new List<Segment>();//임시, 나중에는 필요없어질것
 		Segments.TextSegment	tempTextSeg;
+		Segments.PeriodSegment	periodSeg	= new Segments.PeriodSegment();
 
 		tempTextSeg			= new Segments.TextSegment();
 		tempTextSeg.Text	= "테스트 01";
 		sequence.m_segments.Add(tempTextSeg);
 
+		sequence.m_segments.Add(periodSeg);
+
 		tempTextSeg			= new Segments.TextSegment();
 		tempTextSeg.Text	= "테스트 02";
 		sequence.m_segments.Add(tempTextSeg);
 
+		sequence.m_segments.Add(periodSeg);
+
 		tempTextSeg			= new Segments.TextSegment();
 		tempTextSeg.Text	= "테스트 03";
 		sequence.m_segments.Add(tempTextSeg);
+
+		sequence.m_segments.Add(periodSeg);
 
 		return sequence;
 	}

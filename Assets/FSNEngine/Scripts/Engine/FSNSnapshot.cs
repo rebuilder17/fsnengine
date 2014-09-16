@@ -33,6 +33,11 @@ public class FSNSnapshot
 		/// </summary>
 		IElement GenericFinalState { get; }
 
+		/// <summary>
+		/// 이 오브젝트의 원본 오브젝트. 즉, "이전 상태"에 해당하는 것
+		/// </summary>
+		IElement GenericClonedFrom { get; }
+
 		Vector3 Position { get; }
 		Color Color { get; }
 		float Alpha { get; }
@@ -97,6 +102,11 @@ public class FSNSnapshot
 		/// </summary>
 		public SelfT FinalState		{ get; private set; }
 
+		/// <summary>
+		/// 오브젝트의 오리지널, 즉 "이전 상태"
+		/// </summary>
+		public SelfT ClonedFrom		{ get; private set; }
+
 		
 
 		//=============================================
@@ -111,6 +121,8 @@ public class FSNSnapshot
 
 			InitialState	= Clone();				// InitialState/FinalState 를 자기 복제로 만들어둔다
 			FinalState		= Clone();
+
+			ClonedFrom		= null;
 		}
 
 		/// <summary>
@@ -134,6 +146,7 @@ public class FSNSnapshot
 				InitialState	= InitialState.Clone();
 				FinalState		= FinalState.Clone();
 			}
+			newElem.ClonedFrom	= this as SelfT;	// 이 오브젝트가 오리지널
 
 			CopyDataTo(newElem);					// 기타 데이터 복제
 
@@ -163,6 +176,7 @@ public class FSNSnapshot
 		public IElement GenericInitialState { get { return InitialState; } }
 		public IElement GenericFinalState { get { return FinalState; } }
 		public IElement GenericClone()	{ return Clone(); }
+		public IElement GenericClonedFrom { get { return ClonedFrom; } }
 	}
 
 	/// <summary>

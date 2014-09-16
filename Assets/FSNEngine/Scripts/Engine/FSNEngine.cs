@@ -43,6 +43,18 @@ public sealed class FSNInGameSetting
 	/// </summary>
 	public int	FontSize	= 18;
 
+	/// <summary>
+	/// 새 텍스트를 화면 언저리가 아닌 화면 한가운데로 끌어오는지
+	/// </summary>
+	public bool ScreenCenterText	= false;
+
+	/// <summary>
+	/// 텍스트들을 쌓는지 여부. (이전 텍스트가 바로 없어지지 않고 화면 바깥으로 밀려나가야 사라지는 식)
+	/// </summary>
+	public bool StackTexts			= true;
+
+
+
 	//===============================================================================
 
 

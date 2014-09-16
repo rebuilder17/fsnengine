@@ -89,7 +89,7 @@ public class FSNTextModule_UnityGUI : FSNTextModule<LayerObjects.Text_UnityGUI>
 		return new LayerObjects.Text_UnityGUI(this, newObj);
 	}
 
-	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, Segments.TextSegment nextSeg)
+	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, Segments.TextSegment nextSeg, FSNInGameSetting nextSetting)
 	{
 		throw new System.NotImplementedException();
 	}
