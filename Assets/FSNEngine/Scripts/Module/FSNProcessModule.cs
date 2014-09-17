@@ -78,14 +78,5 @@ public abstract class FSNProcessModule<SegT, ElmT, ObjT> : FSNLayerModule<ElmT, 
 	/// <param name="curLayer"></param>
 	/// <param name="nextSeg"></param>
 	/// <returns></returns>
-	public abstract FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, SegT nextSeg, FSNInGameSetting nextSetting);
-
-	/// <summary>
-	/// 해당 layer와 다음 명령어 조각을 사용해서 다음 layer 상태를 생성하여 리턴한다.
-	/// 현재 Snapshot에 특정 명령어가 적용된 후의 Snapshot을 만들어내는 데 사용.
-	/// </summary>
-	public FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, FSNSequence.Segment nextSeg, FSNInGameSetting nextSetting)
-	{
-		return GenerateNextLayerImage(curLayer, nextSeg as SegT, nextSetting);
-	}
+	public abstract FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, FSNSequence.Segment nextSeg, FSNInGameSetting nextSetting);
 }

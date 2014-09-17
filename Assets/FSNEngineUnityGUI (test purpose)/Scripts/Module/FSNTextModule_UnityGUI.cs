@@ -22,12 +22,17 @@ namespace LayerObjects
 		/// </summary>
 		public void OnGUI(MonoBehaviour context)
 		{
+			var oldFontSize	= GUI.skin.label.fontSize;
+			GUI.skin.label.fontSize	= (int)FontSize;
+
 			var size		= GUI.skin.label.CalcSize(new GUIContent(m_realStr));
 			var oldColor	= GUI.color;
 			GUI.color		= m_realCol;
 			GUI.Label(new Rect(m_realPos.x, m_realPos.y, size.x, size.y), m_realStr);
-			GUI.color		= oldColor;
 
+			// 옛날 값으로 복구
+			GUI.color		= oldColor;
+			GUI.skin.label.fontSize	= oldFontSize;
 		}
 
 		protected override void UpdateText(string newText)
@@ -39,12 +44,12 @@ namespace LayerObjects
 		protected override void UpdatePosition(Vector3 position)
 		{
 			//base.UpdatePosition(position);
-			Vector2 pixelPos;
-			pixelPos.x		= position.x;
-			//pixelPos.y		= Screen.height - position.y;
-			pixelPos.y		= position.y;
-			//gameObject.guiText.pixelOffset	= pixelPos;
-			m_realPos	= pixelPos;
+
+
+			float toRealRatio	= Screen.height / FSNEngine.Instance.ScreenYSize;	// 가상 좌표를 실제 스크린 좌표로 변환
+			
+			m_realPos.x			= Screen.width / 2 + (position.x * toRealRatio);
+			m_realPos.y			= Screen.height / 2 - (position.y * toRealRatio);
 		}
 
 		protected override void UpdateColor(Color color)
@@ -53,6 +58,11 @@ namespace LayerObjects
 
 			//gameObject.guiText.color	= color;
 			m_realCol	= color;
+		}
+
+		protected override void UpdateFontSize(float newSize)
+		{
+			
 		}
 	}
 }
@@ -89,9 +99,31 @@ public class FSNTextModule_UnityGUI : FSNTextModule<LayerObjects.Text_UnityGUI>
 		return new LayerObjects.Text_UnityGUI(this, newObj);
 	}
 
-	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, Segments.TextSegment nextSeg, FSNInGameSetting nextSetting)
+	public override Vector2 CalculateTextSize(string text, float size)
 	{
-		throw new System.NotImplementedException();
+		// GUI 루프 바깥에서는 GUI 콜을 할 수가 없음. 따라서 임의로 값을 계산한다. (테스트용이니까 어차피 괜찮음...)
+
+		int lineCount	= 0;
+		int maxColCount	= 0;
+
+		foreach(string line in text.Split('\n'))
+		{
+			lineCount++;
+
+			int charCount	= line.Length;
+			int curColCount	= 0;
+			for(int i = 0; i < charCount; i++)
+			{
+				curColCount += (text[i] > 255)? 2 : 1;
+			}
+
+			maxColCount	= Mathf.Max(maxColCount, curColCount);
+		}
+
+		Vector2 finalSize;
+		finalSize.y	= lineCount * size;
+		finalSize.x	= (float)maxColCount * size * 0.5f;
+		return finalSize;
 	}
 
 	void OnGUI()

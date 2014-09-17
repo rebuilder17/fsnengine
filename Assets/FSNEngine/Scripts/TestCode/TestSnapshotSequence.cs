@@ -40,6 +40,7 @@ public partial class FSNSnapshotSequence
 
 		var text01_0					= new SnapshotElems.Text();
 		text01_0.text					= "문자열 테스트 01";
+		text01_0.fontSize				= 16;
 		text01_0.Position				= new Vector3(0, 300);
 		text01_0.Color					= Color.white;
 		text01_0.Alpha					= 1;
@@ -94,6 +95,7 @@ public partial class FSNSnapshotSequence
 
 		var text02_0					= new SnapshotElems.Text();
 		text02_0.text					= "으오와아아아앙";
+		text02_0.fontSize				= 32;
 		text02_0.Position				= new Vector3(50, 200);
 		text02_0.Color					= Color.white;
 		text02_0.Alpha					= 1;

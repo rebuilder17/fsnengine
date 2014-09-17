@@ -27,11 +27,11 @@ public sealed class FSNInGameSetting
 	/// <summary>
 	/// 현재 진행 방향
 	/// </summary>
-	public FlowDirection CurrentFlowDirection	= FlowDirection.Down;
+	public FlowDirection CurrentFlowDirection	= FlowDirection.Up;
 	/// <summary>
 	/// 반대 방향 구하기
 	/// </summary>
-	public FlowDirection BackwardFlowDirection	= FlowDirection.Up;
+	public FlowDirection BackwardFlowDirection	= FlowDirection.Down;
 
 	/// <summary>
 	/// Swipe할 시의 "무게감" (얼만큼 swipe해야 다음으로 넘어가는가)
@@ -41,7 +41,7 @@ public sealed class FSNInGameSetting
 	/// <summary>
 	/// 폰트 크기
 	/// </summary>
-	public int	FontSize	= 18;
+	public float	FontSize	= 18;
 
 	/// <summary>
 	/// 새 텍스트를 화면 언저리가 아닌 화면 한가운데로 끌어오는지
@@ -113,7 +113,40 @@ public sealed class FSNEngine : MonoBehaviour
 
 	// Properties
 
+	[SerializeField]
+	float							m_screenYSize	= 720;							// 계산에 사용할 화면 Y 길이
 
+
+	/// <summary>
+	/// 계산에 사용할 화면 Y 길이
+	/// </summary>
+	public float ScreenYSize
+	{
+		get { return m_screenYSize; }
+	}
+
+	/// <summary>
+	/// 계산에 사용할 화면 X 길이
+	/// </summary>
+	public float ScreenXSize
+	{
+		get
+		{
+			float ratio	= (float)Screen.width / (float)Screen.height;
+			return m_screenYSize * ratio;
+		}
+	}
+
+	/// <summary>
+	/// 계산에 사용할 화면 크기
+	/// </summary>
+	public Vector2 ScreenDimension
+	{
+		get
+		{
+			return new Vector2() { x = ScreenXSize, y = ScreenYSize };
+		}
+	}
 
 
 	// Members
