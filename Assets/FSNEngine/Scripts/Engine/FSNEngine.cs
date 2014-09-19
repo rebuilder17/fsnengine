@@ -59,6 +59,7 @@ public sealed class FSNInGameSetting
 
 
 	private static Dictionary<FlowDirection, FlowDirection>	s_oppositeDirection;	// FlowDirection의 반대방향 딕셔너리 (검색용)
+	private static Dictionary<FlowDirection, Vector2>		s_dirUnitVector;		// FlowDirection에 각각 해당하는 단위 벡터
 
 	/// <summary>
 	/// 디폴트 인게임 세팅 (static)
@@ -74,6 +75,12 @@ public sealed class FSNInGameSetting
 		s_oppositeDirection[FlowDirection.Up]		= FlowDirection.Down;
 		s_oppositeDirection[FlowDirection.Left]		= FlowDirection.Right;
 		s_oppositeDirection[FlowDirection.Right]	= FlowDirection.Left;
+
+		s_dirUnitVector	= new Dictionary<FlowDirection, Vector2>();
+		s_dirUnitVector[FlowDirection.Up]			= Vector2.up;
+		s_dirUnitVector[FlowDirection.Down]			= -Vector2.up;
+		s_dirUnitVector[FlowDirection.Left]			= -Vector2.right;
+		s_dirUnitVector[FlowDirection.Right]		= Vector2.right;
 	}
 
 	/// <summary>
@@ -95,6 +102,16 @@ public sealed class FSNInGameSetting
 	public static bool IsOppositeDirection(FlowDirection direction, FlowDirection another)
 	{
 		return s_oppositeDirection[direction] == another;
+	}
+
+	/// <summary>
+	/// FlowDirection을 Unit Vector 로 바꾸기
+	/// </summary>
+	/// <param name="direction"></param>
+	/// <returns></returns>
+	public static Vector2 GetUnitVectorFromFlowDir(FlowDirection direction)
+	{
+		return s_dirUnitVector[direction];
 	}
 }
 

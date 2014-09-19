@@ -47,6 +47,11 @@ public class FSNSnapshot
 		/// 사용 가능한지 여부
 		/// </summary>
 		bool CanUse { get; }
+
+		/// <summary>
+		/// 복제로 연결된 엘레먼트가 총 몇 개 있는지
+		/// </summary>
+		int ChainedParentCount { get; }
 	}
 
 	/// <summary>
@@ -106,6 +111,26 @@ public class FSNSnapshot
 		/// 오브젝트의 오리지널, 즉 "이전 상태"
 		/// </summary>
 		public SelfT ClonedFrom		{ get; private set; }
+
+		/// <summary>
+		/// 복제로 연결된 엘레먼트가 총 몇 개 있는지
+		/// </summary>
+		public int ChainedParentCount
+		{
+			get
+			{
+				// TODO : 카운트를 캐싱해두고 ClonnedFrom 에 무언가 지정할 때 계산하는 방식으로 최적화가 가능할 것 같음.
+
+				int count		= 0;
+				var parentRef	= ClonedFrom;
+				while(parentRef != null)
+				{
+					parentRef	= parentRef.ClonedFrom;
+					count++;
+				}
+				return count;
+			}
+		}
 
 		
 
@@ -257,6 +282,15 @@ public class FSNSnapshot
 		}
 
 		/// <summary>
+		/// Element 삭제
+		/// </summary>
+		/// <param name="uId"></param>
+		public void RemoveElement(int uId)
+		{
+			m_elements.Remove(uId);
+		}
+
+		/// <summary>
 		/// UniqueID 로 element를 구한다
 		/// </summary>
 		/// <param name="uId"></param>
@@ -284,6 +318,17 @@ public class FSNSnapshot
 			get
 			{
 				return m_elements.Keys;
+			}
+		}
+
+		/// <summary>
+		/// 포함되어있는 엘레먼트들
+		/// </summary>
+		public ICollection<IElement> Elements
+		{
+			get
+			{
+				return m_elements.Values;
 			}
 		}
 
