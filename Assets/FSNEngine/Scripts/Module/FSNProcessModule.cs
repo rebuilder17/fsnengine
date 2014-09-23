@@ -32,7 +32,7 @@ public interface IFSNProcessModuleFootprint
 /// </summary>
 /// <typeparam name="SegT">이 모듈에서 처리할 스크립트 명령어 조각 타입</typeparam>
 /// <typeparam name="ObjT">이 모듈이 컨트롤할 FSNLayerObject 타입</typeparam>
-public abstract class FSNProcessModule<SegT, ElmT, ObjT> : FSNLayerModule<ElmT, ObjT>
+public abstract class FSNProcessModule<SegT, ElmT, ObjT> : FSNLayerModule<ElmT, ObjT>, IFSNProcessModule
 	where SegT : FSNSequence.Segment
 	where ElmT : class, FSNSnapshot.IElement
 	where ObjT : FSNLayerObject<ElmT>

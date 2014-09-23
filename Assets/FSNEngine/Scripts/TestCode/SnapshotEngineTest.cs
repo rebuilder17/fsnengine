@@ -69,13 +69,14 @@ public class SnapshotEngineTest : MonoBehaviour
 		//
 
 		// 테스트 1.
-		m_seqEngine.StartSnapshotSequence(FSNSnapshotSequence.GenerateTestSequence());
+		//m_seqEngine.StartSnapshotSequence(FSNSnapshotSequence.GenerateTestSequence());
 
 
 		// 테스트 2.
 		FSNSequence	rawSeq	= FSNSequence.GenerateTestSequence();
-		//var sshotSeq		= FSNSnapshotSequence.Builder.BuildSnapshotSequence(rawSeq);
+		var sshotSeq		= FSNSnapshotSequence.Builder.BuildSnapshotSequence(rawSeq);
 
+		m_seqEngine.StartSnapshotSequence(sshotSeq);
 
 		// 세팅 체인 테스트
 
