@@ -57,7 +57,7 @@ public sealed class FSNEngine : MonoBehaviour
 	// Members
 
 	Dictionary<string, FSNModule>	m_moduleRefDict;								// 모듈들
-	//FSNInGameSetting				m_inGameSetting;								// 현재 인게임 세팅
+	FSNInGameSetting				m_inGameSetting;								// 인게임 세팅 (기본세팅)
 
 	FSNSequenceEngine				m_seqEngine;									//
 
@@ -65,6 +65,11 @@ public sealed class FSNEngine : MonoBehaviour
 	public ICollection<FSNModule>	AllModules
 	{
 		get { return m_moduleRefDict.Values; }
+	}
+
+	public FSNInGameSetting InGameSetting
+	{
+		get { return m_inGameSetting; }
 	}
 
 	// Statics
@@ -89,6 +94,11 @@ public sealed class FSNEngine : MonoBehaviour
 			return;
 		}
 		s_instance			= this;
+
+
+		// 세팅 초기화
+
+		m_inGameSetting		= new FSNInGameSetting(true);
 
 
 		// 모듈 초기화
@@ -129,5 +139,24 @@ public sealed class FSNEngine : MonoBehaviour
 		{
 			module.Initialize();
 		}
+	}
+
+	/// <summary>
+	/// 모듈 가져오기
+	/// </summary>
+	/// <param name="moduleName"></param>
+	/// <returns></returns>
+	public FSNModule GetModule(string moduleName)
+	{
+		return m_moduleRefDict[moduleName];
+	}
+	/// <summary>
+	/// 모듈 가져오기
+	/// </summary>
+	/// <param name="moduleType"></param>
+	/// <returns></returns>
+	public FSNModule GetModule(FSNEngine.ModuleType moduleType)
+	{
+		return m_moduleRefDict[moduleType.ToString()];
 	}
 }

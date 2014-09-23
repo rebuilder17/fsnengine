@@ -24,7 +24,7 @@ public class FSNSequenceEngine : MonoBehaviour
 	/// <summary>
 	/// 현재 InGame 세팅
 	/// </summary>
-	public FSNInGameSetting InGameSetting
+	public IInGameSetting InGameSetting
 	{
 		get
 		{

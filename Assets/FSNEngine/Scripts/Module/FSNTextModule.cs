@@ -115,7 +115,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.TextSegmen
 	public abstract Vector2 CalculateTextSize(string text, float size);
 
 
-	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, FSNSequence.Segment nextSeg, FSNInGameSetting nextSetting)
+	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, FSNSequence.Segment nextSeg, IInGameSetting nextSetting)
 	{
 		FSNSnapshot.Layer newLayer	= null;
 

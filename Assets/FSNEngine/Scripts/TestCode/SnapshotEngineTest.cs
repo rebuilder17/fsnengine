@@ -73,7 +73,9 @@ public class SnapshotEngineTest : MonoBehaviour
 
 
 		// 테스트 2.
-		FSNSequence	rawSeq	= FSNSequence.GenerateTestSequence();	// FSNSequence 테스트. 나중에 SnapshotSequence 를 만드는 테스트를 할거임
+		FSNSequence	rawSeq	= FSNSequence.GenerateTestSequence();
+		//var sshotSeq		= FSNSnapshotSequence.Builder.BuildSnapshotSequence(rawSeq);
+
 
 		// 세팅 체인 테스트
 
@@ -85,8 +87,10 @@ public class SnapshotEngineTest : MonoBehaviour
 
 		settingbase.SwipeWeight	= 0.8f;
 
-		Debug.Log("Chain font size : " + settingover.FontSize);
-		Debug.Log("Chain SwipeWeight : " + settingover.SwipeWeight);
+		FSNInGameSetting frozen			= settingover.Freeze();
+
+		Debug.Log("Chain font size : " + frozen.FontSize);
+		Debug.Log("Chain SwipeWeight : " + frozen.SwipeWeight);
 	}
 
 	void Update()

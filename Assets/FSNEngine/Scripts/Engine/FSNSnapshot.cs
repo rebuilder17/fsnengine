@@ -417,7 +417,7 @@ public class FSNSnapshot
 	/// <summary>
 	/// 현재 스냅샷의 인게임 세팅
 	/// </summary>
-	public FSNInGameSetting InGameSetting { get; set; }
+	public IInGameSetting InGameSetting { get; set; }
 
 
 	//========================================================================================
@@ -492,6 +492,26 @@ public class FSNSnapshot
 		var newLayer			= new Layer();
 		m_layerList[layerID]	= newLayer;
 		return newLayer;
+	}
+
+	/// <summary>
+	/// 레이어 세팅하기
+	/// </summary>
+	/// <param name="layerID"></param>
+	/// <param name="layer"></param>
+	public void SetLayer(int layerID, Layer layer)
+	{
+		m_layerList[layerID]	= layer;
+	}
+
+	/// <summary>
+	/// 레이어 세팅하기
+	/// </summary>
+	/// <param name="layerName"></param>
+	public void SetLayer(string layerName, Layer layer)
+	{
+		int layerID	= Layer.GetLayerIdFromAlias(layerName);
+		SetLayer(layerID, layer);
 	}
 }
 

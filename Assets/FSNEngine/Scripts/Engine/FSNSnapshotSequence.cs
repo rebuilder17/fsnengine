@@ -51,6 +51,7 @@ public sealed partial class FSNSnapshotSequence
 		/// 보통의 경우, 진행 방향
 		/// </summary>
 		public FSNInGameSetting.FlowDirection FlowDirection;
+
 		/// <summary>
 		/// 반대방향
 		/// </summary>
@@ -109,7 +110,10 @@ public sealed partial class FSNSnapshotSequence
 	private List<Segment>	m_segments	= new List<Segment>();
 
 
-
+	int Length
+	{
+		get { return m_segments.Count; }
+	}
 	
 	void Add(Segment newSeg)
 	{
@@ -122,6 +126,11 @@ public sealed partial class FSNSnapshotSequence
 		return m_segments[index];
 	}
 
+	Segment LastSegment
+	{
+		get { return m_segments[m_segments.Count - 1]; }
+	}
+
 	//====================================================================
 
 	/// <summary>
@@ -129,7 +138,190 @@ public sealed partial class FSNSnapshotSequence
 	/// </summary>
 	public static class Builder
 	{
-		
+		/// <summary>
+		/// 해석중에 사용하는 정보들
+		/// </summary>
+		class State
+		{
+			public FSNSequence				sequence;			// 처리중인 스크립트
+			public int						segIndex;			// 세그먼트 인덱스
+
+			public FSNInGameSetting.Chain	settings;			// 처리중 해석된 세팅
+
+			/// <summary>
+			/// 복제
+			/// </summary>
+			/// <returns></returns>
+			public State Clone()
+			{
+				State newState		= new State();
+
+				newState.sequence	= sequence;
+				newState.segIndex	= segIndex;
+				settings			= settings.CloneEntireChain();
+
+				return newState;
+			}
+		}
+
+		/// <summary>
+		///  FSNSequence를 해석하여 FSNSnapshotSequence를 만든다.
+		/// </summary>
+		/// <param name="sequence"></param>
+		/// <returns></returns>
+		public static FSNSnapshotSequence BuildSnapshotSequence(FSNSequence sequence)
+		{
+			FSNSnapshotSequence	snapshotSeq		= new FSNSnapshotSequence();
+			State				builderState	= new State();
+
+			// State 초기 세팅
+
+			builderState.sequence				= sequence;
+			builderState.segIndex				= 0;
+			builderState.settings				= new FSNInGameSetting.Chain(FSNEngine.Instance.InGameSetting);
+
+
+			// 시작 Snapshot 만들기
+
+			FSNSnapshot startSnapshot			= new FSNSnapshot();
+			startSnapshot.LinkToForward			= true;
+			startSnapshot.InGameSetting			= builderState.settings;
+
+			Segment startSegment				= new Segment();
+			startSegment.Type					= FlowType.Normal;
+			startSegment.snapshot				= startSnapshot;
+
+			snapshotSeq.Add(startSegment);
+
+
+			// 빌드 시작
+			ProcessSnapshotBuild(builderState, snapshotSeq, 0);
+
+			return snapshotSeq;
+		}
+
+		/// <summary>
+		/// FSNSequence 해석. 분기마다 builderState를 복제해야 하므로 새로 호출된다.
+		/// </summary>
+		/// <param name="builderState"></param>
+		/// <param name="snapshotSeq"></param>
+		/// <param name="bs">이번 콜에서 생성할 시퀀스 이전의 스냅샷 인덱스</param>
+		/// <returns>이번 콜에서 생성한 시퀀스들 중 제일 첫번째 것. 다른 시퀀스 흐름과 연결할 때 사용 가능</returns>
+		static Segment ProcessSnapshotBuild(State bs, FSNSnapshotSequence snapshotSeq, int prevSnapshotIndex)
+		{
+			Segment	sseg;														// 새로 생성할 Segment/Snapshot
+			FSNSnapshot sshot;
+			NewSnapshot(out sseg, out sshot);
+
+			var firstSeg		= sseg;											// 최초 스냅샷
+			var prevCallSeg		= snapshotSeq.Get(prevSnapshotIndex);			// 이번에 생성할 시퀀스의 이전 스냅샷
+
+			var lastSeg			= prevCallSeg;									// 바로 이전에 처리한 스냅샷 (최초 루프시에는 실행 이전의 마지막 스냅샷과 동일)
+			//
+
+			FSNInGameSetting frozenSetting	= null;								// 현재의 Chain 세팅값을 굳히기
+			bool settingIsDirty	= true;											// 마지막에 Setting을 굳힌 이후로 세팅이 변했는지 여부 (최초값은 true로 해서 무조건 생성하게 한다)
+			//
+
+
+			// 스크립트 Sequence가 끝나거나 특정 명령을 만날 때까지 반복
+
+			bool keepProcess	= true;
+			while(keepProcess)
+			{
+				var curSeg	= bs.sequence[bs.segIndex];							// 현재 명령어 (Sequence 세그먼트)
+
+				switch(curSeg.type)												// 명령어 타입 체크 후 분기
+				{
+				//////////////////////////////////////////////////////////////
+				case FSNSequence.Segment.Type.Text:								// ** 텍스트
+				{
+					// TODO : 텍스트는 이렇게 그냥 해볼 수도 있겠지만, 다른 레이어들을 어떻게 처리하느냐에 따라서
+					// 모았다가 한번에 Period 타이밍에 처리하는 식으로 바꿔야할수도...
+
+					var module			= FSNEngine.Instance.GetModule(FSNEngine.ModuleType.Text) as IFSNProcessModule;
+
+					var prevTextLayer	= lastSeg.snapshot.GetLayer(FSNSnapshot.PreDefinedLayers.Text)
+											?? FSNSnapshot.Layer.Empty;			// 이전 스냅샷의 텍스트 레이어
+
+					var nextLayer		= module.GenerateNextLayerImage(prevTextLayer, curSeg, bs.settings);	// 다음 레이어 생성
+
+					sshot.SetLayer(module.LayerID, nextLayer);					// 스냅샷에 생성한 레이어 세팅하기
+				}
+				break;
+				//////////////////////////////////////////////////////////////
+				case FSNSequence.Segment.Type.Period:							// ** Period
+				{
+					var periodSeg		= curSeg as Segments.PeriodSegment;
+
+					if(settingIsDirty)											// 세팅이 변경되었다면 굳히기
+					{
+						frozenSetting	= bs.settings.Freeze();
+						settingIsDirty	= false;
+					}
+					sshot.InGameSetting	= frozenSetting;						// 현재까지의 세팅 적용 (굳힌거 사용)
+
+
+					if(lastSeg.Type != FlowType.UserChoice)						// 이전 스냅샷이 선택지가 아니면 바로 연결하기 (선택지일 경우 호출자가 결정하게 함... <- 확실하진 않음)
+					{
+						LinkSnapshots(lastSeg, sseg);
+
+						if(periodSeg.isChaining)								// Chaining 옵션이 켜져있을 경우
+						{
+							lastSeg.snapshot.LinkToForward	= true;
+							sseg.snapshot.LinkToBackward	= true;
+						}
+					}
+
+					snapshotSeq.Add(sseg);										// 현재 스냅샷을 시퀀스에 추가
+					lastSeg	= sseg;
+					NewSnapshot(out sseg, out sshot);							// 새 스냅샷 인스턴스 준비
+				}
+				break;
+				/////////////////////////////////////////////////////////////
+				}
+
+
+				//
+				bs.segIndex++;													// 다음 명령어 인덱스
+
+				if(bs.segIndex >= bs.sequence.Length)							// * Sequence 가 끝났다면 루프 종료
+				{
+					keepProcess	= false;
+				}
+			}
+
+			return firstSeg;
+		}
+
+		/// <summary>
+		/// 새 Segment/Snapshot 세팅 (숏컷)
+		/// </summary>
+		/// <param name="newSeg"></param>
+		/// <param name="newSnapshot"></param>
+		static void NewSnapshot(out Segment newSeg, out FSNSnapshot newSnapshot)
+		{
+			newSnapshot		= new FSNSnapshot();
+			newSeg			= new Segment();
+			newSeg.snapshot	= newSnapshot;
+		}
+
+		/// <summary>
+		/// 스냅샷 단순 연결
+		/// </summary>
+		/// <param name="prev"></param>
+		/// <param name="next"></param>
+		static void LinkSnapshots(Segment prev, Segment next)
+		{
+			var swipeDir		= next.snapshot.InGameSetting.CurrentFlowDirection;		// 다음에 올 시퀀스의 설정값으로 링크 방향을 정한다
+			var backDir			= next.snapshot.InGameSetting.BackwardFlowDirection;
+
+			prev.FlowDirection	= swipeDir;
+			next.BackDirection	= backDir;
+
+			prev.SetFlow(swipeDir, new Segment.FlowInfo() { Linked = next });
+			next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+		}
 	}
 
 	/// <summary>

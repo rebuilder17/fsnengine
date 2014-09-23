@@ -17,26 +17,26 @@ public partial class FSNSnapshotSequence
 		var sshot_start					= new Segment();
 		sequence.Add(sshot_start);
 		sshot_start.Type				= FlowType.Normal;
-		sshot_start.FlowDirection		= FSNInGameSetting.FlowDirection.Down;
-		sshot_start.BackDirection		= FSNInGameSetting.FlowDirection.Up;
+		//sshot_start.FlowDirection		= FSNInGameSetting.FlowDirection.Down;
+		//sshot_start.BackDirection		= FSNInGameSetting.FlowDirection.Up;
 		sshot							= new FSNSnapshot();
 		sshot_start.snapshot			= sshot;
 		sshot.InGameSetting				= new FSNInGameSetting();
-		sshot.InGameSetting.CurrentFlowDirection	= sshot_start.FlowDirection;
-		sshot.InGameSetting.BackwardFlowDirection	= sshot_start.BackDirection;
+		(sshot.InGameSetting as FSNInGameSetting).CurrentFlowDirection	= FSNInGameSetting.FlowDirection.Down;
+		(sshot.InGameSetting as FSNInGameSetting).BackwardFlowDirection	= FSNInGameSetting.FlowDirection.Up;
 		//
 
 		// 첫번재 스냅샷
 		var sshot_01					= new Segment();
 		sequence.Add(sshot_01);
 		sshot_01.Type					= FlowType.Normal;
-		sshot_01.FlowDirection			= FSNInGameSetting.FlowDirection.Down;
-		sshot_01.BackDirection			= FSNInGameSetting.FlowDirection.Up;
+		//sshot_01.FlowDirection			= FSNInGameSetting.FlowDirection.Down;
+		//sshot_01.BackDirection			= FSNInGameSetting.FlowDirection.Up;
 		sshot							= new FSNSnapshot();
 		sshot_01.snapshot				= sshot;
 		sshot.InGameSetting				= new FSNInGameSetting();
-		sshot.InGameSetting.CurrentFlowDirection	= sshot_01.FlowDirection;
-		sshot.InGameSetting.BackwardFlowDirection	= sshot_01.BackDirection;
+		(sshot.InGameSetting as FSNInGameSetting).CurrentFlowDirection	= FSNInGameSetting.FlowDirection.Down;
+		(sshot.InGameSetting as FSNInGameSetting).BackwardFlowDirection	= FSNInGameSetting.FlowDirection.Up;
 
 		var text01_0					= new SnapshotElems.Text();
 		text01_0.text					= "문자열 테스트 01";
@@ -61,13 +61,13 @@ public partial class FSNSnapshotSequence
 		var sshot_02					= new Segment();
 		sequence.Add(sshot_02);
 		sshot_02.Type					= FlowType.Normal;
-		sshot_02.FlowDirection			= FSNInGameSetting.FlowDirection.Left;
-		sshot_02.BackDirection			= FSNInGameSetting.FlowDirection.Up;
+		//sshot_02.FlowDirection			= FSNInGameSetting.FlowDirection.Left;
+		//sshot_02.BackDirection			= FSNInGameSetting.FlowDirection.Up;
 		sshot							= new FSNSnapshot();
 		sshot_02.snapshot				= sshot;
 		sshot.InGameSetting				= new FSNInGameSetting();
-		sshot.InGameSetting.CurrentFlowDirection	= sshot_02.FlowDirection;
-		sshot.InGameSetting.BackwardFlowDirection	= sshot_02.BackDirection;
+		(sshot.InGameSetting as FSNInGameSetting).CurrentFlowDirection	= FSNInGameSetting.FlowDirection.Left;
+		(sshot.InGameSetting as FSNInGameSetting).BackwardFlowDirection	= FSNInGameSetting.FlowDirection.Up;
 
 		var text01_1					= text01_0.Clone();
 		text01_1.Position				= new Vector3(0, 200);
@@ -81,13 +81,13 @@ public partial class FSNSnapshotSequence
 		var sshot_03					= new Segment();
 		sequence.Add(sshot_03);
 		sshot_03.Type					= FlowType.Normal;
-		sshot_03.FlowDirection			= FSNInGameSetting.FlowDirection.Left;
-		sshot_03.BackDirection			= FSNInGameSetting.FlowDirection.Right;
+		//sshot_03.FlowDirection			= FSNInGameSetting.FlowDirection.Left;
+		//sshot_03.BackDirection			= FSNInGameSetting.FlowDirection.Right;
 		sshot							= new FSNSnapshot();
 		sshot_03.snapshot				= sshot;
 		sshot.InGameSetting				= new FSNInGameSetting();
-		sshot.InGameSetting.CurrentFlowDirection	= sshot_03.FlowDirection;
-		sshot.InGameSetting.BackwardFlowDirection	= sshot_03.BackDirection;
+		(sshot.InGameSetting as FSNInGameSetting).CurrentFlowDirection	= FSNInGameSetting.FlowDirection.Left;
+		(sshot.InGameSetting as FSNInGameSetting).BackwardFlowDirection	= FSNInGameSetting.FlowDirection.Right;
 
 		var text01_2					= text01_0.Clone();
 		text01_2.Position				= new Vector3(200, 200);
@@ -117,26 +117,26 @@ public partial class FSNSnapshotSequence
 		var sshot_end					= new Segment();
 		sequence.Add(sshot_end);
 		sshot_end.Type					= FlowType.Normal;
-		sshot_end.FlowDirection			= FSNInGameSetting.FlowDirection.Left;
-		sshot_end.BackDirection			= FSNInGameSetting.FlowDirection.Right;
+		//sshot_end.FlowDirection			= FSNInGameSetting.FlowDirection.Left;
+		//sshot_end.BackDirection			= FSNInGameSetting.FlowDirection.Right;
 		sshot							= new FSNSnapshot();
 		sshot_end.snapshot				= sshot;
 		sshot.InGameSetting				= new FSNInGameSetting();
-		sshot.InGameSetting.CurrentFlowDirection	= sshot_end.FlowDirection;
-		sshot.InGameSetting.BackwardFlowDirection	= sshot_end.BackDirection;
+		(sshot.InGameSetting as FSNInGameSetting).CurrentFlowDirection	= FSNInGameSetting.FlowDirection.Left;
+		(sshot.InGameSetting as FSNInGameSetting).BackwardFlowDirection	= FSNInGameSetting.FlowDirection.Right;
 		//
 
 		// 분기 첫번째 스냅샷
 		var sshot_11					= new Segment();
 		sequence.Add(sshot_03);
 		sshot_11.Type					= FlowType.Normal;
-		sshot_11.FlowDirection			= FSNInGameSetting.FlowDirection.Down;
-		sshot_11.BackDirection			= FSNInGameSetting.FlowDirection.Up;
+		//sshot_11.FlowDirection			= FSNInGameSetting.FlowDirection.Down;
+		//sshot_11.BackDirection			= FSNInGameSetting.FlowDirection.Up;
 		sshot							= new FSNSnapshot();
 		sshot_11.snapshot				= sshot;
 		sshot.InGameSetting				= new FSNInGameSetting();
-		sshot.InGameSetting.CurrentFlowDirection	= sshot_11.FlowDirection;
-		sshot.InGameSetting.BackwardFlowDirection	= sshot_11.BackDirection;
+		(sshot.InGameSetting as FSNInGameSetting).CurrentFlowDirection	= FSNInGameSetting.FlowDirection.Down;
+		(sshot.InGameSetting as FSNInGameSetting).BackwardFlowDirection	= FSNInGameSetting.FlowDirection.Up;
 
 		var text01_3					= text01_0.Clone(true);
 		text01_3.Position				= new Vector3(0, 100);
@@ -167,13 +167,13 @@ public partial class FSNSnapshotSequence
 		var sshot_end2					= new Segment();
 		sequence.Add(sshot_end2);
 		sshot_end2.Type					= FlowType.Normal;
-		sshot_end2.FlowDirection		= FSNInGameSetting.FlowDirection.Down;
-		sshot_end2.BackDirection		= FSNInGameSetting.FlowDirection.Up;
+		//sshot_end2.FlowDirection		= FSNInGameSetting.FlowDirection.Down;
+		//sshot_end2.BackDirection		= FSNInGameSetting.FlowDirection.Up;
 		sshot							= new FSNSnapshot();
 		sshot_end2.snapshot				= sshot;
 		sshot.InGameSetting				= new FSNInGameSetting();
-		sshot.InGameSetting.CurrentFlowDirection	= sshot_end2.FlowDirection;
-		sshot.InGameSetting.BackwardFlowDirection	= sshot_end2.BackDirection;
+		(sshot.InGameSetting as FSNInGameSetting).CurrentFlowDirection	= FSNInGameSetting.FlowDirection.Down;
+		(sshot.InGameSetting as FSNInGameSetting).BackwardFlowDirection	= FSNInGameSetting.FlowDirection.Up;
 		//
 
 

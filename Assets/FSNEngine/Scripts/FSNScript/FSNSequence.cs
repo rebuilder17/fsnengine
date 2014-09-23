@@ -59,8 +59,28 @@ public class FSNSequence
 
 	//=====================================================================================
 
+	/// <summary>
+	/// Sequence 길이
+	/// </summary>
+	public int Length
+	{
+		get { return m_segments.Count; }
+	}
 
+	/// <summary>
+	/// 해당 위치의 Segment 구하기
+	/// </summary>
+	/// <param name="index"></param>
+	/// <returns></returns>
+	public Segment GetSegment(int index)
+	{
+		return m_segments[index];
+	}
 
+	public Segment this[int index]
+	{
+		get { return GetSegment(index); }
+	}
 
 	//=====================================================================================
 

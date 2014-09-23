@@ -178,6 +178,8 @@ public abstract class BaseInGameSetting : IInGameSetting
 	public virtual bool StackTexts { get; set; }
 }
 
+
+
 /// <summary>
 /// 게임 내 실행중 스크립트로 조작하는 세팅. 초기화 값이 곧 디폴트 세팅값
 /// </summary>
@@ -212,6 +214,15 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 			ScreenCenterText		= false;
 			StackTexts				= true;
 		}
+	}
+
+	/// <summary>
+	/// 세팅 복제
+	/// </summary>
+	/// <returns></returns>
+	public FSNInGameSetting Clone()
+	{
+		return MemberwiseClone() as FSNInGameSetting;
 	}
 
 	//===============================================================================
@@ -300,14 +311,26 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 			m_overridProperties	= new HashSet<string>();
 		}
 
+		/// <summary>
+		/// 프로퍼티 set, Generic버전
+		/// </summary>
+		/// <typeparam name="valT"></typeparam>
+		/// <param name="setterName"></param>
+		/// <param name="value"></param>
 		void SetProperty<valT>(string setterName, valT value)
 		{
-			var propName	= setterName.Substring(4);				// set_ 부분을 제거
+			var propName		= setterName.Substring(4);				// set_ 부분을 제거
 
 			m_currentRaw.GetSetter<valT>(propName)(value);			// raw 데이터 부분에 setting
 			m_overridProperties.Add(propName);						// 오버라이드되었다는 표시를 남겨둔다
 		}
 
+		/// <summary>
+		/// 프로퍼티 get, Generic버전
+		/// </summary>
+		/// <typeparam name="valT"></typeparam>
+		/// <param name="getterName"></param>
+		/// <returns></returns>
 		valT GetProperty<valT>(string getterName)
 		{
 			var propName		= getterName.Substring(4);							// get_ 부분을 제거
@@ -343,9 +366,84 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 			return getter();
 		}
 
+
+		/// <summary>
+		/// 연결된 모든 Chain과 최종 Parent까지 모두 복제한 사본을 리턴한다
+		/// </summary>
+		/// <returns></returns>
+		public Chain CloneEntireChain()
+		{
+			// 1. 최종 parent를 찾는다 + Chain을 거꾸로 뒤집어 보관해둔다
+
+			FSNInGameSetting root;
+			Chain			search	= this;
+			Stack<Chain> revChain	= new Stack<Chain>();	// Chain을 거꾸로 쌓은 것
+
+			revChain.Push(search);							// 맨 첫번째 Chain 우선 쌓아두기
+
+			while(search.m_parentChainVer != null)			// (Parent가 더이상 Chain이 아니게 될 때까지 루프)
+			{
+				search	= search.m_parentChainVer;			// 다음 Chain으로 점프
+				revChain.Push(search);						// 그 다음 Chain 쌓기
+			}
+			root		= search.m_parent as FSNInGameSetting;	// Chain이 아닌 최종 root를 찾음
+
+
+			// 2. root 위의 chain 부터 하나씩 클로닝한다
+
+			IInGameSetting parent	= root.Clone();			// root 부터 클론해서 사용
+			Chain curClone;
+			do
+			{												// 거꾸로 Chain을 쌓은 stack을 모두 소비할 때까지 반복 (= 원래 Chain의 최상층까지 루프)
+				Chain origChain	= revChain.Pop();
+				curClone		= CloneChain(origChain, parent);
+				parent			= curClone;					// 현재 복제한 것이 다음번 parent
+
+			} while(revChain.Count > 0);
+
+			return curClone;								// 최상층 복제를 리턴
+		}
+		/// <summary>
+		/// 새 Parent를 지정하여 체인 1개 복제
+		/// </summary>
+		/// <param name="original"></param>
+		/// <param name="newParent"></param>
+		/// <returns></returns>
+		static Chain CloneChain(Chain original, IInGameSetting newParent)
+		{
+			Chain cloned		= new Chain(newParent);								// 지정한 parent로 클로닝
+
+			cloned.m_currentRaw	= original.m_currentRaw.Clone();					// 설정값 구조체 복제
+			cloned.m_overridProperties.UnionWith(original.m_overridProperties);		// 오바라이드 목록도 복제
+
+			return cloned;
+		}
+
+		/// <summary>
+		/// 모든 Chain의 변경 사항을 FSNInGameSetting 하나로 옮긴다
+		/// </summary>
+		/// <returns></returns>
+		public FSNInGameSetting Freeze()
+		{
+			FSNInGameSetting frozen	= new FSNInGameSetting(false);
+
+			var propNames			= FSNInGameSetting.PropertyNames;
+			int count				= propNames.Length;
+			for(int i = 0; i < count; i++)											// 모든 프로퍼티 이름에 대해서 순회
+			{
+				string propname		= propNames[i];
+				var value			= typeof(Chain).GetProperty(propname).GetValue(this, null);	// 현재 Chain에서 얻어온 값을
+				typeof(FSNInGameSetting).GetProperty(propname).SetValue(frozen, value, null);	// FSNInGameSetting 에 설정
+			}
+
+			return frozen;
+		}
+
 		//======================================================================
 
 		// Properties
+
+		// 단순히 SetProperty<> GetProperty<> 를 콜하는 것들임.
 
 		public FSNInGameSetting.FlowDirection CurrentFlowDirection
 		{
