@@ -302,6 +302,14 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		HashSet<string>		m_overridProperties;		// 이 Chain 오브젝트에 고유하게 설정된 (오버라이드된) 프로퍼티 이름
 
 
+		/// <summary>
+		/// 상위 계층의 Chain일 구함. 만약 Chain이 없으면 null
+		/// </summary>
+		public Chain ParentChain
+		{
+			get { return m_parentChainVer; }
+		}
+
 		public Chain(IInGameSetting parent)
 		{
 			m_parent			= parent;

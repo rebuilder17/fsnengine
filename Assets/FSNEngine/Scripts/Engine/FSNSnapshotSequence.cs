@@ -148,6 +148,34 @@ public sealed partial class FSNSnapshotSequence
 
 			public FSNInGameSetting.Chain	settings;			// 처리중 해석된 세팅
 
+			FSNInGameSetting				m_frozenSetting;
+			bool							m_settingIsDirty	= true;
+
+			/// <summary>
+			/// 현재 세팅을 고정시킨 세팅값 얻어오기
+			/// </summary>
+			public FSNInGameSetting			FrozenSetting
+			{
+				get
+				{
+					if(m_settingIsDirty)
+					{
+						m_frozenSetting		= settings.Freeze();
+						m_settingIsDirty	= false;
+					}
+
+					return m_frozenSetting;
+				}
+			}
+
+			/// <summary>
+			/// 세팅 변경되었음 체크
+			/// </summary>
+			public void SetSettingDirty()
+			{
+				m_settingIsDirty	= true;
+			}
+
 			/// <summary>
 			/// 복제
 			/// </summary>
@@ -160,9 +188,68 @@ public sealed partial class FSNSnapshotSequence
 				newState.segIndex	= segIndex;
 				settings			= settings.CloneEntireChain();
 
+				newState.m_settingIsDirty	= true;	// 안전을 위해 무조건 Dirty 상태로 둔다
+
 				return newState;
 			}
 		}
+
+		/// <summary>
+		/// 한 Snapshot 에 필요한 Module 콜들을 한번에 모았다가 처리하기 위한 헬퍼 클래스
+		/// </summary>
+		class ModuleCallQueue
+		{
+			Dictionary<IFSNProcessModule, List<FSNProcessModuleCallParam>>	m_moduleCallTable	= new Dictionary<IFSNProcessModule, List<FSNProcessModuleCallParam>>();
+
+			/// <summary>
+			/// 등록된 콜 모두 초기화
+			/// </summary>
+			public void ClearCall()
+			{
+				foreach(var callList in m_moduleCallTable.Values)
+				{
+					callList.Clear();
+				}
+			}
+
+			/// <summary>
+			/// 콜 추가
+			/// </summary>
+			/// <param name="module"></param>
+			/// <param name="segment"></param>
+			public void AddCall(IFSNProcessModule module, FSNSequence.Segment segment, IInGameSetting setting)
+			{
+				if(!m_moduleCallTable.ContainsKey(module))
+					m_moduleCallTable[module]	= new List<FSNProcessModuleCallParam>();
+
+				m_moduleCallTable[module].Add(new FSNProcessModuleCallParam() { segment = segment, setting = setting });
+			}
+
+			/// <summary>
+			/// 쌓인 콜 모두 실행 후 Clear
+			/// </summary>
+			public void ProcessCall(FSNSnapshot prevSnapshot, FSNSnapshot curSnapshot)
+			{
+				foreach(var pair in m_moduleCallTable)
+				{
+					if(pair.Value.Count > 0)							// * 실질적인 call이 있을 때만 실행
+					{
+						var module		= pair.Key;
+						var prevLayer	= prevSnapshot.GetLayer(module.LayerID) ?? FSNSnapshot.Layer.Empty;
+
+						var callInfo	= pair.Value;
+
+						var newLayer	= module.GenerateNextLayerImage(prevLayer, callInfo.ToArray());
+
+						curSnapshot.SetLayer(module.LayerID, newLayer);
+					}
+				}
+
+				ClearCall();
+			}
+		}
+
+		//=======================================================================
 
 		/// <summary>
 		///  FSNSequence를 해석하여 FSNSnapshotSequence를 만든다.
@@ -209,6 +296,8 @@ public sealed partial class FSNSnapshotSequence
 		/// <returns>이번 콜에서 생성한 시퀀스들 중 제일 첫번째 것. 다른 시퀀스 흐름과 연결할 때 사용 가능</returns>
 		static Segment ProcessSnapshotBuild(State bs, FSNSnapshotSequence snapshotSeq, int prevSnapshotIndex)
 		{
+			ModuleCallQueue moduleCalls	= new ModuleCallQueue();
+
 			Segment	sseg;														// 새로 생성할 Segment/Snapshot
 			FSNSnapshot sshot;
 			NewSnapshot(out sseg, out sshot);
@@ -217,10 +306,6 @@ public sealed partial class FSNSnapshotSequence
 			var prevCallSeg		= snapshotSeq.Get(prevSnapshotIndex);			// 이번에 생성할 시퀀스의 이전 스냅샷
 
 			var lastSeg			= prevCallSeg;									// 바로 이전에 처리한 스냅샷 (최초 루프시에는 실행 이전의 마지막 스냅샷과 동일)
-			//
-
-			FSNInGameSetting frozenSetting	= null;								// 현재의 Chain 세팅값을 굳히기
-			bool settingIsDirty	= true;											// 마지막에 Setting을 굳힌 이후로 세팅이 변했는지 여부 (최초값은 true로 해서 무조건 생성하게 한다)
 			//
 
 
@@ -234,6 +319,38 @@ public sealed partial class FSNSnapshotSequence
 				switch(curSeg.type)												// 명령어 타입 체크 후 분기
 				{
 				//////////////////////////////////////////////////////////////
+				case FSNSequence.Segment.Type.Setting:							// ** 세팅
+				{
+					var settingSeg		= curSeg as Segments.SettingSegment;
+
+					if(settingSeg.settingMethod == Segments.SettingSegment.SettingMethod.Pop)	// * 세팅 pop
+					{
+						if(bs.settings.ParentChain != null)
+						{
+							bs.settings	= bs.settings.ParentChain;
+						}
+						else
+						{
+							Debug.LogError("Cannot pop settings anymore - there is no settings pushed");
+						}
+					}
+					else
+					{
+						if(settingSeg.settingMethod == Segments.SettingSegment.SettingMethod.Push)	// * Push일 경우에는 새 Chain을 생성한다
+						{
+							bs.settings	= new FSNInGameSetting.Chain(bs.settings);
+						}
+
+						foreach(var settingPair in settingSeg.RawSettingTable)	// Setting 설정
+						{
+							// TODO
+						}
+					}
+
+					bs.SetSettingDirty();										// 세팅 변경됨 플래그 올리기
+				}
+				break;
+				//////////////////////////////////////////////////////////////
 				case FSNSequence.Segment.Type.Text:								// ** 텍스트
 				{
 					// TODO : 텍스트는 이렇게 그냥 해볼 수도 있겠지만, 다른 레이어들을 어떻게 처리하느냐에 따라서
@@ -241,12 +358,7 @@ public sealed partial class FSNSnapshotSequence
 
 					var module			= FSNEngine.Instance.GetModule(FSNEngine.ModuleType.Text) as IFSNProcessModule;
 
-					var prevTextLayer	= lastSeg.snapshot.GetLayer(FSNSnapshot.PreDefinedLayers.Text)
-											?? FSNSnapshot.Layer.Empty;			// 이전 스냅샷의 텍스트 레이어
-
-					var nextLayer		= module.GenerateNextLayerImage(prevTextLayer, curSeg, bs.settings);	// 다음 레이어 생성
-
-					sshot.SetLayer(module.LayerID, nextLayer);					// 스냅샷에 생성한 레이어 세팅하기
+					moduleCalls.AddCall(module, curSeg, bs.FrozenSetting);		// 해당 명령 저장
 				}
 				break;
 				//////////////////////////////////////////////////////////////
@@ -254,13 +366,9 @@ public sealed partial class FSNSnapshotSequence
 				{
 					var periodSeg		= curSeg as Segments.PeriodSegment;
 
-					if(settingIsDirty)											// 세팅이 변경되었다면 굳히기
-					{
-						frozenSetting	= bs.settings.Freeze();
-						settingIsDirty	= false;
-					}
-					sshot.InGameSetting	= frozenSetting;						// 현재까지의 세팅 적용 (굳힌거 사용)
+					sshot.InGameSetting	= bs.FrozenSetting;						// 현재까지의 세팅 적용 (굳힌거 사용)
 
+					moduleCalls.ProcessCall(lastSeg.snapshot, sshot);			// 지금까지 모인 모듈 콜 집행하기
 
 					if(lastSeg.Type != FlowType.UserChoice)						// 이전 스냅샷이 선택지가 아니면 바로 연결하기 (선택지일 경우 호출자가 결정하게 함... <- 확실하진 않음)
 					{

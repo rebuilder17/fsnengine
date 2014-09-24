@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Segments
 {
@@ -82,10 +83,41 @@ namespace Segments
 		/// </summary>
 		public SettingMethod settingMethod;
 
+
+		private Dictionary<string, object>	m_settingDict	= null;
+
+		/// <summary>
+		/// 세팅 딕셔너리 구하기
+		/// </summary>
+		public Dictionary<string, object> RawSettingTable
+		{
+			get { return m_settingDict; }
+		}
+
 		/// <summary>
 		/// 세팅
 		/// </summary>
-		public FSNInGameSetting setting	= null;
+		public object this[string propname]
+		{
+			get
+			{
+				object value	= null;
+				if(m_settingDict != null)
+				{
+					m_settingDict.TryGetValue(propname, out value);
+				}
+
+				return value;
+			}
+
+			set
+			{
+				if(m_settingDict == null)
+					m_settingDict	= new Dictionary<string, object>();
+
+				m_settingDict[propname]	= value;
+			}
+		}
 	}
 }
 

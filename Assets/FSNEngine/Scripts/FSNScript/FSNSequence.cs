@@ -15,7 +15,7 @@ public class FSNSequence
 	public abstract class Segment
 	{
 		/// <summary>
-		/// 명령어 종류, 앞/뒤 캐싱 등에 활용
+		/// 명령어 종류
 		/// </summary>
 		public enum Type
 		{

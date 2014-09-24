@@ -235,7 +235,10 @@ public class FSNSnapshot
 		
 		private Dictionary<int, IElement>	m_elements;		// 레이어에 포함된 Element
 
-
+		/// <summary>
+		/// 추가 데이터
+		/// </summary>
+		public object CustomData { get; set; }
 
 		// Static Memebers
 
@@ -340,6 +343,7 @@ public class FSNSnapshot
 		/// <summary>
 		/// 이 Layer를 복제한 오브젝트를 만들어낸다.
 		/// 현재 스냅샷의 다음 스냅샷을 만들 시, 계승되는 오브젝트에 관한 관리를 하기 위해 필요함
+		/// NOTE : 추가 데이터 (CustomData) 는 복제하지 않음.
 		/// </summary>
 		/// <returns></returns>
 		public Layer Clone()

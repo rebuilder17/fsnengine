@@ -114,20 +114,17 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.TextSegmen
 	/// <param name="size"></param>
 	public abstract Vector2 CalculateTextSize(string text, float size);
 
-
-	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, FSNSequence.Segment nextSeg, IInGameSetting nextSetting)
+	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, params FSNProcessModuleCallParam[] callParams)
 	{
-		FSNSnapshot.Layer newLayer	= null;
+		FSNSnapshot.Layer newLayer	= curLayer.Clone();
 
-		if(nextSeg.type == FSNSequence.Segment.Type.Text)										// ** 텍스트 세그먼트 처리 **
+		if(callParams[0].segment.type == FSNSequence.Segment.Type.Text)										// ** 텍스트 세그먼트 처리 **
 		{
-			newLayer	= curLayer.Clone();
-
 			// TODO : 상하좌우 여백, 정렬 등도 따져야함
 
 
-			var textSeg				= nextSeg as Segments.TextSegment;							// 타입 변환
-			var newTextSize			= CalculateTextSize(textSeg.Text, nextSetting.FontSize);	// 텍스트 영역 크기 미리 구하기
+			var textSeg				= callParams[0].segment as Segments.TextSegment;			// 타입 변환
+			var newTextSize			= CalculateTextSize(textSeg.Text, callParams[0].setting.FontSize);	// 텍스트 영역 크기 미리 구하기
 
 
 			// 새 텍스트 엘레먼트 세팅
@@ -135,7 +132,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.TextSegmen
 			var newTextElem				= new SnapshotElems.Text();
 
 			newTextElem.text			= textSeg.Text;
-			newTextElem.fontSize		= nextSetting.FontSize;
+			newTextElem.fontSize		= callParams[0].setting.FontSize;
 			newTextElem.Color			= Color.white;//TODO
 			newTextElem.Alpha			= 1;
 			newTextElem.TransitionTime	= 1;//TODO
@@ -149,7 +146,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.TextSegmen
 			//Vector3 dirVec		= FSNInGameSetting.GetUnitVectorFromFlowDir(nextSetting.CurrentFlowDirection);
 			Vector2 screenDim	= FSNEngine.Instance.ScreenDimension;	// (계산용) 화면 크기
 			Vector3 fadeinpos;
-			switch(nextSetting.CurrentFlowDirection)					// 흐름 방향에 따라 시작 위치를 지정해준다
+			switch(callParams[0].setting.CurrentFlowDirection)					// 흐름 방향에 따라 시작 위치를 지정해준다
 			{
 			case FSNInGameSetting.FlowDirection.Up:
 				fadeinpos	= new Vector3(-screenDim.x / 2, -screenDim.y / 2);
@@ -174,14 +171,13 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.TextSegmen
 			newTextElem.InitialState.Position	= fadeinpos;
 
 			newLayer.AddElement(newTextElem);							// 텍스트 엘리멘트 추가
-			PushTextsToDirection(newLayer, nextSetting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
+			PushTextsToDirection(newLayer, callParams[0].setting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
 		}
 		else
 		{
 			// TODO : 현재는 다른 명령이 들어오면 무조건 클리어하는 것으로. 복잡해지면 확장 필요
 
-			newLayer	= curLayer.Clone();
-			ClearTextsToDirection(newLayer, nextSetting.CurrentFlowDirection);
+			ClearTextsToDirection(newLayer, callParams[0].setting.CurrentFlowDirection);
 		}
 
 		return newLayer;

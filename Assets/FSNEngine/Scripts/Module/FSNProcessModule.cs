@@ -2,6 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 
+public struct FSNProcessModuleCallParam
+{
+	public FSNSequence.Segment	segment;
+	public IInGameSetting		setting;
+}
 
 /// <summary>
 /// (interface) Snapshot 처리 등에 사용하는 기능을 지원하는 Module 정의
@@ -16,7 +21,7 @@ public interface IFSNProcessModule : IFSNLayerModule
 	/// <param name="curLayer">이전 레이어</param>
 	/// <param name="nextSeg">처리해야할 명령어</param>
 	/// <param name="nextSetting">해당 명령어 시점에서의 설정값</param>
-	FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, FSNSequence.Segment nextSeg, IInGameSetting nextSetting);
+	FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, params FSNProcessModuleCallParam[] callParams);
 }
 
 /// <summary>
@@ -78,5 +83,5 @@ public abstract class FSNProcessModule<SegT, ElmT, ObjT> : FSNLayerModule<ElmT, 
 	/// <param name="curLayer"></param>
 	/// <param name="nextSeg"></param>
 	/// <returns></returns>
-	public abstract FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, FSNSequence.Segment nextSeg, IInGameSetting nextSetting);
+	public abstract FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, params FSNProcessModuleCallParam[] callParams);
 }
