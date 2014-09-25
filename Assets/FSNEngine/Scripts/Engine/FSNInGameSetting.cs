@@ -375,6 +375,37 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		}
 
 
+		public object GetProperty(string propName)
+		{
+			object retv		= null;
+
+			var propInfo	= typeof(Chain).GetProperty(propName);
+			if(propInfo == null)
+			{
+				Debug.LogError("Cannot find a property named " + propName);
+			}
+			else
+			{
+				retv		= propInfo.GetValue(this, null);
+			}
+
+			return retv;
+		}
+
+		public void SetProperty(string propName, object value)
+		{
+			var propInfo	= typeof(Chain).GetProperty(propName);
+			if(propInfo == null)
+			{
+				Debug.LogError("Cannot find a property named " + propName);
+			}
+			else
+			{
+				propInfo.SetValue(this, value, null);
+			}
+		}
+
+
 		/// <summary>
 		/// 연결된 모든 Chain과 최종 Parent까지 모두 복제한 사본을 리턴한다
 		/// </summary>

@@ -90,23 +90,44 @@ public class FSNSequence
 	{
 		var sequence		= new FSNSequence();
 		sequence.m_segments	= new List<Segment>();//임시, 나중에는 필요없어질것
-		Segments.TextSegment	tempTextSeg;
-		Segments.PeriodSegment	periodSeg	= new Segments.PeriodSegment();
+		Segments.Text	tempTextSeg;
+		Segments.Period	periodSeg	= new Segments.Period();
 
-		tempTextSeg			= new Segments.TextSegment();
-		tempTextSeg.Text	= "테스트 01";
+		tempTextSeg			= new Segments.Text();
+		tempTextSeg.text	= "테스트 01";
 		sequence.m_segments.Add(tempTextSeg);
 
 		sequence.m_segments.Add(periodSeg);
 
-		tempTextSeg			= new Segments.TextSegment();
-		tempTextSeg.Text	= "테스트 02";
+		var settingSeg1		= new Segments.Setting();
+		settingSeg1.settingMethod				= Segments.Setting.SettingMethod.Push;
+		settingSeg1["CurrentFlowDirection"]		= FSNInGameSetting.FlowDirection.Right;
+		settingSeg1["BackwardFlowDirection"]	= FSNInGameSetting.FlowDirection.Left;
+		settingSeg1["FontSize"]					= 32f;
+		sequence.m_segments.Add(settingSeg1);
+
+		tempTextSeg			= new Segments.Text();
+		tempTextSeg.text	= "테스트 02";
 		sequence.m_segments.Add(tempTextSeg);
 
 		sequence.m_segments.Add(periodSeg);
 
-		tempTextSeg			= new Segments.TextSegment();
-		tempTextSeg.Text	= "테스트 03";
+		var settingSeg2		= new Segments.Setting();
+		settingSeg2.settingMethod				= Segments.Setting.SettingMethod.Pop;
+		sequence.m_segments.Add(settingSeg2);
+
+		tempTextSeg			= new Segments.Text();
+		tempTextSeg.text	= "테스트 03";
+		sequence.m_segments.Add(tempTextSeg);
+
+		sequence.m_segments.Add(periodSeg);
+
+		var clearTextSeg		= new Segments.Text();
+		clearTextSeg.textType	= Segments.Text.TextType.Clear;
+		sequence.m_segments.Add(clearTextSeg);
+
+		tempTextSeg			= new Segments.Text();
+		tempTextSeg.text	= "테스트 04";
 		sequence.m_segments.Add(tempTextSeg);
 
 		sequence.m_segments.Add(periodSeg);

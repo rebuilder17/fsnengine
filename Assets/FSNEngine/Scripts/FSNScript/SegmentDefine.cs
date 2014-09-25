@@ -7,7 +7,7 @@ namespace Segments
 	/// <summary>
 	/// Period 세그먼트
 	/// </summary>
-	public class PeriodSegment : FSNSequence.Segment
+	public class Period : FSNSequence.Segment
 	{
 		public override Type type
 		{
@@ -23,7 +23,7 @@ namespace Segments
 	/// <summary>
 	/// Label 세그먼트
 	/// </summary>
-	public class LabelSegment : FSNSequence.Segment
+	public class Label : FSNSequence.Segment
 	{
 		public override FSNSequence.Segment.Type type
 		{
@@ -50,7 +50,7 @@ namespace Segments
 	/// <summary>
 	/// 텍스트 세그먼트
 	/// </summary>
-	public class TextSegment : FSNSequence.Segment
+	public class Text : FSNSequence.Segment
 	{
 		public override Type type
 		{
@@ -58,12 +58,38 @@ namespace Segments
 		}
 
 		/// <summary>
+		/// 텍스트 종류
+		/// </summary>
+		public enum TextType
+		{
+			Normal,			// 일반 (디폴트)
+			Options,		// 선택지
+
+			LastOption,		// 방금 선택한 옵션 텍스트
+
+			Clear,			// 텍스트만 모두 지우기
+		}
+
+		/// <summary>
 		/// 한번에 표시되는 텍스트
 		/// </summary>
-		public string Text;
+		public string text;
+
+		/// <summary>
+		/// 텍스트 표시 종류
+		/// </summary>
+		public TextType textType;
+
+		/// <summary>
+		/// 선택지 텍스트
+		/// </summary>
+		public string[] optionTexts;
 	}
 
-	public class SettingSegment : FSNSequence.Segment
+	/// <summary>
+	/// 세팅 세그먼트
+	/// </summary>
+	public class Setting : FSNSequence.Segment
 	{
 		public override Type type
 		{
@@ -118,6 +144,40 @@ namespace Segments
 				m_settingDict[propname]	= value;
 			}
 		}
+	}
+
+	/// <summary>
+	/// 엔진 컨트롤 세그먼트
+	/// </summary>
+	public class Control : FSNSequence.Segment
+	{
+		public override Type type
+		{
+			get { return Type.Control; }
+		}
+		//
+
+		/// <summary>
+		/// 컨트롤 종류
+		/// </summary>
+		public enum ControlType
+		{
+			Clear,					// 내용 모두 지우기
+
+			Oneway,					// 반대 방향으로 진행하지 못하게 하는 플래그
+
+			Goto,					// 라벨로 점프
+			SwipeOption,			// 여러 방향으로 swipe 가능 (선택지에 사용) (주 : 텍스트랑 분리되어있음)
+			Block,					// 해당 분기의 스크립트 해석을 멈춘다. (주 : Period 가 포함되어있지 않으므로, 스크립트 파싱할 때 이 앞쪽에 Period를 넣어줘야함)
+			Load,					// 새 스크립트 로드 (이 이전에 Clear 등이 선행되어야함)
+
+			UnityCall,				// 유니티 콜 (SendMessage)
+		}
+
+		/// <summary>
+		/// 컨트롤 명령 종류
+		/// </summary>
+		public ControlType	controlType;
 	}
 }
 

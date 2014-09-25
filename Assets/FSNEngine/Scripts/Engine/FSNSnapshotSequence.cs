@@ -321,9 +321,9 @@ public sealed partial class FSNSnapshotSequence
 				//////////////////////////////////////////////////////////////
 				case FSNSequence.Segment.Type.Setting:							// ** 세팅
 				{
-					var settingSeg		= curSeg as Segments.SettingSegment;
+					var settingSeg		= curSeg as Segments.Setting;
 
-					if(settingSeg.settingMethod == Segments.SettingSegment.SettingMethod.Pop)	// * 세팅 pop
+					if(settingSeg.settingMethod == Segments.Setting.SettingMethod.Pop)	// * 세팅 pop
 					{
 						if(bs.settings.ParentChain != null)
 						{
@@ -336,14 +336,14 @@ public sealed partial class FSNSnapshotSequence
 					}
 					else
 					{
-						if(settingSeg.settingMethod == Segments.SettingSegment.SettingMethod.Push)	// * Push일 경우에는 새 Chain을 생성한다
+						if(settingSeg.settingMethod == Segments.Setting.SettingMethod.Push)	// * Push일 경우에는 새 Chain을 생성한다
 						{
 							bs.settings	= new FSNInGameSetting.Chain(bs.settings);
 						}
 
 						foreach(var settingPair in settingSeg.RawSettingTable)	// Setting 설정
 						{
-							// TODO
+							bs.settings.SetProperty(settingPair.Key, settingPair.Value);
 						}
 					}
 
@@ -364,7 +364,7 @@ public sealed partial class FSNSnapshotSequence
 				//////////////////////////////////////////////////////////////
 				case FSNSequence.Segment.Type.Period:							// ** Period
 				{
-					var periodSeg		= curSeg as Segments.PeriodSegment;
+					var periodSeg		= curSeg as Segments.Period;
 
 					sshot.InGameSetting	= bs.FrozenSetting;						// 현재까지의 세팅 적용 (굳힌거 사용)
 
