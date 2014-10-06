@@ -362,6 +362,18 @@ public sealed partial class FSNSnapshotSequence
 				}
 				break;
 				//////////////////////////////////////////////////////////////
+				case FSNSequence.Segment.Type.Label:							// ** 레이블
+				{
+					var labelSeg		= curSeg as Segments.Label;
+				}
+				break;
+				//////////////////////////////////////////////////////////////
+				case FSNSequence.Segment.Type.Control:							// ** 엔진 컨트롤
+				{
+					var controlSeg		= curSeg as Segments.Control;
+				}
+				break;
+				//////////////////////////////////////////////////////////////
 				case FSNSequence.Segment.Type.Period:							// ** Period
 				{
 					var periodSeg		= curSeg as Segments.Period;
