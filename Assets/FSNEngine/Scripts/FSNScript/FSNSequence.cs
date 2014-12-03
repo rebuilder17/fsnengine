@@ -116,7 +116,7 @@ public class FSNSequence
 		}
 		else
 		{
-			SetLastSegmentAsLabel(label.name);
+			SetLastSegmentAsLabel(label.labelName);
 		}
 	}
 
@@ -127,6 +127,9 @@ public class FSNSequence
 	/// <returns></returns>
 	public int GetIndexOfLabel(string labelName)
 	{
+		if (!m_labelToIndex.ContainsKey(labelName))
+			Debug.LogError("No label named " + labelName);
+
 		return m_labelToIndex[labelName];
 	}
 
@@ -147,38 +150,38 @@ public class FSNSequence
 
 		sequence.m_segments.Add(periodSeg);
 
-		var settingSeg1		= new Segments.Setting();
-		settingSeg1.settingMethod				= Segments.Setting.SettingMethod.Push;
-		settingSeg1["CurrentFlowDirection"]		= FSNInGameSetting.FlowDirection.Right;
-		settingSeg1["BackwardFlowDirection"]	= FSNInGameSetting.FlowDirection.Left;
-		settingSeg1["FontSize"]					= 32f;
-		sequence.m_segments.Add(settingSeg1);
+		//var settingSeg1		= new Segments.Setting();
+		//settingSeg1.settingMethod				= Segments.Setting.SettingMethod.Push;
+		//settingSeg1["CurrentFlowDirection"]		= FSNInGameSetting.FlowDirection.Right;
+		//settingSeg1["BackwardFlowDirection"]	= FSNInGameSetting.FlowDirection.Left;
+		//settingSeg1["FontSize"]					= 32f;
+		//sequence.m_segments.Add(settingSeg1);
 
-		tempTextSeg			= new Segments.Text();
-		tempTextSeg.text	= "테스트 02";
-		sequence.m_segments.Add(tempTextSeg);
+		//tempTextSeg			= new Segments.Text();
+		//tempTextSeg.text	= "테스트 02";
+		//sequence.m_segments.Add(tempTextSeg);
 
-		sequence.m_segments.Add(periodSeg);
+		//sequence.m_segments.Add(periodSeg);
 
-		var settingSeg2		= new Segments.Setting();
-		settingSeg2.settingMethod				= Segments.Setting.SettingMethod.Pop;
-		sequence.m_segments.Add(settingSeg2);
+		//var settingSeg2		= new Segments.Setting();
+		//settingSeg2.settingMethod				= Segments.Setting.SettingMethod.Pop;
+		//sequence.m_segments.Add(settingSeg2);
 
-		tempTextSeg			= new Segments.Text();
-		tempTextSeg.text	= "테스트 03";
-		sequence.m_segments.Add(tempTextSeg);
+		//tempTextSeg			= new Segments.Text();
+		//tempTextSeg.text	= "테스트 03";
+		//sequence.m_segments.Add(tempTextSeg);
 
-		sequence.m_segments.Add(periodSeg);
+		//sequence.m_segments.Add(periodSeg);
 
-		var clearTextSeg		= new Segments.Text();
-		clearTextSeg.textType	= Segments.Text.TextType.Clear;
-		sequence.m_segments.Add(clearTextSeg);
+		//var clearTextSeg		= new Segments.Text();
+		//clearTextSeg.textType	= Segments.Text.TextType.Clear;
+		//sequence.m_segments.Add(clearTextSeg);
 
-		tempTextSeg			= new Segments.Text();
-		tempTextSeg.text	= "테스트 04";
-		sequence.m_segments.Add(tempTextSeg);
+		//tempTextSeg			= new Segments.Text();
+		//tempTextSeg.text	= "테스트 04";
+		//sequence.m_segments.Add(tempTextSeg);
 
-		sequence.m_segments.Add(periodSeg);
+		//sequence.m_segments.Add(periodSeg);
 
 		var optionSeg		= new Segments.Text();
 		optionSeg.textType	= Segments.Text.TextType.Options;
@@ -190,9 +193,12 @@ public class FSNSequence
 		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Right]= "오른쪽";
 		sequence.m_segments.Add(optionSeg);
 
-		var userChoiceSeg	= new Segments.Control();
+		var userChoiceSeg			= new Segments.Control();
 		userChoiceSeg.controlType	= Segments.Control.ControlType.SwipeOption;
-		// TODO
+		userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Up,		"label_up");
+		//userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Down,	"label_down");
+		userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Left,	"label_left");
+		//userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Right,	"label_right");
 		sequence.m_segments.Add(userChoiceSeg);
 
 		sequence.m_segments.Add(periodSeg);
@@ -203,6 +209,34 @@ public class FSNSequence
 
 
 		// 선택지 : 위
+		var label_up			= new Segments.Label();
+		label_up.labelName		= "label_up";
+		sequence.m_segments.Add(label_up);
+		sequence.RegisterLabelSegment();
+
+		var lastOptionText		= new Segments.Text();
+		lastOptionText.textType = Segments.Text.TextType.LastOption;
+		sequence.m_segments.Add(lastOptionText);
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "up - 테스트 01";
+		sequence.m_segments.Add(tempTextSeg);
+
+		sequence.m_segments.Add(blockSeg);// BLOCK
+
+		// 선택지 : 왼쪽
+		var label_left			= new Segments.Label();
+		label_left.labelName	= "label_left";
+		sequence.m_segments.Add(label_left);
+		sequence.RegisterLabelSegment();
+
+		sequence.m_segments.Add(lastOptionText);
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "left - 테스트 01";
+		sequence.m_segments.Add(tempTextSeg);
+
+		sequence.m_segments.Add(blockSeg);// BLOCK
 
 
 

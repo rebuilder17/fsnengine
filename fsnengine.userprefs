@@ -1,0 +1,15 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\FSNEngine\Scripts\Engine\FSNSnapshotSequence.cs">
+    <Files>
+      <File FileName="Assets\FSNEngine\Scripts\Engine\FSNEngine.cs" Line="1" Column="1" />
+      <File FileName="Assets\FSNEngine\Scripts\Engine\FSNSnapshotSequence.cs" Line="323" Column="33" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="E:\Reb's Data\UnityProject\FSNovelEngine\fsnengine\Assets\FSNEngine\Scripts\Engine\FSNSnapshotSequence.cs" line="420" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>

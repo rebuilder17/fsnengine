@@ -142,6 +142,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 						break;
 
 					case Segments.Text.TextType.LastOption:
+						AddLastOptionText(newLayer, textSeg, callParam.setting);
 						break;
 				}
 
@@ -249,6 +250,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		questionTextElem.Color			= Color.white;//TODO
 		questionTextElem.Alpha			= 1;
 		questionTextElem.TransitionTime	= 1;//TODO
+		questionTextElem.type			= SnapshotElems.Text.Type.OptionTexts;
 		questionTextElem.MakeItUnique();
 
 		questionTextElem.InitialState.Alpha	= 0;
@@ -278,6 +280,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			upTextElem.Color				= Color.white;//TODO
 			upTextElem.Alpha				= 1;
 			upTextElem.TransitionTime		= 1;//TODO
+			upTextElem.type					= SnapshotElems.Text.Type.OptionTexts;
 			upTextElem.MakeItUnique();
 
 			upTextElem.InitialState.Alpha	= 0;
@@ -304,6 +307,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			downTextElem.Color				= Color.white;//TODO
 			downTextElem.Alpha				= 1;
 			downTextElem.TransitionTime		= 1;//TODO
+			downTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
 			downTextElem.MakeItUnique();
 
 			downTextElem.InitialState.Alpha	= 0;
@@ -330,6 +334,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			leftTextElem.Color				= Color.white;//TODO
 			leftTextElem.Alpha				= 1;
 			leftTextElem.TransitionTime		= 1;//TODO
+			leftTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
 			leftTextElem.MakeItUnique();
 
 			leftTextElem.InitialState.Alpha	= 0;
@@ -356,6 +361,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			rightTextElem.Color				= Color.white;//TODO
 			rightTextElem.Alpha				= 1;
 			rightTextElem.TransitionTime	= 1;//TODO
+			rightTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
 			rightTextElem.MakeItUnique();
 
 			rightTextElem.InitialState.Alpha= 0;
@@ -373,6 +379,36 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		//PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
 	}
 
+	private void AddLastOptionText(FSNSnapshot.Layer layer, Segments.Text textSeg, IInGameSetting setting)
+	{
+		// TODO : 상하좌우 여백, 정렬 등도 따져야함
+		// NOTE : 선택한 방향은 setting 쪽에 설정되어 오는 것으로...
+
+		SnapshotElems.Text optionText	= null;
+		foreach (var elem in layer.Elements)												// * 이전 레이어를 전부 뒤져서 진행 방향이 같은 선택지 텍스트를 찾아온다
+		{
+			var textElem	= elem as SnapshotElems.Text;
+			if(textElem.type == SnapshotElems.Text.Type.OptionTexts && textElem.optionDir == setting.CurrentFlowDirection)
+			{
+				optionText = textElem;
+				break;
+			}
+		}
+
+		if(optionText != null)																// * 찾은 경우에 한해서...
+		{
+			var textSize		= CalculateTextSize(optionText.text, optionText.fontSize);
+			optionText.Position	= new Vector3(-textSize.x / 2f, textSize.y / 2f);			// 위치 한가운데로 이동
+			optionText.type		= SnapshotElems.Text.Type.LastOption;						// LastOption 타입으로 변경
+
+			PushTextsToDirection(layer, setting.CurrentFlowDirection, Vector2.zero);		// 기존 텍스트 일괄적으로 해당 방향으로 밀기 (내부 조건체크에 따라 LastOption은 이 타이밍에는 제외된다)
+		}
+		else
+		{
+			Debug.LogError("cannot find option text to direction : " + setting.CurrentFlowDirection.ToString());
+		}
+	}
+
 	/// <summary>
 	/// Layer 안에 들어있는 텍스트들을 특정 방향으로 모두 밀어낸다. 알파값도 변경. 수명이 다 된 것은 제거 처리.
 	/// </summary>
@@ -382,22 +418,42 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	private static void PushTextsToDirection(FSNSnapshot.Layer layer, FSNInGameSetting.FlowDirection direction, Vector2 newTextSize)
 	{
 		Vector2 dirVec		= FSNInGameSetting.GetUnitVectorFromFlowDir(direction);
-		Vector3 transVec	= Vector2.Scale(newTextSize, dirVec);						// 이동할 벡터 양
 		
 		foreach(var uId in layer.UniqueIDList)
 		{
 			var textElem	= layer.GetElement(uId) as SnapshotElems.Text;
-
 			int elemAge		= textElem.ChainedParentCount;
-			if(elemAge < c_textLife)													// 텍스트가 아직 살아있어야하는 경우
+
+			// 텍스트의 종류에 따라서 다른 룰을 적용한다.
+
+			if (textElem.type == SnapshotElems.Text.Type.Normal)						// ** 일반 텍스트
 			{
-				textElem.Alpha		= (float)(c_textLife - elemAge) / (float)c_textLife;
-				textElem.Position	= textElem.Position + transVec;
+				Vector3 transVec		= Vector2.Scale(newTextSize, dirVec);			// 이동할 벡터 양
+
+				if (elemAge < c_textLife)												// 텍스트가 아직 살아있어야하는 경우
+				{
+					textElem.Alpha		= (float)(c_textLife - elemAge) / (float)c_textLife;
+					textElem.Position	= textElem.Position + transVec;
+				}
+				else
+				{																		// 텍스트가 죽어야하는 경우
+					textElem.FinalState.Position	= textElem.Position + transVec;
+					layer.RemoveElement(uId);
+				}
 			}
 			else
-			{																			// 텍스트가 죽어야하는 경우
-				textElem.FinalState.Position	= textElem.Position + transVec;
-				layer.RemoveElement(uId);
+			{																			// ** 기타 (선택지 관련 텍스트)
+				
+				int killAge	= textElem.type == SnapshotElems.Text.Type.OptionTexts? 1 : 2;//(선택한 텍스트는 1턴 더 살아있어야 하므로)
+
+				if (elemAge >= killAge)													// 죽어야하는 경우
+				{
+					Vector2 halfScreen				= FSNEngine.Instance.ScreenDimension / 2f;
+					Vector3 transVec				= Vector2.Scale(dirVec, halfScreen);
+
+					textElem.FinalState.Position	= textElem.Position + transVec;
+					layer.RemoveElement(uId);
+				}
 			}
 		}
 	}

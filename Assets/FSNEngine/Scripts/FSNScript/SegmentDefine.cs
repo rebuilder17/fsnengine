@@ -32,19 +32,22 @@ namespace Segments
 
 		/// <summary>
 		/// 라벨 종류.
-		/// Hard : Label 진입 전에 모든 내용 Clean됨. Label 이전으로 되돌아갈 수 없음 (Default)
+		/// Hard : Label 진입 전에 모든 내용 Clean됨. Label 이전으로 되돌아갈 수 없음
 		/// Soft : Clean하지 않음. 해석시 각 브랜치에서 하나의 label로 흐름이 합쳐지는 경우, 실제 흐름을 통합하지 않고 각각 중복해서 해석하게 됨. 따라서 해석 중 무한 루프를 방지하기 위해서 이미 지나쳐온 Soft Label로는 GOTO로 점프할 수 없음 (GOTO 루프 불가)
+		/// (현재는 Soft가 디폴트)
 		/// </summary>
 		public enum LabelType
 		{
-			Hard,
 			Soft,
+			Hard,
 		}
 
 		/// <summary>
 		/// Label 타입
 		/// </summary>
-		public LabelType labelType	= LabelType.Hard;
+		public LabelType labelType	= LabelType.Soft;
+
+		public string	labelName;
 	}
 
 	/// <summary>
@@ -158,6 +161,19 @@ namespace Segments
 		//
 
 		/// <summary>
+		/// 컨트롤 데이터 기본형
+		/// </summary>
+		interface IControlData { }
+
+		/// <summary>
+		/// 선택지용 데이터
+		/// </summary>
+		private class SwipeOptionData : IControlData
+		{
+			public string [] m_dirLabelDict = new string[4];
+		}
+
+		/// <summary>
 		/// 컨트롤 종류
 		/// </summary>
 		public enum ControlType
@@ -178,6 +194,43 @@ namespace Segments
 		/// 컨트롤 명령 종류
 		/// </summary>
 		public ControlType	controlType;
+
+		IControlData		m_controlData;	// 컨트롤 데이터
+
+
+		//-------------------------------------------------------------------------------------
+
+		/// <summary>
+		/// SwipeOption일 때, 방향에 따른 진행 라벨 추가
+		/// </summary>
+		/// <param name="dir"></param>
+		/// <param name="label"></param>
+		public void SetSwipeOptionData(FSNInGameSetting.FlowDirection dir, string label)
+		{
+			if (controlType != ControlType.SwipeOption)							// 타입체크
+				Debug.LogError("cannot call SetSwipeOptionData without SwipeOption controlType");
+
+			var data			= m_controlData as SwipeOptionData;
+			if (data == null)													// 생성 안된 경우에는 새로 생성
+			{
+				data			= new SwipeOptionData();
+				m_controlData	= data;
+			}
+
+			data.m_dirLabelDict[(int)dir]	= label;
+		}
+
+		/// <summary>
+		/// SwipeOption일 때, 방향에 따른 진행 라벨 구하기
+		/// </summary>
+		/// <param name="dir"></param>
+		public string GetLabelFromSwipeOptionData(FSNInGameSetting.FlowDirection dir)
+		{
+			if (controlType != ControlType.SwipeOption)							// 타입체크
+				Debug.LogError("cannot call SetSwipeOptionData without SwipeOption controlType");
+
+			return (m_controlData as SwipeOptionData).m_dirLabelDict[(int)dir];
+		}
 	}
 }
 

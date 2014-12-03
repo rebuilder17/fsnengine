@@ -144,7 +144,7 @@ public sealed partial class FSNSnapshotSequence
 		class State
 		{
 			public FSNSequence				sequence;			// 처리중인 스크립트
-			public int						segIndex;			// 세그먼트 인덱스
+			public int						segIndex;			// 스크립트의 현재 처리중인 세그먼트 인덱스
 
 			public FSNInGameSetting.Chain	settings;			// 처리중 해석된 세팅
 
@@ -186,7 +186,7 @@ public sealed partial class FSNSnapshotSequence
 
 				newState.sequence	= sequence;
 				newState.segIndex	= segIndex;
-				settings			= settings.CloneEntireChain();
+				newState.settings	= settings.CloneEntireChain();
 
 				newState.m_settingIsDirty	= true;	// 안전을 위해 무조건 Dirty 상태로 둔다
 
@@ -291,8 +291,8 @@ public sealed partial class FSNSnapshotSequence
 		/// FSNSequence 해석. 분기마다 builderState를 복제해야 하므로 새로 호출된다.
 		/// </summary>
 		/// <param name="builderState"></param>
-		/// <param name="snapshotSeq"></param>
-		/// <param name="bs">이번 콜에서 생성할 시퀀스 이전의 스냅샷 인덱스</param>
+		/// <param name="snapshotSeq">이번 콜에서 생성할 시퀀스 이전의 스냅샷 인덱스</param>
+		/// <param name="bs"></param>
 		/// <returns>이번 콜에서 생성한 시퀀스들 중 제일 첫번째 것. 다른 시퀀스 흐름과 연결할 때 사용 가능</returns>
 		static Segment ProcessSnapshotBuild(State bs, FSNSnapshotSequence snapshotSeq, int prevSnapshotIndex)
 		{
@@ -306,6 +306,8 @@ public sealed partial class FSNSnapshotSequence
 			var prevCallSeg		= snapshotSeq.Get(prevSnapshotIndex);			// 이번에 생성할 시퀀스의 이전 스냅샷
 
 			var lastSeg			= prevCallSeg;									// 바로 이전에 처리한 스냅샷 (최초 루프시에는 실행 이전의 마지막 스냅샷과 동일)
+
+			Segments.Control jumpSeg	= null;									// 점프(goto, SwipeOption 등) 세그먼트가 등장했을 경우 여기에 보관된다
 			//
 
 
@@ -316,6 +318,7 @@ public sealed partial class FSNSnapshotSequence
 			{
 				var curSeg	= bs.sequence[bs.segIndex];							// 현재 명령어 (Sequence 세그먼트)
 
+				Debug.Log(curSeg.type.ToString());
 				switch(curSeg.type)												// 명령어 타입 체크 후 분기
 				{
 				//////////////////////////////////////////////////////////////
@@ -353,6 +356,7 @@ public sealed partial class FSNSnapshotSequence
 				//////////////////////////////////////////////////////////////
 				case FSNSequence.Segment.Type.Text:								// ** 텍스트
 				{
+					Debug.Log("Text! " + (curSeg as Segments.Text).textType.ToString());
 					var module			= FSNEngine.Instance.GetModule(FSNEngine.ModuleType.Text) as IFSNProcessModule;
 
 					moduleCalls.AddCall(module, curSeg, bs.FrozenSetting);		// 해당 명령 저장
@@ -363,6 +367,7 @@ public sealed partial class FSNSnapshotSequence
 				{
 					var labelSeg		= curSeg as Segments.Label;
 					// 현재 이 시점에서는 labelSeg로 하는 일이 없다...
+					Debug.Log("Label : " + labelSeg.labelName);
 				}
 				break;
 				//////////////////////////////////////////////////////////////
@@ -377,6 +382,9 @@ public sealed partial class FSNSnapshotSequence
 							break;
 
 						case Segments.Control.ControlType.SwipeOption:
+							sseg.Type	= FlowType.UserChoice;					// 스냅샷 세그먼트 종류 변경 (유저 선택으로)
+
+							jumpSeg		= controlSeg;							// 점프 명령어로 보관해두고 나중에 처리한다.
 
 							break;
 					}
@@ -403,11 +411,59 @@ public sealed partial class FSNSnapshotSequence
 					}
 
 					snapshotSeq.Add(sseg);										// 현재 스냅샷을 시퀀스에 추가
+
+					if(jumpSeg != null)											// * 점프 세그먼트가 있을 경우 처리
+					{
+						int lastSnapshotIndex	= snapshotSeq.LastSegment.Index;					// 분기 콜을 할 때 넘겨줄, 방금 추가한 스냅샷의 인덱스
+
+						// NOTE : 현재 Label은 Soft만 구현한다.
+
+						if (jumpSeg.controlType == Segments.Control.ControlType.SwipeOption)		// *** 선택지
+						{
+							for (int i = 0; i < 4; i++)												// 모든 방향마다 처리
+							{
+								var dir			= (FSNInGameSetting.FlowDirection)i;
+								string label	= jumpSeg.GetLabelFromSwipeOptionData(dir);
+								if (!string.IsNullOrEmpty(label))									// 라벨이 지정된 경우만 처리(= 해당 방향으로 분기가 있을 때만)
+								{
+									int labelIndex	= bs.sequence.GetIndexOfLabel(label);
+									var labelSeg	= bs.sequence.GetSegment(labelIndex) as Segments.Label;
+
+									if (labelSeg.labelType == Segments.Label.LabelType.Soft)		// * SOFT 라벨로 점프
+									{
+										if (labelIndex < bs.segIndex)								// SOFT 라벨은 거슬러올라갈 수 없다.
+											Debug.LogError("Cannot jump to previous soft label");
+
+										var clonnedState		= bs.Clone();						// 상태 복제
+										clonnedState.segIndex	= labelIndex;						// 라벨 인덱스 세팅
+										clonnedState.settings.CurrentFlowDirection	= dir;			// 진행 방향 세팅 - 선택지 방향으로 진행 방향을 강제 세팅한다
+										clonnedState.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(dir);
+
+										var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, lastSnapshotIndex);	// 새 분기 해석하기
+										LinkSnapshotAsOption(sseg, newSeg, dir);					// 선택지로 연결하기
+									}
+									else
+									{																// * HARD 라벨로 점프
+										Debug.LogError("Not implemented");
+									}
+								}
+							}
+						}
+						else if(jumpSeg.controlType == Segments.Control.ControlType.Goto)			// *** GOTO
+						{
+
+						}
+					}
+					jumpSeg	= null;
+
 					lastSeg	= sseg;
 					NewSnapshot(out sseg, out sshot);							// 새 스냅샷 인스턴스 준비
 				}
 				break;
 				/////////////////////////////////////////////////////////////
+				default:
+				Debug.LogError("?????????");
+				break;
 				}
 
 
@@ -449,6 +505,22 @@ public sealed partial class FSNSnapshotSequence
 			next.BackDirection	= backDir;
 
 			prev.SetFlow(swipeDir, new Segment.FlowInfo() { Linked = next });
+			next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+		}
+
+		/// <summary>
+		/// 스냅샷 단순 연결, 선택지 버전
+		/// </summary>
+		/// <param name="prev"></param>
+		/// <param name="next"></param>
+		/// <param name="dir"></param>
+		static void LinkSnapshotAsOption(Segment prev, Segment next, FSNInGameSetting.FlowDirection dir)
+		{
+			var backDir			= FSNInGameSetting.GetOppositeFlowDirection(dir);
+
+			next.BackDirection	= backDir;
+
+			prev.SetFlow(dir, new Segment.FlowInfo() { Linked = next });
 			next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
 		}
 	}
