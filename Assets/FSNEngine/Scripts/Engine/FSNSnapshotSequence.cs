@@ -353,9 +353,6 @@ public sealed partial class FSNSnapshotSequence
 				//////////////////////////////////////////////////////////////
 				case FSNSequence.Segment.Type.Text:								// ** 텍스트
 				{
-					// TODO : 텍스트는 이렇게 그냥 해볼 수도 있겠지만, 다른 레이어들을 어떻게 처리하느냐에 따라서
-					// 모았다가 한번에 Period 타이밍에 처리하는 식으로 바꿔야할수도...
-
 					var module			= FSNEngine.Instance.GetModule(FSNEngine.ModuleType.Text) as IFSNProcessModule;
 
 					moduleCalls.AddCall(module, curSeg, bs.FrozenSetting);		// 해당 명령 저장
@@ -365,16 +362,28 @@ public sealed partial class FSNSnapshotSequence
 				case FSNSequence.Segment.Type.Label:							// ** 레이블
 				{
 					var labelSeg		= curSeg as Segments.Label;
+					// 현재 이 시점에서는 labelSeg로 하는 일이 없다...
 				}
 				break;
 				//////////////////////////////////////////////////////////////
 				case FSNSequence.Segment.Type.Control:							// ** 엔진 컨트롤
 				{
 					var controlSeg		= curSeg as Segments.Control;
+
+					switch(controlSeg.controlType)								// 종류에 따라 처리
+					{
+						case Segments.Control.ControlType.Block:
+							keepProcess	= false;	// 블로킹 - 이 분기에서는 해석 종료
+							break;
+
+						case Segments.Control.ControlType.SwipeOption:
+
+							break;
+					}
 				}
 				break;
 				//////////////////////////////////////////////////////////////
-				case FSNSequence.Segment.Type.Period:							// ** Period
+				case FSNSequence.Segment.Type.Period:							// ** Period : 현재까지 누적한 call을 실행하는 개념으로 사용중
 				{
 					var periodSeg		= curSeg as Segments.Period;
 

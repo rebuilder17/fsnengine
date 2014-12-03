@@ -128,13 +128,21 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 				switch(textSeg.textType)									// * 텍스트 종류에 따라 처리 분기
 				{
-				case Segments.Text.TextType.Normal:
-					AddNormalText(newLayer, textSeg, callParam.setting);
-					break;
+					case Segments.Text.TextType.Normal:
+						AddNormalText(newLayer, textSeg, callParam.setting);
+						break;
 
-				case Segments.Text.TextType.Clear:
-					ClearTextsToDirection(newLayer, callParam.setting.CurrentFlowDirection);
-					break;
+					case Segments.Text.TextType.Clear:
+						ClearTextsToDirection(newLayer, callParam.setting.CurrentFlowDirection);
+						break;
+
+					case Segments.Text.TextType.Options:
+						ClearTextsToDirection(newLayer, callParam.setting.CurrentFlowDirection);	// 선택지 텍스트는 clear를 먼저 한 뒤에 표시
+						ShowOptionTexts(newLayer, textSeg, callParam.setting);
+						break;
+
+					case Segments.Text.TextType.LastOption:
+						break;
 				}
 
 			}
@@ -199,6 +207,170 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		layer.AddElement(newTextElem);							// 텍스트 엘리멘트 추가
 		PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
+	}
+
+
+	private void ShowOptionTexts(FSNSnapshot.Layer layer, Segments.Text textSeg, IInGameSetting setting)
+	{
+		// TODO : 상하좌우 여백, 정렬 등도 따져야함
+
+		Vector2 screenDim	= FSNEngine.Instance.ScreenDimension;	// (계산용) 화면 크기
+		Vector3 fadePosOffset;
+		switch (setting.CurrentFlowDirection)						// 흐름 방향에 따라 이동 오프셋 세팅
+		{
+			case FSNInGameSetting.FlowDirection.Up:
+				fadePosOffset	= new Vector3(0, screenDim.y / 2);
+				break;
+
+			case FSNInGameSetting.FlowDirection.Down:
+				fadePosOffset	= new Vector3(0, -screenDim.y / 2);
+				break;
+
+			case FSNInGameSetting.FlowDirection.Right:
+				fadePosOffset	= new Vector3(screenDim.x / 2, 0);
+				break;
+
+			case FSNInGameSetting.FlowDirection.Left:
+				fadePosOffset	= new Vector3(-screenDim.x / 2, 0);
+				break;
+
+			default:
+				throw new System.Exception("HUH???");
+		}
+
+		// 새 텍스트 엘레먼트 세팅 : 선택지 질문 텍스트
+
+		var newTextSize					= CalculateTextSize(textSeg.text, setting.FontSize);
+
+		var questionTextElem			= new SnapshotElems.Text();
+
+		questionTextElem.text			= textSeg.text;
+		questionTextElem.fontSize		= setting.FontSize;
+		questionTextElem.Color			= Color.white;//TODO
+		questionTextElem.Alpha			= 1;
+		questionTextElem.TransitionTime	= 1;//TODO
+		questionTextElem.MakeItUnique();
+
+		questionTextElem.InitialState.Alpha	= 0;
+		questionTextElem.FinalState.Alpha	= 0;
+
+		// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
+		questionTextElem.Position				= new Vector3(-newTextSize.x / 2f, newTextSize.y / 2f);
+		questionTextElem.InitialState.Position	= questionTextElem.Position - fadePosOffset;
+
+		layer.AddElement(questionTextElem);								// 텍스트 엘리멘트 추가
+
+		//
+		int		dirIndex;
+		string	dirText;
+
+		// 선택지 : 위쪽 (등장 위치는 아래쪽)
+		dirIndex	= (int)FSNInGameSetting.FlowDirection.Up;
+		dirText		= textSeg.optionTexts[dirIndex];
+		if (textSeg.optionTexts.Length - 1 >= dirIndex && !string.IsNullOrEmpty(dirText))
+		{
+			var upTextSize					= CalculateTextSize(dirText, setting.FontSize);
+
+			var upTextElem					= new SnapshotElems.Text();
+
+			upTextElem.text					= dirText;
+			upTextElem.fontSize				= setting.FontSize;
+			upTextElem.Color				= Color.white;//TODO
+			upTextElem.Alpha				= 1;
+			upTextElem.TransitionTime		= 1;//TODO
+			upTextElem.MakeItUnique();
+
+			upTextElem.InitialState.Alpha	= 0;
+			upTextElem.FinalState.Alpha		= 0;
+
+			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
+			upTextElem.Position					= new Vector3(upTextSize.x / 2f, -screenDim.y / 2f + upTextSize.y);
+			upTextElem.InitialState.Position	= upTextElem.Position - fadePosOffset;
+
+			layer.AddElement(upTextElem);								// 텍스트 엘리멘트 추가
+		}
+
+		// 선택지 : 아래쪽 (등장 위치는 위쪽)
+		dirIndex	= (int)FSNInGameSetting.FlowDirection.Down;
+		dirText		= textSeg.optionTexts[dirIndex];
+		if (textSeg.optionTexts.Length - 1 >= dirIndex && !string.IsNullOrEmpty(dirText))
+		{
+			var downTextSize				= CalculateTextSize(dirText, setting.FontSize);
+
+			var downTextElem				= new SnapshotElems.Text();
+
+			downTextElem.text				= dirText;
+			downTextElem.fontSize			= setting.FontSize;
+			downTextElem.Color				= Color.white;//TODO
+			downTextElem.Alpha				= 1;
+			downTextElem.TransitionTime		= 1;//TODO
+			downTextElem.MakeItUnique();
+
+			downTextElem.InitialState.Alpha	= 0;
+			downTextElem.FinalState.Alpha	= 0;
+
+			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
+			downTextElem.Position				= new Vector3(downTextSize.x / 2f, screenDim.y / 2f);
+			downTextElem.InitialState.Position	= downTextElem.Position - fadePosOffset;
+
+			layer.AddElement(downTextElem);								// 텍스트 엘리멘트 추가
+		}
+
+		// 선택지 : 왼쪽 (등장 위치는 오른쪽)
+		dirIndex	= (int)FSNInGameSetting.FlowDirection.Left;
+		dirText		= textSeg.optionTexts[dirIndex];
+		if (textSeg.optionTexts.Length - 1 >= dirIndex && !string.IsNullOrEmpty(dirText))
+		{
+			var leftTextSize				= CalculateTextSize(dirText, setting.FontSize);
+
+			var leftTextElem				= new SnapshotElems.Text();
+
+			leftTextElem.text				= dirText;
+			leftTextElem.fontSize			= setting.FontSize;
+			leftTextElem.Color				= Color.white;//TODO
+			leftTextElem.Alpha				= 1;
+			leftTextElem.TransitionTime		= 1;//TODO
+			leftTextElem.MakeItUnique();
+
+			leftTextElem.InitialState.Alpha	= 0;
+			leftTextElem.FinalState.Alpha	= 0;
+
+			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
+			leftTextElem.Position				= new Vector3(screenDim.x / 2f - leftTextSize.x, leftTextSize.y * 3f);
+			leftTextElem.InitialState.Position	= leftTextElem.Position - fadePosOffset;
+
+			layer.AddElement(leftTextElem);								// 텍스트 엘리멘트 추가
+		}
+
+		// 선택지 : 오른쪽 (등장 위치는 왼쪽)
+		dirIndex	= (int)FSNInGameSetting.FlowDirection.Right;
+		dirText		= textSeg.optionTexts[dirIndex];
+		if (textSeg.optionTexts.Length - 1 >= dirIndex && !string.IsNullOrEmpty(dirText))
+		{
+			var rightTextSize				= CalculateTextSize(dirText, setting.FontSize);
+
+			var rightTextElem				= new SnapshotElems.Text();
+
+			rightTextElem.text				= dirText;
+			rightTextElem.fontSize			= setting.FontSize;
+			rightTextElem.Color				= Color.white;//TODO
+			rightTextElem.Alpha				= 1;
+			rightTextElem.TransitionTime	= 1;//TODO
+			rightTextElem.MakeItUnique();
+
+			rightTextElem.InitialState.Alpha= 0;
+			rightTextElem.FinalState.Alpha	= 0;
+
+			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
+			rightTextElem.Position				= new Vector3(-screenDim.x / 2f, -rightTextSize.y * 3f);
+			rightTextElem.InitialState.Position	= rightTextElem.Position - fadePosOffset;
+
+			layer.AddElement(rightTextElem);								// 텍스트 엘리멘트 추가
+		}
+
+
+
+		//PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
 	}
 
 	/// <summary>

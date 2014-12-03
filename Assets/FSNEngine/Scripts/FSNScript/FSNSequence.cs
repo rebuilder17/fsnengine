@@ -54,7 +54,8 @@ public class FSNSequence
 
 	public FSNSequence()
 	{
-		m_segments = new List<Segment>();
+		m_segments		= new List<Segment>();
+		m_labelToIndex	= new Dictionary<string, int>();
 	}
 
 	//=====================================================================================
@@ -83,6 +84,53 @@ public class FSNSequence
 	}
 
 	//=====================================================================================
+
+	/// <summary>
+	/// 라벨 지정
+	/// </summary>
+	/// <param name="index"></param>
+	/// <param name="labelName"></param>
+	public void SetLabel(int index, string labelName)
+	{
+		m_labelToIndex[labelName]	= index;
+	}
+
+	/// <summary>
+	/// 가장 마지막 인덱스를 라벨로 지정
+	/// </summary>
+	/// <param name="labelName"></param>
+	public void SetLastSegmentAsLabel(string labelName)
+	{
+		SetLabel(m_segments.Count - 1, labelName);
+	}
+
+	/// <summary>
+	/// 가장 마지막 인덱스에 있는 세그먼트가 Label일 경우 등록
+	/// </summary>
+	public void RegisterLabelSegment()
+	{
+		var label	= m_segments[m_segments.Count - 1] as Segments.Label;
+		if(label == null)
+		{
+			Debug.LogError("the segment just have been added is not a Label type.");
+		}
+		else
+		{
+			SetLastSegmentAsLabel(label.name);
+		}
+	}
+
+	/// <summary>
+	/// 라벨의 인덱스 구하기
+	/// </summary>
+	/// <param name="labelName"></param>
+	/// <returns></returns>
+	public int GetIndexOfLabel(string labelName)
+	{
+		return m_labelToIndex[labelName];
+	}
+
+
 
 	#region TEST CODE
 
@@ -131,6 +179,32 @@ public class FSNSequence
 		sequence.m_segments.Add(tempTextSeg);
 
 		sequence.m_segments.Add(periodSeg);
+
+		var optionSeg		= new Segments.Text();
+		optionSeg.textType	= Segments.Text.TextType.Options;
+		optionSeg.text		= "선택지?";
+		optionSeg.optionTexts	= new string[4];
+		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Up]	= "위";
+		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Down]	= "아래";
+		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Left]	= "왼쪽";
+		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Right]= "오른쪽";
+		sequence.m_segments.Add(optionSeg);
+
+		var userChoiceSeg	= new Segments.Control();
+		userChoiceSeg.controlType	= Segments.Control.ControlType.SwipeOption;
+		// TODO
+		sequence.m_segments.Add(userChoiceSeg);
+
+		sequence.m_segments.Add(periodSeg);
+
+		var blockSeg			= new Segments.Control();
+		blockSeg.controlType	= Segments.Control.ControlType.Block;
+		sequence.m_segments.Add(blockSeg);	// 현재 흐름에서는 선택지를 끝으로 더이상 진행할 곳이 없으므로, block으로 막는다
+
+
+		// 선택지 : 위
+
+
 
 		return sequence;
 	}

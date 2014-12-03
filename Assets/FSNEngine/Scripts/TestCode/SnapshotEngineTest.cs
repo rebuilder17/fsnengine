@@ -80,18 +80,18 @@ public class SnapshotEngineTest : MonoBehaviour
 
 		// 세팅 체인 테스트
 
-		FSNInGameSetting settingbase	= new FSNInGameSetting();
-		FSNInGameSetting.Chain settingover	= new FSNInGameSetting.Chain(settingbase);
+		//FSNInGameSetting settingbase	= new FSNInGameSetting();
+		//FSNInGameSetting.Chain settingover	= new FSNInGameSetting.Chain(settingbase);
 
-		settingbase.FontSize	= 50;
-		settingover.FontSize	= 100;
+		//settingbase.FontSize	= 50;
+		//settingover.FontSize	= 100;
 
-		settingbase.SwipeWeight	= 0.8f;
+		//settingbase.SwipeWeight	= 0.8f;
 
-		FSNInGameSetting frozen			= settingover.Freeze();
+		//FSNInGameSetting frozen			= settingover.Freeze();
 
-		Debug.Log("Chain font size : " + frozen.FontSize);
-		Debug.Log("Chain SwipeWeight : " + frozen.SwipeWeight);
+		//Debug.Log("Chain font size : " + frozen.FontSize);
+		//Debug.Log("Chain SwipeWeight : " + frozen.SwipeWeight);
 	}
 
 	void Update()

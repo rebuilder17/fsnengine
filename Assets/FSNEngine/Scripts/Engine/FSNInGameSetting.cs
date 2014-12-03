@@ -196,6 +196,8 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		Down,
 		Left,
 		Right,
+
+		None	= -1	// 방향 없음
 	}
 
 	//==============================================================================
