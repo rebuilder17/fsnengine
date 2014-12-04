@@ -174,6 +174,16 @@ namespace Segments
 		}
 
 		/// <summary>
+		/// GOTO 데이터
+		/// </summary>
+		private class GotoData : IControlData
+		{
+			public string m_gotoLabel;
+		}
+
+		//------------------------------------------------------------
+
+		/// <summary>
 		/// 컨트롤 종류
 		/// </summary>
 		public enum ControlType
@@ -201,22 +211,34 @@ namespace Segments
 		//-------------------------------------------------------------------------------------
 
 		/// <summary>
+		/// 타입 체크 후 지정된 형식의 OptionalData 할당
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="typeCheck"></param>
+		private T CheckOptionData<T>(ControlType typeCheck)
+			where T : class, IControlData, new()
+		{
+			if (controlType != typeCheck)							// 타입체크
+				Debug.LogError("cannot call SetSwipeOptionData without SwipeOption controlType");
+
+			T data				= m_controlData as T;
+			if (data == null)										// 생성 안된 경우에는 새로 생성
+			{
+				data			= new T();
+				m_controlData	= data;
+			}
+
+			return data;
+		}
+
+		/// <summary>
 		/// SwipeOption일 때, 방향에 따른 진행 라벨 추가
 		/// </summary>
 		/// <param name="dir"></param>
 		/// <param name="label"></param>
 		public void SetSwipeOptionData(FSNInGameSetting.FlowDirection dir, string label)
 		{
-			if (controlType != ControlType.SwipeOption)							// 타입체크
-				Debug.LogError("cannot call SetSwipeOptionData without SwipeOption controlType");
-
-			var data			= m_controlData as SwipeOptionData;
-			if (data == null)													// 생성 안된 경우에는 새로 생성
-			{
-				data			= new SwipeOptionData();
-				m_controlData	= data;
-			}
-
+			var data	= CheckOptionData<SwipeOptionData>(ControlType.SwipeOption);
 			data.m_dirLabelDict[(int)dir]	= label;
 		}
 
@@ -226,10 +248,25 @@ namespace Segments
 		/// <param name="dir"></param>
 		public string GetLabelFromSwipeOptionData(FSNInGameSetting.FlowDirection dir)
 		{
-			if (controlType != ControlType.SwipeOption)							// 타입체크
-				Debug.LogError("cannot call SetSwipeOptionData without SwipeOption controlType");
+			var data	= CheckOptionData<SwipeOptionData>(ControlType.SwipeOption);
+			return data.m_dirLabelDict[(int)dir];
+		}
+		//
 
-			return (m_controlData as SwipeOptionData).m_dirLabelDict[(int)dir];
+		/// <summary>
+		/// Goto 데이터 세팅
+		/// </summary>
+		/// <param name="label"></param>
+		public void SetGotoData(string label)
+		{
+			var data			= CheckOptionData<GotoData>(ControlType.Goto);
+			data.m_gotoLabel	= label;
+		}
+
+		public string GetGotoLabel()
+		{
+			var data			= CheckOptionData<GotoData>(ControlType.Goto);
+			return data.m_gotoLabel;
 		}
 	}
 }

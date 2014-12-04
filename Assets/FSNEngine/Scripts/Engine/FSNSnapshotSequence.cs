@@ -318,7 +318,7 @@ public sealed partial class FSNSnapshotSequence
 			{
 				var curSeg	= bs.sequence[bs.segIndex];							// 현재 명령어 (Sequence 세그먼트)
 
-				Debug.Log(curSeg.type.ToString());
+				//Debug.Log("NewSeg : " + curSeg.type.ToString());
 				switch(curSeg.type)												// 명령어 타입 체크 후 분기
 				{
 				//////////////////////////////////////////////////////////////
@@ -356,7 +356,7 @@ public sealed partial class FSNSnapshotSequence
 				//////////////////////////////////////////////////////////////
 				case FSNSequence.Segment.Type.Text:								// ** 텍스트
 				{
-					Debug.Log("Text! " + (curSeg as Segments.Text).textType.ToString());
+					//Debug.Log("Text! " + (curSeg as Segments.Text).textType.ToString());
 					var module			= FSNEngine.Instance.GetModule(FSNEngine.ModuleType.Text) as IFSNProcessModule;
 
 					moduleCalls.AddCall(module, curSeg, bs.FrozenSetting);		// 해당 명령 저장
@@ -386,6 +386,10 @@ public sealed partial class FSNSnapshotSequence
 
 							jumpSeg		= controlSeg;							// 점프 명령어로 보관해두고 나중에 처리한다.
 
+							break;
+
+						case Segments.Control.ControlType.Goto:
+							jumpSeg		= controlSeg;							// 점프 명령어로 보관해두고 나중에 처리한다.
 							break;
 					}
 				}
@@ -451,7 +455,28 @@ public sealed partial class FSNSnapshotSequence
 						}
 						else if(jumpSeg.controlType == Segments.Control.ControlType.Goto)			// *** GOTO
 						{
+							string label	= jumpSeg.GetGotoLabel();
+							int labelIndex	= bs.sequence.GetIndexOfLabel(label);
+							var labelSeg	= bs.sequence.GetSegment(labelIndex) as Segments.Label;
 
+							if(labelSeg.labelType == Segments.Label.LabelType.Soft)					// * SOFT 라벨로 점프
+							{
+								if (labelIndex < bs.segIndex)										// SOFT 라벨은 거슬러올라갈 수 없다.
+									Debug.LogError("Cannot jump to previous soft label");
+
+								var clonnedState		= bs.Clone();								// 상태 복제
+								clonnedState.segIndex	= labelIndex;								// 라벨 인덱스 세팅
+
+								ProcessSnapshotBuild(clonnedState, snapshotSeq, lastSnapshotIndex);	// 새 분기 해석하기
+
+								// SOFT 라벨로 점프하는 경우엔 사실상 이 분기점으로 다시 되돌아올 일이 생기지 않는다.
+								// 추가 스크립트 해석을 중단한다.
+								keepProcess	= false;
+							}
+							else
+							{																		// * HARD 라벨로 점프
+								Debug.LogError("Not implemented");
+							}
 						}
 					}
 					jumpSeg	= null;

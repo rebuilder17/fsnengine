@@ -217,10 +217,32 @@ public class FSNSequence
 		var lastOptionText		= new Segments.Text();
 		lastOptionText.textType = Segments.Text.TextType.LastOption;
 		sequence.m_segments.Add(lastOptionText);
+		sequence.m_segments.Add(periodSeg);
 
 		tempTextSeg				= new Segments.Text();
 		tempTextSeg.text		= "up - 테스트 01";
 		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
+
+		var gotoSeg				= new Segments.Control();
+		gotoSeg.controlType		= Segments.Control.ControlType.Goto;
+		gotoSeg.SetGotoData("label_jumptest");
+		sequence.m_segments.Add(gotoSeg);
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "up - 테스트 02";
+		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
+
+		var label_jumptest		= new Segments.Label();
+		label_jumptest.labelName= "label_jumptest";
+		sequence.m_segments.Add(label_jumptest);
+		sequence.RegisterLabelSegment();
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "up - 테스트 03 (label_jumptest)";
+		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
 
 		sequence.m_segments.Add(blockSeg);// BLOCK
 
@@ -231,10 +253,12 @@ public class FSNSequence
 		sequence.RegisterLabelSegment();
 
 		sequence.m_segments.Add(lastOptionText);
+		sequence.m_segments.Add(periodSeg);
 
 		tempTextSeg				= new Segments.Text();
 		tempTextSeg.text		= "left - 테스트 01";
 		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
 
 		sequence.m_segments.Add(blockSeg);// BLOCK
 

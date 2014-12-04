@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 
 namespace LayerObjects
@@ -122,6 +123,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		foreach(var callParam in callParams)
 		{
+			//Debug.Log("TextModule : " + callParam.segment.type.ToString());
 			if(callParam.segment.type == FSNSequence.Segment.Type.Text)										// ** 텍스트 세그먼트 처리 **
 			{
 				var textSeg	= callParam.segment as Segments.Text;			// 타입 변환
@@ -281,6 +283,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			upTextElem.Alpha				= 1;
 			upTextElem.TransitionTime		= 1;//TODO
 			upTextElem.type					= SnapshotElems.Text.Type.OptionTexts;
+			upTextElem.optionDir			= (FSNInGameSetting.FlowDirection)dirIndex;
 			upTextElem.MakeItUnique();
 
 			upTextElem.InitialState.Alpha	= 0;
@@ -308,6 +311,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			downTextElem.Alpha				= 1;
 			downTextElem.TransitionTime		= 1;//TODO
 			downTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
+			downTextElem.optionDir			= (FSNInGameSetting.FlowDirection)dirIndex;
 			downTextElem.MakeItUnique();
 
 			downTextElem.InitialState.Alpha	= 0;
@@ -335,13 +339,14 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			leftTextElem.Alpha				= 1;
 			leftTextElem.TransitionTime		= 1;//TODO
 			leftTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
+			leftTextElem.optionDir			= (FSNInGameSetting.FlowDirection)dirIndex;
 			leftTextElem.MakeItUnique();
 
 			leftTextElem.InitialState.Alpha	= 0;
 			leftTextElem.FinalState.Alpha	= 0;
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
-			leftTextElem.Position				= new Vector3(screenDim.x / 2f - leftTextSize.x, leftTextSize.y * 3f);
+			leftTextElem.Position				= new Vector3(screenDim.x / 2f - leftTextSize.x, -leftTextSize.y * 3f);
 			leftTextElem.InitialState.Position	= leftTextElem.Position - fadePosOffset;
 
 			layer.AddElement(leftTextElem);								// 텍스트 엘리멘트 추가
@@ -362,13 +367,14 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			rightTextElem.Alpha				= 1;
 			rightTextElem.TransitionTime	= 1;//TODO
 			rightTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
+			rightTextElem.optionDir			= (FSNInGameSetting.FlowDirection)dirIndex;
 			rightTextElem.MakeItUnique();
 
 			rightTextElem.InitialState.Alpha= 0;
 			rightTextElem.FinalState.Alpha	= 0;
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
-			rightTextElem.Position				= new Vector3(-screenDim.x / 2f, -rightTextSize.y * 3f);
+			rightTextElem.Position				= new Vector3(-screenDim.x / 2f, rightTextSize.y * 3f);
 			rightTextElem.InitialState.Position	= rightTextElem.Position - fadePosOffset;
 
 			layer.AddElement(rightTextElem);								// 텍스트 엘리멘트 추가
@@ -397,8 +403,24 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		if(optionText != null)																// * 찾은 경우에 한해서...
 		{
+			// 텍스트를 새로 만드는 것이 아니라 기존 것을 변경한다.
+			// PushTextsToDirection 에서는 이 시점의 LastOption텍스트는 건들지 않는다.
+
 			var textSize		= CalculateTextSize(optionText.text, optionText.fontSize);
-			optionText.Position	= new Vector3(-textSize.x / 2f, textSize.y / 2f);			// 위치 한가운데로 이동
+			var posToCenter		= optionText.Position;
+			switch(optionText.optionDir)													// 중앙 위치 맞추기
+			{
+				case FSNInGameSetting.FlowDirection.Up:
+				case FSNInGameSetting.FlowDirection.Down:
+					posToCenter.y	= textSize.y / 2f;
+					break;
+
+				case FSNInGameSetting.FlowDirection.Left:
+				case FSNInGameSetting.FlowDirection.Right:
+					posToCenter.x	= -textSize.x / 2f;
+					break;
+			}
+			optionText.Position	= posToCenter;
 			optionText.type		= SnapshotElems.Text.Type.LastOption;						// LastOption 타입으로 변경
 
 			PushTextsToDirection(layer, setting.CurrentFlowDirection, Vector2.zero);		// 기존 텍스트 일괄적으로 해당 방향으로 밀기 (내부 조건체크에 따라 LastOption은 이 타이밍에는 제외된다)
@@ -418,6 +440,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	private static void PushTextsToDirection(FSNSnapshot.Layer layer, FSNInGameSetting.FlowDirection direction, Vector2 newTextSize)
 	{
 		Vector2 dirVec		= FSNInGameSetting.GetUnitVectorFromFlowDir(direction);
+		List<int> UIDtoRemove	= new List<int>();	// 삭제 리스트
 		
 		foreach(var uId in layer.UniqueIDList)
 		{
@@ -438,7 +461,8 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 				else
 				{																		// 텍스트가 죽어야하는 경우
 					textElem.FinalState.Position	= textElem.Position + transVec;
-					layer.RemoveElement(uId);
+					//layer.RemoveElement(uId);
+					UIDtoRemove.Add(uId);
 				}
 			}
 			else
@@ -446,16 +470,35 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 				
 				int killAge	= textElem.type == SnapshotElems.Text.Type.OptionTexts? 1 : 2;//(선택한 텍스트는 1턴 더 살아있어야 하므로)
 
-				if (elemAge >= killAge)													// 죽어야하는 경우
+				if (elemAge == killAge)													// 없어지는 타이밍
 				{
+					// NOTE : 현재 구조상의 문제로 인해 분기점 이후 바로 없어지는 오브젝트의 FinalState를 여러개 둘 수 없음.
+					// 따라서 분기점 이후에도 1번은 오브젝트를 살려놓은 뒤 안보이게만 하고 다음번에 없애는 식으로.
+
 					Vector2 halfScreen				= FSNEngine.Instance.ScreenDimension / 2f;
 					Vector3 transVec				= Vector2.Scale(dirVec, halfScreen);
 
-					textElem.FinalState.Position	= textElem.Position + transVec;
-					layer.RemoveElement(uId);
+					textElem.Position				= textElem.Position + transVec;
+					textElem.Alpha					= 0f;
+					// TODO : Alpha를 0으로 하는 것 이외에 실제로 visible을 끌 수 있는 방법이 있다면 사용하도록 한다. 지금도 딱히 문제는 없긴 한데...
+					//UIDtoRemove.Add(uId);
+
+					if (textElem.type == SnapshotElems.Text.Type.LastOption && textElem.optionDir == FSNInGameSetting.FlowDirection.Up) // TEST
+					{
+						Debug.Log("lastOption text final position : " + textElem.FinalState.Position.ToString());
+						Debug.Log("transVec : " + transVec.ToString());
+					}
+				}
+				else if(elemAge == killAge + 1)											// 원래 없어져야했던 타이밍이 지나고 나서 실제로 없앤다.
+				{
+					UIDtoRemove.Add(uId);
 				}
 			}
 		}
+
+		int rmvCount	= UIDtoRemove.Count;
+		for (int i = 0; i < rmvCount; i++)												// 삭제 리스트 처리
+			layer.RemoveElement(UIDtoRemove[i]);
 	}
 
 	/// <summary>
