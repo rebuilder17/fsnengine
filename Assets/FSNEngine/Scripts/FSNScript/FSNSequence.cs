@@ -222,12 +222,15 @@ public class FSNSequence
 		tempTextSeg				= new Segments.Text();
 		tempTextSeg.text		= "up - 테스트 01";
 		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
 
+		// 주 : 현재 Jump 를 처리하는 순서 때문에 period가 적용되고 완성된 Snapshot에서 적용된다.
+		// 즉 GOTO를 제대로 쓰기 위해서는 period 보다 앞쪽에 배치해야함.
 		var gotoSeg				= new Segments.Control();
 		gotoSeg.controlType		= Segments.Control.ControlType.Goto;
 		gotoSeg.SetGotoData("label_jumptest");
 		sequence.m_segments.Add(gotoSeg);
+
+		sequence.m_segments.Add(periodSeg);
 
 		tempTextSeg				= new Segments.Text();
 		tempTextSeg.text		= "up - 테스트 02";
