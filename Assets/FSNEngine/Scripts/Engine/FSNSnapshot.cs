@@ -415,6 +415,11 @@ public class FSNSnapshot
 	/// </summary>
 	public bool LinkToBackward { get; set; }
 
+	/// <summary>
+	/// 링크가 존재하더라도 역방향 이동을 막는다. 선택지에서 역방향 오버라이드가 된 경우에 사용한다.
+	/// </summary>
+	public bool DisableBackward = false;
+
 
 	// TODO : 실행 중 세팅값들도 필요한 것들은 Snapshot에 보관되어야함
 

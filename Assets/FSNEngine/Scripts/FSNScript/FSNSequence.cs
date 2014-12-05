@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// 해석되어 메모리 상에 올라온 스크립트 시퀀스. 스크립트 파일을 parsing하면 나오는 결과물.
 /// 스크립트 실행은 이 오브젝트를 참조하여 수행한다
 /// </summary>
-public class FSNSequence
+public class FSNScriptSequence
 {
 	/// <summary>
 	/// 명령어 단위.
@@ -52,7 +52,7 @@ public class FSNSequence
 	List<Segment>			m_segments;				// Sequence에 포함된 모든 segments
 	Dictionary<string, int>	m_labelToIndex;			// Label => list의 Index로
 
-	public FSNSequence()
+	public FSNScriptSequence()
 	{
 		m_segments		= new List<Segment>();
 		m_labelToIndex	= new Dictionary<string, int>();
@@ -134,12 +134,89 @@ public class FSNSequence
 	}
 
 
+	//--------------------------------------------------------------------------------------------
+	
+	/// <summary>
+	/// 스크립트 파서. 스크립트를 읽어 FSNScriptSequence를 생성해낸다.
+	/// </summary>
+	public static class Parser
+	{
+		// Constants
+
+		// 기본 전제 : 줄 앞에 나오는 토큰들은 모두 1글자
+
+		const string	c_token_Comment		= "#";			// 주석
+		const string	c_token_SoftLabel	= ":";			// 레이블 (soft)
+		const string	c_token_HardLabel	= "!";			// 레이블 (hard)
+		const string	c_token_Command		= "/";			// 명령문
+		const string	c_token_Period		= ".";			// period
+
+		const string	c_token_LineConcat	= "//";			// 줄 붙이기 (텍스트 끝)
+
+
+		/// <summary>
+		/// 문자열으로 스크립트 파싱
+		/// </summary>
+		/// <param name="scriptData"></param>
+		/// <returns></returns>
+		public static FSNScriptSequence FromString(string scriptData)
+		{
+			var sequence	= new FSNScriptSequence();
+			var strstream	= new System.IO.StringReader(scriptData);
+
+			string line		= null;
+			while ((line = strstream.ReadLine()) != null)				// 줄 단위로 읽는다.
+			{
+				if (line.Length == 0)									// * 빈 줄은 스루
+					continue;
+
+				Segment newSeg	= null;									// 이번에 새로 생성한 세그먼트
+				var pretoken	= line.Substring(0, 1);
+				switch (pretoken)										// 앞쪽 토큰으로 명령 구분
+				{
+					case c_token_Comment:								// * 주석
+						break;
+
+					case c_token_Command:								// * 명령
+						break;
+
+					case c_token_HardLabel:								// * hard label
+
+						break;
+
+					case c_token_SoftLabel:								// * soft label
+
+						break;
+
+					case c_token_Period:								// * period
+						if(line.Length == 1)							// 오직 . 한글자일 때만 인정
+						{
+
+						}
+						break;
+
+					default:											// * 아무 토큰도 없음 : 텍스트
+
+						break;
+				}
+
+				if(newSeg != null)										// 새로 생성된 시퀀스가 있다면 추가
+				{
+					sequence.m_segments.Add(newSeg);
+				}
+			}
+
+			return sequence;
+		}
+	}
+
+	//--------------------------------------------------------------------------------------------
 
 	#region TEST CODE
 
-	public static FSNSequence GenerateTestSequence()
+	public static FSNScriptSequence GenerateTestSequence()
 	{
-		var sequence		= new FSNSequence();
+		var sequence		= new FSNScriptSequence();
 		sequence.m_segments	= new List<Segment>();//임시, 나중에는 필요없어질것
 		Segments.Text	tempTextSeg;
 		Segments.Period	periodSeg	= new Segments.Period();
@@ -196,7 +273,7 @@ public class FSNSequence
 		var userChoiceSeg			= new Segments.Control();
 		userChoiceSeg.controlType	= Segments.Control.ControlType.SwipeOption;
 		userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Up,		"label_up");
-		//userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Down,	"label_down");
+		userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Down,	"label_down");
 		userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Left,	"label_left");
 		//userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Right,	"label_right");
 		sequence.m_segments.Add(userChoiceSeg);
@@ -217,7 +294,10 @@ public class FSNSequence
 		var lastOptionText		= new Segments.Text();
 		lastOptionText.textType = Segments.Text.TextType.LastOption;
 		sequence.m_segments.Add(lastOptionText);
-		sequence.m_segments.Add(periodSeg);
+
+		var chainPeriodSeg		= new Segments.Period();	// 뒤로 바로 넘어가지는 period
+		chainPeriodSeg.isChaining	= true;
+		sequence.m_segments.Add(chainPeriodSeg);
 
 		tempTextSeg				= new Segments.Text();
 		tempTextSeg.text		= "up - 테스트 01";
@@ -256,15 +336,78 @@ public class FSNSequence
 		sequence.RegisterLabelSegment();
 
 		sequence.m_segments.Add(lastOptionText);
-		sequence.m_segments.Add(periodSeg);
+		sequence.m_segments.Add(chainPeriodSeg);
 
 		tempTextSeg				= new Segments.Text();
 		tempTextSeg.text		= "left - 테스트 01";
 		sequence.m_segments.Add(tempTextSeg);
 		sequence.m_segments.Add(periodSeg);
 
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "left - 테스트 02";
+		sequence.m_segments.Add(tempTextSeg);
+
+		var reverseGotoSeg		= new Segments.Control();
+		reverseGotoSeg.controlType	= Segments.Control.ControlType.ReverseGoto;
+		reverseGotoSeg.SetReverseGotoData("label_reverse");
+		sequence.m_segments.Add(reverseGotoSeg);
+		sequence.m_segments.Add(periodSeg);
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "left - 테스트 03";
+		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
+
 		sequence.m_segments.Add(blockSeg);// BLOCK
 
+		// ReverseGoto 테스트용
+		var label_reverse		= new Segments.Label();
+		label_reverse.labelName	= "label_reverse";
+		sequence.m_segments.Add(label_reverse);
+		sequence.RegisterLabelSegment();
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "you can't go back!";
+		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "go ahead and you'll be fine.";
+		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
+
+		sequence.m_segments.Add(blockSeg);// BLOCK
+
+		// 선택지 : 아래쪽, 역방향 오버라이드가 제대로 되는지 테스트하기 위함.
+		var label_down			= new Segments.Label();
+		label_down.labelName	= "label_down";
+		sequence.m_segments.Add(label_down);
+		sequence.RegisterLabelSegment();
+
+		sequence.m_segments.Add(lastOptionText);
+		sequence.m_segments.Add(chainPeriodSeg);
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "down - 테스트 01";
+		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "down - 테스트 02, oneway";
+		sequence.m_segments.Add(tempTextSeg);
+
+		var onewaySeg			= new Segments.Control();	// ONEWAY
+		onewaySeg.controlType	= Segments.Control.ControlType.Oneway;
+		sequence.m_segments.Add(onewaySeg);
+
+		sequence.m_segments.Add(periodSeg);
+
+		tempTextSeg				= new Segments.Text();
+		tempTextSeg.text		= "down - 테스트 03";
+		sequence.m_segments.Add(tempTextSeg);
+		sequence.m_segments.Add(periodSeg);
+
+		sequence.m_segments.Add(blockSeg);// BLOCK
 
 
 		return sequence;

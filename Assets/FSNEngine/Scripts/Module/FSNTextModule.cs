@@ -124,7 +124,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		foreach(var callParam in callParams)
 		{
 			//Debug.Log("TextModule : " + callParam.segment.type.ToString());
-			if(callParam.segment.type == FSNSequence.Segment.Type.Text)										// ** 텍스트 세그먼트 처리 **
+			if(callParam.segment.type == FSNScriptSequence.Segment.Type.Text)										// ** 텍스트 세그먼트 처리 **
 			{
 				var textSeg	= callParam.segment as Segments.Text;			// 타입 변환
 
@@ -483,11 +483,11 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 					// TODO : Alpha를 0으로 하는 것 이외에 실제로 visible을 끌 수 있는 방법이 있다면 사용하도록 한다. 지금도 딱히 문제는 없긴 한데...
 					//UIDtoRemove.Add(uId);
 
-					if (textElem.type == SnapshotElems.Text.Type.LastOption && textElem.optionDir == FSNInGameSetting.FlowDirection.Up) // TEST
-					{
-						Debug.Log("lastOption text final position : " + textElem.FinalState.Position.ToString());
-						Debug.Log("transVec : " + transVec.ToString());
-					}
+					//if (textElem.type == SnapshotElems.Text.Type.LastOption && textElem.optionDir == FSNInGameSetting.FlowDirection.Up) // TEST
+					//{
+					//	Debug.Log("lastOption text final position : " + textElem.FinalState.Position.ToString());
+					//	Debug.Log("transVec : " + transVec.ToString());
+					//}
 				}
 				else if(elemAge == killAge + 1)											// 원래 없어져야했던 타이밍이 지나고 나서 실제로 없앤다.
 				{

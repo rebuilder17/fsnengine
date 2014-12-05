@@ -63,6 +63,11 @@ public sealed partial class FSNSnapshotSequence
 		FlowInfo[] Flows { get; set; }
 
 		/// <summary>
+		/// 단방향인지 (역방향 불가)
+		/// </summary>
+		public bool OneWay = false;
+
+		/// <summary>
 		/// 파라미터
 		/// </summary>
 		public object Parameter	= null;
@@ -143,7 +148,7 @@ public sealed partial class FSNSnapshotSequence
 		/// </summary>
 		class State
 		{
-			public FSNSequence				sequence;			// 처리중인 스크립트
+			public FSNScriptSequence		sequence;			// 처리중인 스크립트
 			public int						segIndex;			// 스크립트의 현재 처리중인 세그먼트 인덱스
 
 			public FSNInGameSetting.Chain	settings;			// 처리중 해석된 세팅
@@ -217,7 +222,7 @@ public sealed partial class FSNSnapshotSequence
 			/// </summary>
 			/// <param name="module"></param>
 			/// <param name="segment"></param>
-			public void AddCall(IFSNProcessModule module, FSNSequence.Segment segment, IInGameSetting setting)
+			public void AddCall(IFSNProcessModule module, FSNScriptSequence.Segment segment, IInGameSetting setting)
 			{
 				if(!m_moduleCallTable.ContainsKey(module))
 					m_moduleCallTable[module]	= new List<FSNProcessModuleCallParam>();
@@ -256,7 +261,7 @@ public sealed partial class FSNSnapshotSequence
 		/// </summary>
 		/// <param name="sequence"></param>
 		/// <returns></returns>
-		public static FSNSnapshotSequence BuildSnapshotSequence(FSNSequence sequence)
+		public static FSNSnapshotSequence BuildSnapshotSequence(FSNScriptSequence sequence)
 		{
 			FSNSnapshotSequence	snapshotSeq		= new FSNSnapshotSequence();
 			State				builderState	= new State();
@@ -307,7 +312,7 @@ public sealed partial class FSNSnapshotSequence
 
 			var lastSeg			= prevCallSeg;									// 바로 이전에 처리한 스냅샷 (최초 루프시에는 실행 이전의 마지막 스냅샷과 동일)
 
-			Segments.Control jumpSeg	= null;									// 점프(goto, SwipeOption 등) 세그먼트가 등장했을 경우 여기에 보관된다
+			List<Segments.Control>	jumpSegs	= new List<Segments.Control>();	// 점프(goto, SwipeOption 등) 세그먼트가 등장했을 경우 여기에 보관된다
 			//
 
 
@@ -322,7 +327,7 @@ public sealed partial class FSNSnapshotSequence
 				switch(curSeg.type)												// 명령어 타입 체크 후 분기
 				{
 				//////////////////////////////////////////////////////////////
-				case FSNSequence.Segment.Type.Setting:							// ** 세팅
+				case FSNScriptSequence.Segment.Type.Setting:							// ** 세팅
 				{
 					var settingSeg		= curSeg as Segments.Setting;
 
@@ -354,7 +359,7 @@ public sealed partial class FSNSnapshotSequence
 				}
 				break;
 				//////////////////////////////////////////////////////////////
-				case FSNSequence.Segment.Type.Text:								// ** 텍스트
+				case FSNScriptSequence.Segment.Type.Text:						// ** 텍스트
 				{
 					//Debug.Log("Text! " + (curSeg as Segments.Text).textType.ToString());
 					var module			= FSNEngine.Instance.GetModule(FSNEngine.ModuleType.Text) as IFSNProcessModule;
@@ -363,7 +368,7 @@ public sealed partial class FSNSnapshotSequence
 				}
 				break;
 				//////////////////////////////////////////////////////////////
-				case FSNSequence.Segment.Type.Label:							// ** 레이블
+				case FSNScriptSequence.Segment.Type.Label:						// ** 레이블
 				{
 					var labelSeg		= curSeg as Segments.Label;
 					// 현재 이 시점에서는 labelSeg로 하는 일이 없다...
@@ -371,7 +376,7 @@ public sealed partial class FSNSnapshotSequence
 				}
 				break;
 				//////////////////////////////////////////////////////////////
-				case FSNSequence.Segment.Type.Control:							// ** 엔진 컨트롤
+				case FSNScriptSequence.Segment.Type.Control:					// ** 엔진 컨트롤
 				{
 					var controlSeg		= curSeg as Segments.Control;
 
@@ -384,18 +389,27 @@ public sealed partial class FSNSnapshotSequence
 						case Segments.Control.ControlType.SwipeOption:
 							sseg.Type	= FlowType.UserChoice;					// 스냅샷 세그먼트 종류 변경 (유저 선택으로)
 
-							jumpSeg		= controlSeg;							// 점프 명령어로 보관해두고 나중에 처리한다.
+							jumpSegs.Add(controlSeg);							// 점프 명령어로 보관해두고 나중에 처리한다.
 
 							break;
 
 						case Segments.Control.ControlType.Goto:
-							jumpSeg		= controlSeg;							// 점프 명령어로 보관해두고 나중에 처리한다.
+						case Segments.Control.ControlType.ReverseGoto:
+							jumpSegs.Add(controlSeg);							// 점프 명령어로 보관해두고 나중에 처리한다.
+							break;
+
+						case Segments.Control.ControlType.Clear:
+							// TODO :
+							break;
+
+						case Segments.Control.ControlType.Oneway:
+							sseg.OneWay	= true;
 							break;
 					}
 				}
 				break;
 				//////////////////////////////////////////////////////////////
-				case FSNSequence.Segment.Type.Period:							// ** Period : 현재까지 누적한 call을 실행하는 개념으로 사용중
+				case FSNScriptSequence.Segment.Type.Period:						// ** Period : 현재까지 누적한 call을 실행하는 개념으로 사용중
 				{
 					var periodSeg		= curSeg as Segments.Period;
 
@@ -416,10 +430,8 @@ public sealed partial class FSNSnapshotSequence
 
 					snapshotSeq.Add(sseg);										// 현재 스냅샷을 시퀀스에 추가
 
-					if(jumpSeg != null)											// * 점프 세그먼트가 있을 경우 처리
+					foreach(var jumpSeg in jumpSegs)							// * 점프 세그먼트가 있을 경우 처리
 					{
-						int lastSnapshotIndex	= snapshotSeq.LastSegment.Index;					// 분기 콜을 할 때 넘겨줄, 방금 추가한 스냅샷의 인덱스
-
 						// NOTE : 현재 Label은 Soft만 구현한다.
 
 						if (jumpSeg.controlType == Segments.Control.ControlType.SwipeOption)		// *** 선택지
@@ -430,6 +442,13 @@ public sealed partial class FSNSnapshotSequence
 								string label	= jumpSeg.GetLabelFromSwipeOptionData(dir);
 								if (!string.IsNullOrEmpty(label))									// 라벨이 지정된 경우만 처리(= 해당 방향으로 분기가 있을 때만)
 								{
+									// FIX : 만약 해당 선택지 방향이 원래의 역방향에 해당하는 것이었다면, 역방향을 None으로 재설정한다. (역방향 오버라이드 지원)
+									if (dir == sseg.BackDirection)
+									{
+										sseg.BackDirection	= FSNInGameSetting.FlowDirection.None;
+										sseg.snapshot.DisableBackward = true;	// 역방향 비활성화
+									}
+
 									int labelIndex	= bs.sequence.GetIndexOfLabel(label);
 									var labelSeg	= bs.sequence.GetSegment(labelIndex) as Segments.Label;
 
@@ -443,7 +462,7 @@ public sealed partial class FSNSnapshotSequence
 										clonnedState.settings.CurrentFlowDirection	= dir;			// 진행 방향 세팅 - 선택지 방향으로 진행 방향을 강제 세팅한다
 										clonnedState.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(dir);
 
-										var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, lastSnapshotIndex);	// 새 분기 해석하기
+										var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석하기
 										LinkSnapshotAsOption(sseg, newSeg, dir);					// 선택지로 연결하기
 									}
 									else
@@ -467,7 +486,7 @@ public sealed partial class FSNSnapshotSequence
 								var clonnedState		= bs.Clone();								// 상태 복제
 								clonnedState.segIndex	= labelIndex;								// 라벨 인덱스 세팅
 
-								ProcessSnapshotBuild(clonnedState, snapshotSeq, lastSnapshotIndex);	// 새 분기 해석하기
+								ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석하기
 
 								// SOFT 라벨로 점프하는 경우엔 사실상 이 분기점으로 다시 되돌아올 일이 생기지 않는다.
 								// 추가 스크립트 해석을 중단한다.
@@ -478,8 +497,44 @@ public sealed partial class FSNSnapshotSequence
 								Debug.LogError("Not implemented");
 							}
 						}
+						else if(jumpSeg.controlType == Segments.Control.ControlType.ReverseGoto)	// ** ReverseGoto
+						{
+							string label	= jumpSeg.GetReverseGotoLabel();
+							int labelIndex	= bs.sequence.GetIndexOfLabel(label);
+							var labelSeg	= bs.sequence.GetSegment(labelIndex) as Segments.Label;
+
+							if (labelSeg.labelType == Segments.Label.LabelType.Soft)				// * SOFT 라벨로 점프
+							{
+								if (labelIndex < bs.segIndex)										// SOFT 라벨은 거슬러올라갈 수 없다.
+									Debug.LogError("Cannot jump to previous soft label");
+
+								var clonnedState		= bs.Clone();								// 상태 복제
+								clonnedState.segIndex	= labelIndex;								// 라벨 인덱스 세팅
+								
+								// 진행 방향을 역방향으로 세팅
+								clonnedState.settings.CurrentFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(clonnedState.settings.CurrentFlowDirection);
+								clonnedState.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(clonnedState.settings.BackwardFlowDirection);
+
+								// 가장 마지막 세그먼트를 잠시동안만 UserChoice로 변경해서 새 스냅샷시퀀스를 정방향에 붙이지 못하게 막는다.
+								// 생성한 스냅샷을 역방향에 직접 붙여줘야하기 때문.
+								// 좀 Hacky한 방법이라서 변경이 필요할지도.
+
+								var origFlowType				= sseg.Type;								// 이전 flow type 보관
+								sseg.Type	= FlowType.UserChoice;											// UserChoice로 변경
+								var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석한 후 레퍼런스 받기
+								sseg.Type	= origFlowType;													// flow type 원상 복귀
+
+								LinkSnapshotsReverseOverride(sseg, newSeg);	//붙이기
+
+								sseg.snapshot.DisableBackward = true;		// 역방향 비활성화
+							}
+							else
+							{																		// * HARD 라벨로 점프
+								Debug.LogError("Not implemented");
+							}
+						}
 					}
-					jumpSeg	= null;
+					jumpSegs.Clear();
 
 					lastSeg	= sseg;
 					NewSnapshot(out sseg, out sshot);							// 새 스냅샷 인스턴스 준비
@@ -530,7 +585,10 @@ public sealed partial class FSNSnapshotSequence
 			next.BackDirection	= backDir;
 
 			prev.SetFlow(swipeDir, new Segment.FlowInfo() { Linked = next });
-			next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+			if (!next.OneWay)															// 단방향이 아닐 경우 반대로 돌아가는 링크도 생성
+			{
+				next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+			}
 		}
 
 		/// <summary>
@@ -547,6 +605,31 @@ public sealed partial class FSNSnapshotSequence
 
 			prev.SetFlow(dir, new Segment.FlowInfo() { Linked = next });
 			next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+
+			// FIX : 선택지 분기는 period 세그먼트의 isChaining을 체크하는 부분이 위쪽 UserChoice를 체크하는 조건문에 걸려 실행되지 못함.
+			// 선택지 바로 다음에는 LastOption 텍스트를 표시하는 snapshot이 무조건 나온다고 가정하고, 여기서 강제로 chaining을 해준다.
+			next.snapshot.LinkToForward		= true;
+			next.snapshot.LinkToBackward	= true;
+		}
+
+		/// <summary>
+		/// 스냅샷 단순 연결, 역방향
+		/// </summary>
+		/// <param name="prev"></param>
+		/// <param name="next"></param>
+		static void LinkSnapshotsReverseOverride(Segment prev, Segment next)
+		{
+			var swipeDir		= next.snapshot.InGameSetting.CurrentFlowDirection;		// 다음에 올 시퀀스의 설정값으로 링크 방향을 정한다
+			var backDir			= next.snapshot.InGameSetting.BackwardFlowDirection;
+
+			//prev.FlowDirection	= swipeDir;
+			next.BackDirection	= backDir;
+
+			prev.SetFlow(swipeDir, new Segment.FlowInfo() { Linked = next });
+			if (!next.OneWay)															// 단방향이 아닐 경우 반대로 돌아가는 링크도 생성
+			{
+				next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+			}
 		}
 	}
 

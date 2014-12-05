@@ -20,6 +20,7 @@ public class FSNSequenceEngine : MonoBehaviour
 	SortedDictionary<int, IFSNLayerModule>	m_layerModules;				// 레이어 모듈
 
 	float									m_swipeAvailableTime;		// swipe가 가능해지는 시간. (이 시간이 지나야 가능해짐)
+	bool									m_lastSwipeWasBackward;		// 최근에 한 swipe가 반대방향이었는지.
 
 	/// <summary>
 	/// 현재 InGame 세팅
@@ -63,6 +64,24 @@ public class FSNSequenceEngine : MonoBehaviour
 			if(layerModule != null)
 			{
 				m_layerModules[layerModule.LayerID]	= layerModule;
+			}
+		}
+	}
+
+	void Update()
+	{
+		if(m_snapshotTraveler != null && CanSwipe)					// 로드된 snapshot이 있고, swipe 가능할 시 (= idle 상황)
+		{
+			var curSnapshot	= m_snapshotTraveler.Current;
+
+			// 정방향 혹은 역방향으로 진행했는데 해당 방향으로 연결된 snapshot이 있다면 바로 transition을 건다
+			if(curSnapshot.LinkToForward && !m_lastSwipeWasBackward)
+			{
+				FullSwipe(curSnapshot.InGameSetting.CurrentFlowDirection, 0f);
+			}
+			else if(curSnapshot.LinkToBackward && m_lastSwipeWasBackward)
+			{
+				FullSwipe(curSnapshot.InGameSetting.BackwardFlowDirection, 0f);
 			}
 		}
 	}
@@ -113,7 +132,8 @@ public class FSNSequenceEngine : MonoBehaviour
 	/// 완전히 넘기는 Swipe 처리
 	/// </summary>
 	/// <param name="direction"></param>
-	public void FullSwipe(FSNInGameSetting.FlowDirection direction)
+	/// <param name="transitionStartRatio">트랜지션 애니메이션을 어느 지점부터 시작할지 여부. 0은 처음부터, 1은 종료부분. 기본값은 c_maxSwipeToTransitionRatio</param>
+	public void FullSwipe(FSNInGameSetting.FlowDirection direction, float transitionStartRatio = c_maxSwipeToTransitionRatio)
 	{
 		if(!CanSwipe)														// Swipe 불가능한 상태면 리턴
 			return;
@@ -125,6 +145,9 @@ public class FSNSequenceEngine : MonoBehaviour
 
 			float transTime		= 0f;										// 트랜지션 시간
 
+			// FIX : setting에 backward 방향이 등록되어있더라도 DisableBackward 플래그가 서있다면 역방향으로 따지지 않는다.
+			bool isBackward		= !curshot.DisableBackward && InGameSetting.BackwardFlowDirection == direction;
+
 			foreach(var module in m_layerModules.Values)					// 현재 로드된 모든 LayerModule 에 맞는 레이어를 찾아 각각 처리한다
 			{
 				int layerID		= module.LayerID;
@@ -134,13 +157,13 @@ public class FSNSequenceEngine : MonoBehaviour
 				if(oldLayer.IsEmpty && newLayer.IsEmpty)					// * 둘 다 비어있으면 아무것도 하지 않는다
 					continue;
 
-				bool isBackward	= InGameSetting.BackwardFlowDirection == direction;
-				float curtt		= module.StartTransition(newLayer, c_maxSwipeToTransitionRatio, isBackward);	// 트랜지션
+				float curtt		= module.StartTransition(newLayer, transitionStartRatio, isBackward);	// 트랜지션
 
 				if(transTime < curtt)										// 제일 긴 트랜지션 시간 추적
 					transTime = curtt;
 			}
 
+			m_lastSwipeWasBackward	= isBackward;							// swipe 방향성 보관해두기 (연결된 snapshot 처리에 사용)
 			m_swipeAvailableTime	= Time.time + transTime;				// 현재 시간 + 트랜지션에 걸리는 시간 뒤에 swipe가 가능해짐
 
 			m_snapshotTraveler.TravelTo(direction);							// 해당 방향으로 넘기기
