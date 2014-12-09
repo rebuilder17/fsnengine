@@ -73,7 +73,11 @@ public class SnapshotEngineTest : MonoBehaviour
 
 
 		// 테스트 2.
-		FSNScriptSequence	rawSeq	= FSNScriptSequence.GenerateTestSequence();
+		//FSNScriptSequence	rawSeq	= FSNScriptSequence.GenerateTestSequence();
+		//var sshotSeq		= FSNSnapshotSequence.Builder.BuildSnapshotSequence(rawSeq);
+
+		// 테스트 3.
+		FSNScriptSequence	rawSeq	= FSNScriptSequence.Parser.FromAsset("testscript");
 		var sshotSeq		= FSNSnapshotSequence.Builder.BuildSnapshotSequence(rawSeq);
 
 		m_seqEngine.StartSnapshotSequence(sshotSeq);

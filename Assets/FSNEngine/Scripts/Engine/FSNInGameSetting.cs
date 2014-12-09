@@ -185,8 +185,6 @@ public abstract class BaseInGameSetting : IInGameSetting
 /// </summary>
 public sealed class FSNInGameSetting : BaseInGameSetting
 {
-	// TODO : 세팅을 완전히 덮어쓰는 것이 아닌 일부만 세팅할 수 있게 하는 시스템이 필요함
-
 	/// <summary>
 	/// 진행 방향
 	/// </summary>
@@ -198,6 +196,33 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		Right,
 
 		None	= -1	// 방향 없음
+	}
+
+	//==============================================================================
+
+	/// <summary>
+	/// 프로퍼티 이름 별명
+	/// </summary>
+	readonly static Dictionary<string, string> s_propNameAlias	= new Dictionary<string,string>()
+	{
+		{"현재진행방향",			"CurrentFlowDirection"},	
+		{"무게감",					"SwipeWeight"},				
+		{"글자크기",				"FontSize"},				
+		{"문장을화면가운데로",		"ScreenCenterText"},		
+		{"문장쌓기",				"StackTexts"},				
+	};
+
+	/// <summary>
+	/// 속성 이름 별명을 원래 속성명으로 변환
+	/// </summary>
+	/// <param name="aliasname"></param>
+	/// <returns></returns>
+	public static string ConvertPropertyNameAlias(string aliasname)
+	{
+		string realname		= aliasname;	
+		string spaceRemoved	= System.Text.RegularExpressions.Regex.Replace(aliasname, "[ \t]", "");	// 공백 모두 제거
+		
+		return s_propNameAlias.TryGetValue(spaceRemoved, out realname)? realname : aliasname;		// 이름을 검색하지 못했다면 원래 이름을 그대로 반환한다
 	}
 
 	//==============================================================================
@@ -403,6 +428,20 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 			}
 			else
 			{
+				propInfo.SetValue(this, value, null);
+			}
+		}
+
+		public void SetPropertyByString(string propName, string strval)
+		{
+			var propInfo	= typeof(Chain).GetProperty(propName);
+			if (propInfo == null)
+			{
+				Debug.LogError("Cannot find a property named " + propName);
+			}
+			else
+			{
+				object value	= FSNUtils.StringToValue(propInfo.PropertyType, strval);
 				propInfo.SetValue(this, value, null);
 			}
 		}

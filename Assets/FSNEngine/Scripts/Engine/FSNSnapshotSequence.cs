@@ -156,6 +156,8 @@ public sealed partial class FSNSnapshotSequence
 			FSNInGameSetting				m_frozenSetting;
 			bool							m_settingIsDirty	= true;
 
+			public bool						prevPeriodWasChain	= false;	// 이전 period가 chaining이었는지 여부.
+
 			/// <summary>
 			/// 현재 세팅을 고정시킨 세팅값 얻어오기
 			/// </summary>
@@ -192,6 +194,8 @@ public sealed partial class FSNSnapshotSequence
 				newState.sequence	= sequence;
 				newState.segIndex	= segIndex;
 				newState.settings	= settings.CloneEntireChain();
+
+				newState.prevPeriodWasChain	= prevPeriodWasChain;
 
 				newState.m_settingIsDirty	= true;	// 안전을 위해 무조건 Dirty 상태로 둔다
 
@@ -351,7 +355,7 @@ public sealed partial class FSNSnapshotSequence
 
 						foreach(var settingPair in settingSeg.RawSettingTable)	// Setting 설정
 						{
-							bs.settings.SetProperty(settingPair.Key, settingPair.Value);
+							bs.settings.SetPropertyByString(settingPair.Key, settingPair.Value);
 						}
 					}
 
@@ -372,7 +376,7 @@ public sealed partial class FSNSnapshotSequence
 				{
 					var labelSeg		= curSeg as Segments.Label;
 					// 현재 이 시점에서는 labelSeg로 하는 일이 없다...
-					Debug.Log("Label : " + labelSeg.labelName);
+					//Debug.Log("Label : " + labelSeg.labelName);
 				}
 				break;
 				//////////////////////////////////////////////////////////////
@@ -413,6 +417,10 @@ public sealed partial class FSNSnapshotSequence
 				{
 					var periodSeg		= curSeg as Segments.Period;
 
+					// 다음 snapshot을 위해 현재 진행 방향의 반대방향으로 FlowDirection 정해놓기
+					bs.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(bs.settings.CurrentFlowDirection);
+					bs.SetSettingDirty();
+
 					sshot.InGameSetting	= bs.FrozenSetting;						// 현재까지의 세팅 적용 (굳힌거 사용)
 
 					moduleCalls.ProcessCall(lastSeg.snapshot, sshot);			// 지금까지 모인 모듈 콜 집행하기
@@ -421,11 +429,22 @@ public sealed partial class FSNSnapshotSequence
 					{
 						LinkSnapshots(lastSeg, sseg);
 
+						if(bs.prevPeriodWasChain)								// 이전 period가 chaining이었다면, 역방향 chaining 걸기
+						{
+							sseg.snapshot.LinkToBackward	= true;
+							bs.prevPeriodWasChain			= false;			// (플래그 해제)
+						}
+
 						if(periodSeg.isChaining)								// Chaining 옵션이 켜져있을 경우
 						{
-							lastSeg.snapshot.LinkToForward	= true;
-							sseg.snapshot.LinkToBackward	= true;
+							sseg.snapshot.LinkToForward		= true;
+							//sseg.snapshot.LinkToBackward	= true;
+							bs.prevPeriodWasChain			= true;				// (chaining 상태 기록)
 						}
+
+						//// 다음 snapshot을 위해 현재 진행 방향의 반대방향으로 FlowDirection 정해놓기
+						//bs.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(bs.settings.CurrentFlowDirection);
+						//bs.SetSettingDirty();
 					}
 
 					snapshotSeq.Add(sseg);										// 현재 스냅샷을 시퀀스에 추가
