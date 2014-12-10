@@ -11,7 +11,12 @@ public static class FSNBuiltInScriptCommands
 	public static void Install()
 	{
 		FSNScriptSequence.Parser.AddCommand(Goto,			"goto",			"이동");
+		FSNScriptSequence.Parser.AddCommand(ReverseGoto,	"reversegoto",	"역방향");
 		FSNScriptSequence.Parser.AddCommand(End,			"end",			"끝");
+		FSNScriptSequence.Parser.AddCommand(Oneway,			"oneway",		"역방향금지");
+		FSNScriptSequence.Parser.AddCommand(Clear,			"clear",		"지우기");
+		FSNScriptSequence.Parser.AddCommand(TextClear,		"textclear",	"글자지우기");
+		FSNScriptSequence.Parser.AddCommand(Load,			"load",			"불러오기");
 
 		FSNScriptSequence.Parser.AddCommand(PushSetting,	"pushsetting",	"설정쌓기");
 		FSNScriptSequence.Parser.AddCommand(PopSetting,		"popsetting",	"설정버리기");
@@ -41,6 +46,20 @@ public static class FSNBuiltInScriptCommands
 		protocol.PushSegment(newSegInfo);
 	}
 
+	static void ReverseGoto(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newseg					= new Segments.Control();
+
+		newseg.controlType			= Segments.Control.ControlType.ReverseGoto;
+		newseg.SetReverseGotoData(protocol.parameters[0]);
+
+		var newSegInfo				= new FSNScriptSequence.Parser.GeneratedSegmentInfo();
+		newSegInfo.newSeg			= newseg;
+		newSegInfo.usePrevPeriod	= false;
+		newSegInfo.selfPeriod		= false;
+		protocol.PushSegment(newSegInfo);
+	}
+
 	static void End(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
 	{
 		var newseg					= new Segments.Control();
@@ -52,6 +71,69 @@ public static class FSNBuiltInScriptCommands
 		newSegInfo.usePrevPeriod	= true;
 		newSegInfo.selfPeriod		= true;
 		protocol.PushSegment(newSegInfo);
+	}
+
+	static void Clear(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newseg					= new Segments.Control();
+
+		newseg.controlType			= Segments.Control.ControlType.Clear;
+
+		var newSegInfo				= new FSNScriptSequence.Parser.GeneratedSegmentInfo();
+		newSegInfo.newSeg			= newseg;
+		newSegInfo.usePrevPeriod	= true;
+		newSegInfo.selfPeriod		= false;
+		protocol.PushSegment(newSegInfo);
+	}
+
+	static void Oneway(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newseg					= new Segments.Control();
+
+		newseg.controlType			= Segments.Control.ControlType.Oneway;
+
+		var newSegInfo				= new FSNScriptSequence.Parser.GeneratedSegmentInfo();
+		newSegInfo.newSeg			= newseg;
+		newSegInfo.usePrevPeriod	= false;
+		newSegInfo.selfPeriod		= false;
+		protocol.PushSegment(newSegInfo);
+	}
+
+	static void TextClear(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newseg					= new Segments.Text();
+
+		newseg.textType				= Segments.Text.TextType.Clear;
+
+		var newSegInfo				= new FSNScriptSequence.Parser.GeneratedSegmentInfo();
+		newSegInfo.newSeg			= newseg;
+		newSegInfo.usePrevPeriod	= true;
+		newSegInfo.selfPeriod		= false;
+		protocol.PushSegment(newSegInfo);
+	}
+
+	static void Load(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newseg					= new Segments.Control();
+
+		newseg.controlType			= Segments.Control.ControlType.Load;
+		newseg.SetLoadScriptData(protocol.parameters[0]);
+
+		var newSegInfo				= new FSNScriptSequence.Parser.GeneratedSegmentInfo();
+		newSegInfo.newSeg			= newseg;
+		newSegInfo.usePrevPeriod	= true;
+		newSegInfo.selfPeriod		= true;
+		protocol.PushSegment(newSegInfo);
+
+		// Load를 하는 시점에서 해당 스크립트가 종료되므로, block
+		var blockseg				= new Segments.Control();
+		blockseg.controlType		= Segments.Control.ControlType.Block;
+		var blockSegInfo			= new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg					= blockseg,
+			usePrevPeriod			= true
+		};
+		protocol.PushSegment(blockSegInfo);
 	}
 
 	//------------------------------------------------------------------------------------

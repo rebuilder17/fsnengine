@@ -159,4 +159,17 @@ public sealed class FSNEngine : MonoBehaviour
 	{
 		return m_moduleRefDict[moduleType.ToString()];
 	}
+
+
+	/// <summary>
+	/// 스크립트 실행
+	/// </summary>
+	/// <param name="filepath"></param>
+	public void RunScript(string filepath)
+	{
+		FSNScriptSequence scriptSeq	= FSNScriptSequence.Parser.FromAsset(filepath);
+		var sshotSeq				= FSNSnapshotSequence.Builder.BuildSnapshotSequence(scriptSeq);
+
+		m_seqEngine.StartSnapshotSequence(sshotSeq);
+	}
 }

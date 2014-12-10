@@ -36,4 +36,27 @@ namespace SnapshotElems
 			to.optionDir	= optionDir;
 		}
 	}
+
+	/// <summary>
+	/// 이미지 관련 (베이스)
+	/// </summary>
+	public class ImageObjBase : FSNSnapshot.Element<ImageObjBase>
+	{
+
+	}
+
+	/// <summary>
+	/// 일반적인 이미지
+	/// </summary>
+	public class Image : ImageObjBase
+	{
+		public Texture2D	texture;
+
+		protected override void CopyDataTo(ImageObjBase to)
+		{
+			base.CopyDataTo(to);
+			var toImg		= to as Image;
+			toImg.texture	= texture;
+		}
+	}
 }

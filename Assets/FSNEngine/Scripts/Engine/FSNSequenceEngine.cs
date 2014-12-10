@@ -77,7 +77,9 @@ public class FSNSequenceEngine : MonoBehaviour
 			// 정방향 혹은 역방향으로 진행했는데 해당 방향으로 연결된 snapshot이 있다면 바로 transition을 건다
 			if(curSnapshot.LinkToForward && !m_lastSwipeWasBackward)
 			{
-				FullSwipe(curSnapshot.InGameSetting.CurrentFlowDirection, 0f);
+				var nextFlowDir	= m_snapshotTraveler.Next.InGameSetting.CurrentFlowDirection;
+				//FullSwipe(curSnapshot.InGameSetting.CurrentFlowDirection, 0f);
+				FullSwipe(nextFlowDir, 0f);
 			}
 			else if(curSnapshot.LinkToBackward && m_lastSwipeWasBackward)
 			{
@@ -93,6 +95,7 @@ public class FSNSequenceEngine : MonoBehaviour
 	public void StartSnapshotSequence(FSNSnapshotSequence sequence)
 	{
 		m_snapshotTraveler	= FSNSnapshotSequence.Traveler.GenerateFrom(sequence);
+		m_snapshotTraveler.ScriptLoadRequested += OnScriptNeedToBeLoaded;	// 스크립트 로딩 이벤트 등록
 	}
 
 	/// <summary>
@@ -168,5 +171,14 @@ public class FSNSequenceEngine : MonoBehaviour
 
 			m_snapshotTraveler.TravelTo(direction);							// 해당 방향으로 넘기기
 		}
+	}
+
+	/// <summary>
+	/// 스크립트 로딩되어야만하는 경우
+	/// </summary>
+	/// <param name="scriptFile"></param>
+	void OnScriptNeedToBeLoaded(string scriptFile)
+	{
+		FSNEngine.Instance.RunScript(scriptFile);
 	}
 }

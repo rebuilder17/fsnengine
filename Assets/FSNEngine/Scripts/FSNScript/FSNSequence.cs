@@ -43,6 +43,11 @@ public class FSNScriptSequence
 		/// 열기/닫기 세그먼트일 경우, 페어가 되는 다른 세그먼트
 		/// </summary>
 		public Segment pairSegment	{ protected set; get; }
+
+		/// <summary>
+		/// 스크립트에서 해당하는 줄 번호 (디버깅 편의용)
+		/// </summary>
+		public int scriptLineNumber	= 0;
 	}
 
 
@@ -376,9 +381,22 @@ public class FSNScriptSequence
 			string			multilineText			= "";				// 멀티라인 모드에서, 텍스트 처리중일 때
 			//
 
+			// ** 스크립트 로드 후 첫번째 스냅샷에서 다시 이전으로 돌아가는 것은 불가능하므로, 맨 처음에 oneway 컨트롤 세그먼트를 추가해준다
+			var onewayAtFirstSeg			= new Segments.Control();
+			onewayAtFirstSeg.controlType	= Segments.Control.ControlType.Oneway;
+			var onewaySegInfo				= new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg	= onewayAtFirstSeg
+			};
+			protocol.PushSegment(onewaySegInfo);
+			//
+
 			string line		= null;
+			int linenumber	= 0;	// 줄 번호
 			while ((line = strstream.ReadLine()) != null)				// 줄 단위로 읽는다.
 			{
+				linenumber++;
+
 				if (!textMultilineMode && line.Length == 0)				// * 빈 줄은 스루. 단 여러줄 텍스트 모드일 경우 빈 줄에서는 여러줄 모드를 끝내게 한다.
 					continue;
 
@@ -532,6 +550,7 @@ public class FSNScriptSequence
 							periodSeg	= null;
 						}
 
+						newSegInfo.newSeg.scriptLineNumber	= linenumber;	// 줄번호 기록
 						sequence.m_segments.Add(newSegInfo.newSeg);			// 시퀀스 추가
 						if (newSegInfo.newSeg.type == Segment.Type.Label)	// 라벨일 경우 등록
 							sequence.RegisterLabelSegment();

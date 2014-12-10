@@ -409,6 +409,11 @@ public sealed partial class FSNSnapshotSequence
 						case Segments.Control.ControlType.Oneway:
 							sseg.OneWay	= true;
 							break;
+
+						case Segments.Control.ControlType.Load:
+							sseg.Type		= FlowType.Load;
+							sseg.Parameter	= controlSeg.GetLoadScriptData();	// 스냅샷 세그먼트의 parameter에 스크립트 파일명 보관
+							break;
 					}
 				}
 				break;
@@ -661,6 +666,11 @@ public sealed partial class FSNSnapshotSequence
 
 
 		/// <summary>
+		/// 스크립트 로딩 요청 이벤트
+		/// </summary>
+		public event System.Action<string>	ScriptLoadRequested;
+
+		/// <summary>
 		/// 외부에서 함부로 생성 못하게
 		/// </summary>
 		private Traveler() { }
@@ -722,7 +732,7 @@ public sealed partial class FSNSnapshotSequence
 
 		public FSNSnapshot TravelForward()
 		{
-			if(m_current.Type == FlowType.Normal)		// 선택지 타입이 아닌 경우만 진행
+			if(m_current.Type != FlowType.UserChoice)	// 선택지 타입이 아닌 경우만 진행
 			{
 				return TravelTo(m_current.FlowDirection);
 			}
@@ -747,6 +757,11 @@ public sealed partial class FSNSnapshotSequence
 			{
 				m_current	= m_current.GetLinked(dir);
 				next		= m_current.snapshot;
+
+				if(m_current.Type == FlowType.Load)			// 스크립트 로딩 이벤트
+				{
+					ScriptLoadRequested(m_current.Parameter as string);
+				}
 			}
 			return next;
 		}

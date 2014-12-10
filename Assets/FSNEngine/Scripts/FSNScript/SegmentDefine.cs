@@ -93,6 +93,51 @@ namespace Segments
 	}
 
 	/// <summary>
+	/// 베이스 타입 (Image 등이 이것을 사용함)
+	/// </summary>
+	public abstract class Object : FSNScriptSequence.Segment
+	{
+		public override Type type
+		{
+			get { return Type.Object; }
+		}
+
+		/// <summary>
+		/// Object 세그먼트 종류
+		/// </summary>
+		public enum CommandType
+		{
+			Create,				// 생성
+			SetInitial,			// 초기값
+			SetKey,				// 키 지정 (움직임 등)
+			SetFinal,			// 최종값
+			Remove,				// 제거
+
+			Custom	= 99		// 기타 다른 동작
+		}
+		//----------------------------------------------
+		
+		/// <summary>
+		/// 사용하는 layer id
+		/// </summary>
+		public int layerID;
+
+		/// <summary>
+		/// 타겟 오브젝트 이름
+		/// </summary>
+		public string objectName;
+
+		/// <summary>
+		/// Object 명령 종류
+		/// </summary>
+		public CommandType command;
+
+		//
+
+		// TODO : InGameSetting 같은 설정 딕셔너리 시스템 필요
+	}
+
+	/// <summary>
 	/// 세팅 세그먼트
 	/// </summary>
 	public class Setting : FSNScriptSequence.Segment
@@ -182,6 +227,11 @@ namespace Segments
 		private class GotoData : IControlData
 		{
 			public string m_gotoLabel;
+		}
+
+		private class LoadData : IControlData
+		{
+			public string m_scriptPath;
 		}
 
 		//------------------------------------------------------------
@@ -283,6 +333,18 @@ namespace Segments
 		{
 			var data			= CheckOptionData<GotoData>(ControlType.ReverseGoto);
 			return data.m_gotoLabel;
+		}
+
+		public void SetLoadScriptData(string scriptpath)
+		{
+			var data			= CheckOptionData<LoadData>(ControlType.Load);
+			data.m_scriptPath	= scriptpath;
+		}
+
+		public string GetLoadScriptData()
+		{
+			var data			= CheckOptionData<LoadData>(ControlType.Load);
+			return data.m_scriptPath;
 		}
 	}
 }
