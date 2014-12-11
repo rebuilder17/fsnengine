@@ -235,6 +235,19 @@ public sealed partial class FSNSnapshotSequence
 			}
 
 			/// <summary>
+			/// 오브젝트가 존재하는 모든 모듈에 콜 보내기
+			/// </summary>
+			/// <param name="segment"></param>
+			/// <param name="setting"></param>
+			public void AddAllModuleCall(FSNScriptSequence.Segment segment, IInGameSetting setting)
+			{
+				foreach (var callList in m_moduleCallTable.Values)
+				{
+					callList.Add(new FSNProcessModuleCallParam() { segment = segment, setting = setting });
+				}
+			}
+
+			/// <summary>
 			/// 쌓인 콜 모두 실행 후 Clear
 			/// </summary>
 			public void ProcessCall(FSNSnapshot prevSnapshot, FSNSnapshot curSnapshot)
@@ -402,8 +415,8 @@ public sealed partial class FSNSnapshotSequence
 							jumpSegs.Add(controlSeg);							// 점프 명령어로 보관해두고 나중에 처리한다.
 							break;
 
-						case Segments.Control.ControlType.Clear:
-							// TODO :
+						case Segments.Control.ControlType.Clear:				// 모든 모듈에 clear를 보낸다
+							moduleCalls.AddAllModuleCall(controlSeg, bs.FrozenSetting);
 							break;
 
 						case Segments.Control.ControlType.Oneway:

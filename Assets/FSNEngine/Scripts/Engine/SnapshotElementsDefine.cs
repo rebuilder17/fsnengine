@@ -26,7 +26,7 @@ namespace SnapshotElems
 		/// </summary>
 		public FSNInGameSetting.FlowDirection optionDir	= FSNInGameSetting.FlowDirection.None;
 
-		protected override void CopyDataTo(Text to)
+		public override void CopyDataTo(Text to)
 		{
 			base.CopyDataTo(to);
 			to.text		= text;
@@ -40,19 +40,61 @@ namespace SnapshotElems
 	/// <summary>
 	/// 이미지 관련 (베이스)
 	/// </summary>
-	public class ImageObjBase : FSNSnapshot.Element<ImageObjBase>
+	public class ObjectBase : FSNSnapshot.Element<ObjectBase>
 	{
+		/// <summary>
+		/// 오브젝트의 움직임 계산 상태
+		/// </summary>
+		public enum State
+		{
+			NotCalculated	= 0,	// 아직 보간 계산 적용되지 않음.
 
+			Calculated,				// 보간 적용됨
+			MotionKey,				// 키 오브젝트. 이 오브젝트의 좌표값을 기준으로 움직임 보간 실행
+		}
+
+		/// <summary>
+		/// 움직임 상태
+		/// </summary>
+		public State	motionState	= State.NotCalculated;
+
+		/// <summary>
+		/// Final State 설정값이 세팅된 적이 있는지
+		/// </summary>
+		public bool		finalStateSet	= false;
+
+
+		public override void CopyDataTo(ObjectBase to)
+		{
+			base.CopyDataTo(to);
+			to.finalStateSet	= finalStateSet;
+		}
+
+		/// <summary>
+		/// 두 elem 사이의 t 비율에 해당하는 값으로 세팅.
+		/// 주 : motionState는 세팅하지 않는다. 필요하다면 직접 해줘야함
+		/// </summary>
+		/// <param name="elem1"></param>
+		/// <param name="elem2"></param>
+		/// <param name="t"></param>
+		public virtual void LerpBetweenElems(ObjectBase elem1, ObjectBase elem2, float t)
+		{
+			Position	= Vector3.Lerp(elem1.Position, elem2.Position, t);
+			Color		= Color.Lerp(elem1.Color, elem2.Color, t);
+			Alpha		= Mathf.Lerp(elem1.Alpha, elem2.Alpha, t);
+
+			// TODO : Scale, Rotate
+		}
 	}
 
 	/// <summary>
 	/// 일반적인 이미지
 	/// </summary>
-	public class Image : ImageObjBase
+	public class Image : ObjectBase
 	{
 		public Texture2D	texture;
 
-		protected override void CopyDataTo(ImageObjBase to)
+		public override void CopyDataTo(ObjectBase to)
 		{
 			base.CopyDataTo(to);
 			var toImg		= to as Image;

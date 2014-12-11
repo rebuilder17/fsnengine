@@ -133,8 +133,75 @@ namespace Segments
 		public CommandType command;
 
 		//
+		public const string		c_property_Position	= "Position";
+		public const string		c_property_Scale	= "Scale";
+		public const string		c_property_Rotation	= "Rotation";
+		public const string		c_property_Color	= "Color";
+		public const string		c_property_Alpha	= "Alpha";
 
-		// TODO : InGameSetting 같은 설정 딕셔너리 시스템 필요
+		public Vector3	position;
+		public Vector3	scale;
+		public Vector3	rotation;
+		public Color	color;
+		public float	alpha;
+
+		HashSet<string>	PropertySetList	= new HashSet<string>();
+
+		/// <summary>
+		/// 설정된 프로퍼티 리스트 리턴 (Ienumerable로 변환해서)
+		/// </summary>
+		public IEnumerable<string> PropertyNames
+		{ get { return PropertySetList; } }
+
+		/// <summary>
+		/// 프로퍼티가 설정되었음을 나타내는 플래그 추가
+		/// </summary>
+		public void AddPropertySetFlag(string name)
+		{
+			var realname	= ConvertAliasPropertyName(FSNUtils.RemoveAllWhiteSpaces(name));	// 공백을 제거해서 별명 변환 시도
+			PropertySetList.Add(realname);
+		}
+
+		/// <summary>
+		/// 별명 변환하기. 별명이 추가될 경우 오버라이드하면 된다.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected virtual string ConvertAliasPropertyName(string name)
+		{
+			switch(name)
+			{
+				case "위치":
+					return c_property_Position;
+				case "비율":
+					return c_property_Scale;
+				case "회전":
+					return c_property_Rotation;
+				case "색상":
+					return c_property_Color;
+				case "알파":
+					return c_property_Alpha;
+			}
+			return name;	// 변환 실패시 이름 그냥 리턴
+		}
+	}
+
+	/// <summary>
+	/// 이미지
+	/// </summary>
+	public class Image : Object
+	{
+		public const string		c_property_TexturePath	= "Texture";
+
+		public string			texturePath;
+		protected override string ConvertAliasPropertyName(string name)
+		{
+			if(name == "파일")
+			{
+				return c_property_TexturePath;
+			}
+			return base.ConvertAliasPropertyName(name);
+		}
 	}
 
 	/// <summary>

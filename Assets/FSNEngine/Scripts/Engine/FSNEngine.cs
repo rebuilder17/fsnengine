@@ -12,6 +12,7 @@ public sealed class FSNEngine : MonoBehaviour
 	public enum ModuleType
 	{
 		Text,
+		Image,
 	}
 
 	//===========================================================================

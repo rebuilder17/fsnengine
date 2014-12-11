@@ -183,7 +183,7 @@ public class FSNSnapshot
 		/// 현재 데이터를 to 로 복제한다. 오버라이드해서 상속한 클래스의 데이터도 복제하는 코드를 추가한다
 		/// </summary>
 		/// <param name="to"></param>
-		protected virtual void CopyDataTo(SelfT to)
+		public virtual void CopyDataTo(SelfT to)
 		{
 			to.InitialState	= InitialState;
 			to.FinalState	= FinalState;

@@ -55,7 +55,7 @@ namespace LayerObjects
 		/// <summary>
 		/// 정렬
 		/// </summary>
-		public TextAlign Align	{get;set;}
+		public TextAlign Align { get; set; }
 
 
 		public TextLayerObject(FSNModule parent, GameObject gameObj)
@@ -124,11 +124,11 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		foreach(var callParam in callParams)
 		{
 			//Debug.Log("TextModule : " + callParam.segment.type.ToString());
-			if(callParam.segment.type == FSNScriptSequence.Segment.Type.Text)										// ** 텍스트 세그먼트 처리 **
+			if(callParam.segment.type == FSNScriptSequence.Segment.Type.Text)	// ** 텍스트 세그먼트 처리 **
 			{
-				var textSeg	= callParam.segment as Segments.Text;			// 타입 변환
+				var textSeg	= callParam.segment as Segments.Text;				// 타입 변환
 
-				switch(textSeg.textType)									// * 텍스트 종류에 따라 처리 분기
+				switch(textSeg.textType)										// * 텍스트 종류에 따라 처리 분기
 				{
 					case Segments.Text.TextType.Normal:
 						AddNormalText(newLayer, textSeg, callParam.setting);
@@ -149,9 +149,10 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 				}
 
 			}
-			else
+			else if(callParam.segment.type == FSNScriptSequence.Segment.Type.Control
+				&& (callParam.segment as Segments.Control).controlType == Segments.Control.ControlType.Clear)	// Clear 명령에 반응
 			{
-				// 
+				ClearTextsToDirection(newLayer, callParam.setting.CurrentFlowDirection);
 			}
 		}
 
@@ -480,14 +481,8 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 					textElem.Position				= textElem.Position + transVec;
 					textElem.Alpha					= 0f;
-					// TODO : Alpha를 0으로 하는 것 이외에 실제로 visible을 끌 수 있는 방법이 있다면 사용하도록 한다. 지금도 딱히 문제는 없긴 한데...
-					//UIDtoRemove.Add(uId);
 
-					//if (textElem.type == SnapshotElems.Text.Type.LastOption && textElem.optionDir == FSNInGameSetting.FlowDirection.Up) // TEST
-					//{
-					//	Debug.Log("lastOption text final position : " + textElem.FinalState.Position.ToString());
-					//	Debug.Log("transVec : " + transVec.ToString());
-					//}
+					// TODO : Alpha를 0으로 하는 것 이외에 실제로 visible을 끌 수 있는 방법이 있다면 사용하도록 한다. 지금도 딱히 문제는 없긴 한데...
 				}
 				else if(elemAge == killAge + 1)											// 원래 없어져야했던 타이밍이 지나고 나서 실제로 없앤다.
 				{

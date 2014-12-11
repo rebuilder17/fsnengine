@@ -20,6 +20,11 @@ public static class FSNUtils
 		return array;
 	}
 
+	public static string RemoveAllWhiteSpaces(string str)
+	{
+		return System.Text.RegularExpressions.Regex.Replace(str, "[ \t\n\r]", "");	// 공백 모두 제거
+	}
+
 	/// <summary>
 	/// 문자열을 type에 맞는 값으로 변환.
 	/// </summary>
