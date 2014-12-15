@@ -40,7 +40,8 @@ namespace SnapshotElems
 	/// <summary>
 	/// 이미지 관련 (베이스)
 	/// </summary>
-	public class ObjectBase : FSNSnapshot.Element<ObjectBase>
+	public abstract class ObjectBase<SelfT> : FSNSnapshot.Element<SelfT>
+		where SelfT : ObjectBase<SelfT>, new()
 	{
 		/// <summary>
 		/// 오브젝트의 움직임 계산 상태
@@ -64,7 +65,7 @@ namespace SnapshotElems
 		public bool		finalStateSet	= false;
 
 
-		public override void CopyDataTo(ObjectBase to)
+		public override void CopyDataTo(SelfT to)
 		{
 			base.CopyDataTo(to);
 			to.finalStateSet	= finalStateSet;
@@ -77,7 +78,7 @@ namespace SnapshotElems
 		/// <param name="elem1"></param>
 		/// <param name="elem2"></param>
 		/// <param name="t"></param>
-		public virtual void LerpBetweenElems(ObjectBase elem1, ObjectBase elem2, float t)
+		public virtual void LerpBetweenElems(ObjectBase<SelfT> elem1, ObjectBase<SelfT> elem2, float t)
 		{
 			Position	= Vector3.Lerp(elem1.Position, elem2.Position, t);
 			Color		= Color.Lerp(elem1.Color, elem2.Color, t);
@@ -90,15 +91,14 @@ namespace SnapshotElems
 	/// <summary>
 	/// 일반적인 이미지
 	/// </summary>
-	public class Image : ObjectBase
+	public class Image : ObjectBase<Image>
 	{
 		public Texture2D	texture;
 
-		public override void CopyDataTo(ObjectBase to)
+		public override void CopyDataTo(Image to)
 		{
 			base.CopyDataTo(to);
-			var toImg		= to as Image;
-			toImg.texture	= texture;
+			to.texture	= texture;
 		}
 	}
 }

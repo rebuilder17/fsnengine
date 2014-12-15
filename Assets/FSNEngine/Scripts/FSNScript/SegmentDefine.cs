@@ -139,11 +139,11 @@ namespace Segments
 		public const string		c_property_Color	= "Color";
 		public const string		c_property_Alpha	= "Alpha";
 
-		public Vector3	position;
-		public Vector3	scale;
-		public Vector3	rotation;
-		public Color	color;
-		public float	alpha;
+		public Vector3			position;
+		public Vector3			scale;
+		public Vector3			rotation;
+		public Color			color;
+		public float			alpha;
 
 		HashSet<string>	PropertySetList	= new HashSet<string>();
 
@@ -184,6 +184,160 @@ namespace Segments
 			}
 			return name;	// 변환 실패시 이름 그냥 리턴
 		}
+
+		/// <summary>
+		/// 해당 이름으로 스크립트에서 읽어온 parameter를 세팅한다
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="param"></param>
+		public void SetPropertyFromScriptParams(string name, string param)
+		{
+			var realname	= ConvertAliasPropertyName(FSNUtils.RemoveAllWhiteSpaces(name));	// 공백을 제거해서 별명 변환 시도
+			
+			if(SetPropertyImpl(realname, param))												// 파라미터 값을 적용했다면 setFlag 리스트에 추가
+			{
+				AddPropertySetFlag(name);
+			}
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="name">변환된 프로퍼티 이름</param>
+		/// <param name="param">스크립트에서 읽어온 파라미터</param>
+		/// <returns>세팅 성공시 true, 실패시 false</returns>
+		protected virtual bool SetPropertyImpl(string name, string param)
+		{
+			bool success;
+			switch(name)
+			{
+				case c_property_Position:													// * 위치
+				{
+					var splitparams	= FSNScriptSequence.Parser.ParseParameters(param);
+					switch(splitparams.Length)
+					{
+						case 2:
+							position.x	= float.Parse(splitparams[0]);
+							position.y	= float.Parse(splitparams[1]);
+							success		= true;
+							break;
+
+						case 3:
+							position.x	= float.Parse(splitparams[0]);
+							position.y	= float.Parse(splitparams[1]);
+							position.z	= float.Parse(splitparams[2]);
+							success	= true;
+							break;
+
+						default:
+							Debug.LogError("Position property needs at least 2 parameters.");
+							success	= false;
+							break;
+					}
+				}
+				break;
+
+				case c_property_Scale:														// * 스케일
+				{
+					var splitparams	= FSNScriptSequence.Parser.ParseParameters(param);
+					switch(splitparams.Length)
+					{
+						case 1:
+							scale	= Vector3.one * float.Parse(splitparams[0]);
+							success	= true;
+							break;
+
+						case 2:
+							scale.x	= float.Parse(splitparams[0]);
+							scale.y	= float.Parse(splitparams[1]);
+							success	= true;
+							break;
+
+						case 3:
+							scale.x	= float.Parse(splitparams[0]);
+							scale.y	= float.Parse(splitparams[1]);
+							scale.z	= float.Parse(splitparams[2]);
+							success	= true;
+							break;
+
+						default:
+							Debug.LogError("Scale property needs from 1 to 3 parameters.");
+							success	= false;
+							break;
+					}
+				}
+				break;
+
+				case c_property_Rotation:													// * 로테이션
+				{
+					var splitparams	= FSNScriptSequence.Parser.ParseParameters(param);
+					switch (splitparams.Length)
+					{
+						case 1:
+							rotation.z	= float.Parse(splitparams[0]);
+							success	= true;
+							break;
+
+						case 3:
+							rotation.x	= float.Parse(splitparams[0]);
+							rotation.y	= float.Parse(splitparams[1]);
+							rotation.z	= float.Parse(splitparams[2]);
+							success	= true;
+							break;
+
+						default:
+							Debug.LogError("Position property needs 1 or 3 parameters.");
+							success	= false;
+							break;
+					}
+				}
+				break;
+
+				case c_property_Color:														// * Color
+				{
+					var splitparams	= FSNScriptSequence.Parser.ParseParameters(param);
+					switch (splitparams.Length)
+					{
+						case 1:
+							color	= FSNUtils.ConvertHexCodeToColor(splitparams[0]);
+							success	= true;
+							break;
+
+						case 3:
+							color.r	= float.Parse(splitparams[0]);
+							color.g	= float.Parse(splitparams[1]);
+							color.b	= float.Parse(splitparams[2]);
+							success	= true;
+							break;
+
+						case 4:
+							color.r	= float.Parse(splitparams[0]);
+							color.g	= float.Parse(splitparams[1]);
+							color.b	= float.Parse(splitparams[2]);
+							color.a	= float.Parse(splitparams[3]);
+							success	= true;
+							break;
+
+						default:
+							Debug.LogError("Position property needs 1 or 3 parameters.");
+							success	= false;
+							break;
+					}
+				}
+				break;
+
+				case c_property_Alpha:
+					alpha	= float.Parse(param);
+					success	= true;
+					break;
+
+				default:
+					success	= false;
+					break;
+			}
+
+			return success;
+		}
 	}
 
 	/// <summary>
@@ -201,6 +355,16 @@ namespace Segments
 				return c_property_TexturePath;
 			}
 			return base.ConvertAliasPropertyName(name);
+		}
+
+		protected override bool SetPropertyImpl(string name, string param)
+		{
+			if(name == c_property_TexturePath)
+			{
+				texturePath	= param;
+				return true;
+			}
+			return base.SetPropertyImpl(name, param);
 		}
 	}
 

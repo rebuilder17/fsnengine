@@ -28,6 +28,12 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Option_up,		"up",			"위");
 		FSNScriptSequence.Parser.AddCommand(Option_down,	"down",			"아래");
 		FSNScriptSequence.Parser.AddCommand(Option_end,		"showoption",	"선택지표시");
+
+		FSNScriptSequence.Parser.AddCommand(Image_start,	"showimage",	"이미지생성");
+		FSNScriptSequence.Parser.AddCommand(Image_end,		"removeimage",	"이미지제거");
+		FSNScriptSequence.Parser.AddCommand(Image_set,		"imageset",		"이미지설정");
+		FSNScriptSequence.Parser.AddCommand(Image_initial,	"imageinit",	"이미지시작설정");
+		FSNScriptSequence.Parser.AddCommand(Image_final,	"imagefinal",	"이미지종료설정");
 	}
 
 	//-------------------------------------------------------------------------------
@@ -375,6 +381,103 @@ public static class FSNBuiltInScriptCommands
 		{
 			// 0번째 인덱스는 점프할 레이블, 1번째 인덱스는 텍스트
 			data[(int)dir]	= new string[2] { protocol.parameters[0], protocol.parameters[1] };
+		}
+	}
+
+	//------------------------------------------------------------------------------------
+
+	static void Image_start(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newImageSeg		= new Segments.Image();
+		newImageSeg.command	= Segments.Object.CommandType.Create;
+
+		_Image_setupSegment(newImageSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newImageSeg,
+				usePrevPeriod	= true,
+				selfPeriod		= false
+			});
+	}
+
+	static void Image_end(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newImageSeg		= new Segments.Image();
+		newImageSeg.command	= Segments.Object.CommandType.Remove;
+
+		_Image_setupSegment(newImageSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newImageSeg,
+				usePrevPeriod	= true,
+				selfPeriod		= false
+			});
+	}
+
+	static void Image_initial(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newImageSeg		= new Segments.Image();
+		newImageSeg.command	= Segments.Object.CommandType.SetInitial;
+
+		_Image_setupSegment(newImageSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newImageSeg,
+				usePrevPeriod	= true,
+				selfPeriod		= false
+			});
+	}
+
+	static void Image_final(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newImageSeg		= new Segments.Image();
+		newImageSeg.command	= Segments.Object.CommandType.SetFinal;
+
+		_Image_setupSegment(newImageSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newImageSeg,
+				usePrevPeriod	= true,
+				selfPeriod		= false
+			});
+	}
+
+	static void Image_set(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newImageSeg		= new Segments.Image();
+		newImageSeg.command	= Segments.Object.CommandType.SetKey;
+
+		_Image_setupSegment(newImageSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newImageSeg,
+				usePrevPeriod	= true,
+				selfPeriod		= false
+			});
+	}
+
+	static void _Image_setupSegment(Segments.Image seg, FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		bool useDefaultLayer	= !int.TryParse(protocol.parameters[0], out seg.layerID);	// 첫번째 파라미터가 정수라면 지정한 레이어를 사용
+
+		if (useDefaultLayer)																// 기본 레이어를 사용하는 경우, layerID는 0 (기본값)으로
+			seg.layerID	= 0;
+
+		seg.objectName			= protocol.parameters[useDefaultLayer? 0 : 1];
+
+		//
+		int settingIndexStart	= useDefaultLayer? 1 : 2;									// 세팅값이 시작되는 인덱스
+		int settingCount		= (protocol.parameters.Length - settingIndexStart) / 2;		// 세팅 pair 갯수
+		for(int i = 0; i < settingCount; i++)
+		{
+			var pName	= protocol.parameters[settingIndexStart + i * 2];
+			var pParam	= protocol.parameters[settingIndexStart + i * 2 + 1];
+			seg.SetPropertyFromScriptParams(pName, pParam);									// 파라미터 하나씩 세팅
 		}
 	}
 }

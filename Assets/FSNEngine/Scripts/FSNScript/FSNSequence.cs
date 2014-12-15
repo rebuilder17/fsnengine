@@ -34,15 +34,15 @@ public class FSNScriptSequence
 		/// </summary>
 		public abstract Type type { get; }
 
-		/// <summary>
-		/// 정확한 명령어 이름 (스크립트 상에서)
-		/// </summary>
-		public string name			{ protected set; get; }
+		///// <summary>
+		///// 정확한 명령어 이름 (스크립트 상에서)
+		///// </summary>
+		//public string name			{ protected set; get; }
 
-		/// <summary>
-		/// 열기/닫기 세그먼트일 경우, 페어가 되는 다른 세그먼트
-		/// </summary>
-		public Segment pairSegment	{ protected set; get; }
+		///// <summary>
+		///// 열기/닫기 세그먼트일 경우, 페어가 되는 다른 세그먼트
+		///// </summary>
+		//public Segment pairSegment	{ protected set; get; }
 
 		/// <summary>
 		/// 스크립트에서 해당하는 줄 번호 (디버깅 편의용)

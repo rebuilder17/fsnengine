@@ -123,4 +123,55 @@ public static class FSNUtils
 				return null;
 			}},
 		};
+
+	public static Color ConvertHexCodeToColor(string hexcode)
+	{
+		uint r = 0, g = 0, b = 0;
+		uint a	= 255;
+
+		if (hexcode[0] == '#')					// # 이 있을 경우 제거 (헥사코드 표시)
+			hexcode	= hexcode.Substring(1);
+
+		uint hexNumber	= uint.Parse(hexcode, System.Globalization.NumberStyles.HexNumber);
+
+		switch(hexcode.Length)
+		{
+			case 3:								// * RGB
+				r	= BitExtract(hexNumber, 0xf, 8);
+				g	= BitExtract(hexNumber, 0xf, 4);
+				b	= BitExtract(hexNumber, 0xf, 0);
+				break;
+
+			case 4:								// * RGBA
+				r	= BitExtract(hexNumber, 0xf, 12);
+				g	= BitExtract(hexNumber, 0xf, 8);
+				b	= BitExtract(hexNumber, 0xf, 4);
+				a	= BitExtract(hexNumber, 0xf, 0);
+				break;
+
+			case 6:								// * RRGGBB
+				r	= BitExtract(hexNumber, 0xff, 16);
+				g	= BitExtract(hexNumber, 0xff, 8);
+				b	= BitExtract(hexNumber, 0xff, 0);
+				break;
+
+			case 8:								// * RRGGBBAA
+				r	= BitExtract(hexNumber, 0xff, 24);
+				g	= BitExtract(hexNumber, 0xff, 16);
+				b	= BitExtract(hexNumber, 0xff, 8);
+				a	= BitExtract(hexNumber, 0xff, 0);
+				break;
+
+			default:
+				Debug.LogError("[ConvertHexCodeToColor] wrong hexcode : " + hexcode);
+				break;
+		}
+
+		return new Color((float)r / 255f, (float)g / 255f, (float)b / 255f, (float)a / 255f);
+	}
+
+	private static uint BitExtract(uint input, uint mask, byte shift)
+	{
+		return (input & (mask << shift)) >> shift;
+	}
 }

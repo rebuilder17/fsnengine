@@ -41,6 +41,16 @@ public class FSNSequenceEngine : MonoBehaviour
 	}
 
 	/// <summary>
+	/// 레이어 ID로 모듈 찾기
+	/// </summary>
+	/// <param name="layerID"></param>
+	/// <returns></returns>
+	public IFSNLayerModule GetModuleByLayerID(int layerID)
+	{
+		return m_layerModules[layerID];
+	}
+
+	/// <summary>
 	/// Swipe 가능한지 여부
 	/// </summary>
 	public bool CanSwipe

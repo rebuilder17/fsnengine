@@ -254,7 +254,7 @@ public sealed partial class FSNSnapshotSequence
 			{
 				foreach(var pair in m_moduleCallTable)
 				{
-					if(pair.Value.Count > 0)							// * 실질적인 call이 있을 때만 실행
+					//if(pair.Value.Count > 0)							// * 실질적인 call이 있을 때만 실행
 					{
 						var module		= pair.Key;
 						var prevLayer	= prevSnapshot.GetLayer(module.LayerID) ?? FSNSnapshot.Layer.Empty;
@@ -382,6 +382,15 @@ public sealed partial class FSNSnapshotSequence
 					var module			= FSNEngine.Instance.GetModule(FSNEngine.ModuleType.Text) as IFSNProcessModule;
 
 					moduleCalls.AddCall(module, curSeg, bs.FrozenSetting);		// 해당 명령 저장
+				}
+				break;
+				//////////////////////////////////////////////////////////////
+				case FSNScriptSequence.Segment.Type.Object:						// ** 오브젝트 (이미지 등)
+				{
+					var objSeg	= curSeg as Segments.Object;
+					var module	= FSNEngine.Instance.GetModuleByLayerID(objSeg.layerID) as IFSNProcessModule;
+
+					moduleCalls.AddCall(module, objSeg, bs.FrozenSetting);
 				}
 				break;
 				//////////////////////////////////////////////////////////////

@@ -46,10 +46,14 @@ namespace LayerObjects
 			//base.UpdatePosition(position);
 
 
-			float toRealRatio	= Screen.height / FSNEngine.Instance.ScreenYSize;	// 가상 좌표를 실제 스크린 좌표로 변환
+			//float toRealRatio	= Screen.height / FSNEngine.Instance.ScreenYSize;	// 가상 좌표를 실제 스크린 좌표로 변환
 			
-			m_realPos.x			= Screen.width / 2 + (position.x * toRealRatio);
-			m_realPos.y			= Screen.height / 2 - (position.y * toRealRatio);
+			//m_realPos.x			= Screen.width / 2 + (position.x * toRealRatio);
+			//m_realPos.y			= Screen.height / 2 - (position.y * toRealRatio);
+
+			var screenDim		= FSNEngine.Instance.ScreenDimension;
+			m_realPos.x			= screenDim.x / 2 + (position.x);
+			m_realPos.y			= screenDim.y / 2 - (position.y);
 		}
 
 		protected override void UpdateColor(Color color)
@@ -131,6 +135,9 @@ public class FSNTextModule_UnityGUI : FSNTextModule<LayerObjects.Text_UnityGUI>
 	{
 		if(!Application.isPlaying)
 			return;
+
+		float scale	= (float)Screen.height / FSNEngine.Instance.ScreenYSize;
+		GUI.matrix	= Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(scale, scale, 1));
 
 		GUI.skin.font	= m_font;
 

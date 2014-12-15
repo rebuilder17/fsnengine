@@ -60,6 +60,9 @@ public abstract class FSNImageModule<ObjT> : FSNBaseObjectModule<Segments.Image,
 	{
 		base.OnCreateElement(segment, layer, elemCreated);
 
-		elemCreated.texture	= FSNResourceCache.Load<Texture2D>(FSNResourceCache.Category.Script, segment.texturePath);
+		var texture							= FSNResourceCache.Load<Texture2D>(FSNResourceCache.Category.Script, segment.texturePath);
+		elemCreated.texture					= texture;
+		elemCreated.InitialState.texture	= texture;				// 실행 순서 문제 때문에 initial/finalstate의 텍스쳐를 직접 세팅해줘야함
+		elemCreated.FinalState.texture		= texture;
 	}
 }

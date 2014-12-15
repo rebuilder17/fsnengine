@@ -10,7 +10,7 @@ namespace LayerObjects
 	/// </summary>
 	/// <typeparam name="ImageElem"></typeparam>
 	public abstract class BaseObjectLayerObject<ImageElem> : FSNLayerObject<ImageElem>
-		where ImageElem : SnapshotElems.ObjectBase
+		where ImageElem : SnapshotElems.ObjectBase<ImageElem>, new()
 	{
 		public BaseObjectLayerObject(FSNModule parent, GameObject gameObj)
 			: base(parent, gameObj)
@@ -25,31 +25,45 @@ namespace LayerObjects
 /// </summary>
 public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<SegT, ElemT, ObjT>
 	where SegT : Segments.Object
-	where ElemT : SnapshotElems.ObjectBase, new()
+	where ElemT : SnapshotElems.ObjectBase<ElemT>, new()
 	where ObjT : LayerObjects.BaseObjectLayerObject<ElemT>
 	
 {
 	// Members
 
-	/// <summary>
-	/// 이름 => 오브젝트 UID 딕셔너리
-	/// </summary>
-	Dictionary<string, int>	m_lookupDict	= new Dictionary<string, int>();
+	///// <summary>
+	///// 이름 => 오브젝트 UID 딕셔너리
+	///// </summary>
+	//Dictionary<string, int>	m_lookupDict	= new Dictionary<string, int>();
 
-	bool AddToLookupDict(string name, ElemT elem)
+	static bool AddToLookupDict(string name, ElemT elem, FSNSnapshot.Layer layer)
 	{
-		if (m_lookupDict.ContainsKey(name))
+		var nameDict = layer.CustomData as Dictionary<string, int>;
+		if(nameDict == null)
+		{
+			nameDict	= new Dictionary<string,int>();
+			layer.CustomData	= nameDict;
+		}
+
+		if (nameDict.ContainsKey(name))
 			return false;
 		else
 		{
-			m_lookupDict[name]	= elem.UniqueID;
+			nameDict[name]	= elem.UniqueID;
 			return true;
 		}
 	}
 
-	void RemoveFromLookupDict(string name)
+	static void RemoveFromLookupDict(string name, FSNSnapshot.Layer layer)
 	{
-		m_lookupDict.Remove(name);
+		var nameDict = layer.CustomData as Dictionary<string, int>;
+		if(nameDict == null)
+		{
+			nameDict	= new Dictionary<string,int>();
+			layer.CustomData	= nameDict;
+		}
+
+		nameDict.Remove(name);
 	}
 
 	/// <summary>
@@ -58,16 +72,23 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	/// <param name="name"></param>
 	/// <param name="uid"></param>
 	/// <returns></returns>
-	protected bool FindUIDFromLookupDict(string name, out int uid)
+	protected static bool FindUIDFromLookupDict(string name, out int uid, FSNSnapshot.Layer layer)
 	{
-		if(!m_lookupDict.ContainsKey(name))
+		var nameDict = layer.CustomData as Dictionary<string, int>;
+		if(nameDict == null)
+		{
+			nameDict	= new Dictionary<string,int>();
+			layer.CustomData	= nameDict;
+		}
+
+		if(!nameDict.ContainsKey(name))
 		{
 			uid = 0;
 			return false;
 		}
 		else
 		{
-			uid	= m_lookupDict[name];
+			uid	= nameDict[name];
 			return true;
 		}
 	}
@@ -76,6 +97,10 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, params FSNProcessModuleCallParam[] callParams)
 	{
 		FSNSnapshot.Layer newLayer	= curLayer.Clone();
+		if(curLayer.CustomData != null)							// 이름 dictionary 카피
+		{
+			newLayer.CustomData	= new Dictionary<string, int>(curLayer.CustomData as Dictionary<string, int>);
+		}
 
 		foreach(var callParam in callParams)
 		{
@@ -176,12 +201,14 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	{
 		LinkedList<ElemT> elems	= new LinkedList<ElemT>();	// 처리되지 않은 elem 리스트
 
-		ElemT current	= elem;
+		elems.AddFirst(elem);								// 첫번재 elem 세팅
+		ElemT current	= elem.ClonedFrom;
+
 		while(current != null)								// clone된 순서를 쭉 쫓아가면서, 오래된 것이 앞에 오도록 리스트에 추가한다.
 		{
 			elems.AddFirst(current);
 
-			if(current.motionState != SnapshotElems.ObjectBase.State.NotCalculated)	// 처리가 이미 된 elem을 만난 경우에는 break한다.
+			if(current.motionState != SnapshotElems.ObjectBase<ElemT>.State.NotCalculated)	// 처리가 이미 된 elem을 만난 경우에는 break한다.
 				break;
 
 			current		= current.ClonedFrom as ElemT;
@@ -201,7 +228,7 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 			float t				= (float)(i + 1) / elemCount;
 			curNode.Value.LerpBetweenElems(first, last, t);
 
-			curNode.Value.motionState	= SnapshotElems.ObjectBase.State.Calculated;	// "계산됨" 상태로
+			curNode.Value.motionState	= SnapshotElems.ObjectBase<ElemT>.State.Calculated;	// "계산됨" 상태로
 
 			curNode				= curNode.Next;
 		}
@@ -222,16 +249,17 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		newElem.Color		= Color.white;
 		SetElemBySegProperties(newElem, segment);				// 세팅하기
 		newElem.TransitionTime	= 1;// TODO
+		newElem.MakeItUnique();
 
 		var initialState	= newElem.InitialState as ElemT;	// Inital State 기본값 주기 - 시작 세팅에서 알파만 0
 		SetElemBySegProperties(initialState, segment);
 		initialState.Alpha	= 0;
 		initialState.TransitionTime	= 1;// TODO
 
-		newElem.motionState	= SnapshotElems.ObjectBase.State.MotionKey; // Key로 지정
+		newElem.motionState	= SnapshotElems.ObjectBase<ElemT>.State.MotionKey; // Key로 지정
 
 		layer.AddElement(newElem);
-		AddToLookupDict(segment.name, newElem);					// 오브젝트 이름 등록
+		AddToLookupDict(segment.objectName, newElem, layer);	// 오브젝트 이름 등록
 
 		OnCreateElement(segment, layer, newElem);				// 추가 동작 실행
 	}
@@ -251,9 +279,9 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	void RemoveElement(SegT segment, FSNSnapshot.Layer layer)
 	{
 		int uid;
-		if(!FindUIDFromLookupDict(segment.name, out uid))			// 이름으로 uid 찾기
+		if(!FindUIDFromLookupDict(segment.objectName, out uid, layer))	// 이름으로 uid 찾기
 		{
-			Debug.LogError("cannot find SnapshotElem named " + segment.name);
+			Debug.LogError("cannot find SnapshotElem named " + segment.objectName);
 		}
 
 		var elem	= layer.GetElement(uid) as ElemT;
@@ -265,13 +293,13 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		}
 
 		SetElemBySegProperties(elem, segment);						// 마지막 설정값들 세팅
-		elem.motionState			= SnapshotElems.ObjectBase.State.MotionKey;
+		elem.motionState			= SnapshotElems.ObjectBase<ElemT>.State.MotionKey;
 
 		OnRemoveElement(segment, layer, elem);						// 추가 동작 실행
 		
 		CalculateStates(elem);										// 지금까지 좌표값들 보간
 
-		RemoveFromLookupDict(segment.name);							// 제거
+		RemoveFromLookupDict(segment.objectName, layer);			// 제거
 		layer.RemoveElement(uid);
 	}
 	/// <summary>
@@ -290,14 +318,14 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	void SetElement(SegT segment, FSNSnapshot.Layer layer)
 	{
 		int uid;
-		if(!FindUIDFromLookupDict(segment.name, out uid))			// 이름으로 uid 찾기
+		if(!FindUIDFromLookupDict(segment.objectName, out uid, layer))	// 이름으로 uid 찾기
 		{
-			Debug.LogError("cannot find SnapshotElem named " + segment.name);
+			Debug.LogError("cannot find SnapshotElem named " + segment.objectName);
 		}
 
 		var elem	= layer.GetElement(uid) as ElemT;		
 		SetElemBySegProperties(elem, segment);						// 설정값들 세팅
-		elem.motionState			= SnapshotElems.ObjectBase.State.MotionKey;
+		elem.motionState			= SnapshotElems.ObjectBase<ElemT>.State.MotionKey;
 
 		CalculateStates(elem);										// 지금까지 좌표값들 보간
 
@@ -319,9 +347,9 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	void SetElementInitial(SegT segment, FSNSnapshot.Layer layer)
 	{
 		int uid;
-		if(!FindUIDFromLookupDict(segment.name, out uid))			// 이름으로 uid 찾기
+		if(!FindUIDFromLookupDict(segment.objectName, out uid, layer))	// 이름으로 uid 찾기
 		{
-			Debug.LogError("cannot find SnapshotElem named " + segment.name);
+			Debug.LogError("cannot find SnapshotElem named " + segment.objectName);
 		}
 
 		var elem	= layer.GetElement(uid) as ElemT;
@@ -345,9 +373,9 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	void SetElementFinal(SegT segment, FSNSnapshot.Layer layer)
 	{
 		int uid;
-		if(!FindUIDFromLookupDict(segment.name, out uid))			// 이름으로 uid 찾기
+		if(!FindUIDFromLookupDict(segment.objectName, out uid, layer))	// 이름으로 uid 찾기
 		{
-			Debug.LogError("cannot find SnapshotElem named " + segment.name);
+			Debug.LogError("cannot find SnapshotElem named " + segment.objectName);
 		}
 
 		var elem	= layer.GetElement(uid) as ElemT;

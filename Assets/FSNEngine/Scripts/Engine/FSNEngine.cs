@@ -161,6 +161,16 @@ public sealed class FSNEngine : MonoBehaviour
 		return m_moduleRefDict[moduleType.ToString()];
 	}
 
+	/// <summary>
+	/// 레이어 ID로 모듈 가져오기
+	/// </summary>
+	/// <param name="layerID"></param>
+	/// <returns></returns>
+	public IFSNLayerModule GetModuleByLayerID(int layerID)
+	{
+		return m_seqEngine.GetModuleByLayerID(layerID);
+	}
+
 
 	/// <summary>
 	/// 스크립트 실행

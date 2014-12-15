@@ -163,8 +163,8 @@ public class FSNSnapshot
 				throw new System.InvalidOperationException("Element is not valid. If it's an original object, call MakeItUnique before any use.");
 			}
 
-			//SelfT newElem		= MakeInstance();
-			SelfT newElem		= new SelfT();
+			SelfT newElem		= MakeInstance();
+			//SelfT newElem		= new SelfT();
 			newElem.UniqueID	= UniqueID;			// UniqueID 복제
 			if(cloneInitialFinalState)				// 플래그가 있을 경우, Initial/Final State도 복제
 			{
@@ -176,6 +176,15 @@ public class FSNSnapshot
 			CopyDataTo(newElem);					// 기타 데이터 복제
 
 			return newElem;
+		}
+
+		/// <summary>
+		/// 새 인스턴스 생성 (new). 제너릭의 복잡성 때문에 필요해짐
+		/// </summary>
+		/// <returns></returns>
+		protected virtual SelfT MakeInstance()
+		{
+			return new SelfT();
 		}
 
 
