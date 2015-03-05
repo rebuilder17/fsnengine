@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using System.Security.Cryptography;
 
 
 /// <summary>
@@ -87,6 +89,11 @@ public class FSNScriptSequence
 	{
 		get { return GetSegment(index); }
 	}
+
+	/// <summary>
+	/// 스크립트에서 생성한 해시 키
+	/// </summary>
+	public string ScriptHashKey { get; private set; }
 
 	//=====================================================================================
 
@@ -371,6 +378,8 @@ public class FSNScriptSequence
 		{
 			var sequence	= new FSNScriptSequence();
 			var strstream	= new System.IO.StringReader(scriptData);
+			sequence.ScriptHashKey	= GenerateHashKeyFromScript(scriptData);	// 해시키 생성해두기 (세이브 파일과 스크립트 파일 버전 체크용)
+			Debug.Log("ScriptHashKey : " + sequence.ScriptHashKey);
 
 			// 스크립트 해석 상태값들
 			CommandGenerateProtocol protocol		= new CommandGenerateProtocol();
@@ -584,6 +593,20 @@ public class FSNScriptSequence
 		{
 			var textfile = Resources.Load<TextAsset>(assetPath);
 			return FromString(textfile.text);
+		}
+
+
+		/// <summary>
+		/// 스크립트로 MD5 해시키 생성
+		/// </summary>
+		/// <param name="script"></param>
+		/// <returns></returns>
+		public static string GenerateHashKeyFromScript(string script)
+		{
+			var md5		= MD5.Create();
+			var bytes	= Encoding.UTF8.GetBytes(script);
+			var stream	= new System.IO.MemoryStream(bytes);
+			return System.BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "");
 		}
 	}
 

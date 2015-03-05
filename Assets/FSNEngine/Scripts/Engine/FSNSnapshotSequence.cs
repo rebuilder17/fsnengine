@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 
-
-
 /// <summary>
 /// 스냅샷 리스트. 컨트롤을 위한 요소들도 같이 시퀀스에 포함되어있음.
 /// </summary>
@@ -135,6 +133,12 @@ public sealed partial class FSNSnapshotSequence
 	{
 		get { return m_segments[m_segments.Count - 1]; }
 	}
+
+	/// <summary>
+	/// 스크립트에서 생성한 해시 키
+	/// </summary>
+	public string ScriptHashKey { get; private set; }
+
 
 	//====================================================================
 
@@ -282,6 +286,8 @@ public sealed partial class FSNSnapshotSequence
 		{
 			FSNSnapshotSequence	snapshotSeq		= new FSNSnapshotSequence();
 			State				builderState	= new State();
+
+			snapshotSeq.ScriptHashKey			= sequence.ScriptHashKey;	// ScriptHashKey 복사해오기
 
 			// State 초기 세팅
 
