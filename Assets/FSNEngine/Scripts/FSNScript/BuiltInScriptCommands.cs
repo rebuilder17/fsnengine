@@ -288,7 +288,7 @@ public static class FSNBuiltInScriptCommands
 
 			// 처리 블록 세그먼트
 			var blockSeg			= new Segments.Control();
-			blockSeg.controlType	=  Segments.Control.ControlType.Block;
+			blockSeg.controlType	= Segments.Control.ControlType.Block;
 			var blockControlSegInfo	= new FSNScriptSequence.Parser.GeneratedSegmentInfo()
 			{
 				newSeg				= blockSeg,

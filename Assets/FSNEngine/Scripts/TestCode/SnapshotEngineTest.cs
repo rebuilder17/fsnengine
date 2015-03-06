@@ -135,5 +135,16 @@ public class SnapshotEngineTest : MonoBehaviour
 				}
 			}
 		}
+
+		if(Input.GetKeyDown(KeyCode.F5))
+		{
+			Debug.Log("SAVE");
+			FSNEngine.Instance.SaveSession("testsave.txt");
+		}
+		else if(Input.GetKeyDown(KeyCode.F9))
+		{
+			Debug.Log("Load");
+			FSNEngine.Instance.LoadSession("testsave.txt");
+		}
 	}
 }

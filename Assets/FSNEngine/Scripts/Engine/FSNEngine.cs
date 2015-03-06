@@ -176,11 +176,32 @@ public sealed class FSNEngine : MonoBehaviour
 	/// 스크립트 실행
 	/// </summary>
 	/// <param name="filepath"></param>
+	/// <param name="session">실행 중에 사용할 Session. 지정하지 않을 경우 새 세션을 사용</param>
 	public void RunScript(string filepath)
 	{
 		FSNScriptSequence scriptSeq	= FSNScriptSequence.Parser.FromAsset(filepath);
 		var sshotSeq				= FSNSnapshotSequence.Builder.BuildSnapshotSequence(scriptSeq);
 
 		m_seqEngine.StartSnapshotSequence(sshotSeq);
+	}
+
+	/// <summary>
+	/// 세션 (세이브 파일) 로드
+	/// </summary>
+	/// <param name="filepath"></param>
+	public void LoadSession(string filepath)
+	{
+		var session	= FSNSession.Load(filepath);
+		m_seqEngine.LoadFromSession(session);
+	}
+
+	/// <summary>
+	/// 세션 (세이브 파일) 저장
+	/// </summary>
+	/// <param name="filepath"></param>
+	public void SaveSession(string filepath)
+	{
+		m_seqEngine.SaveToCurrentSession();
+		FSNSession.Save(m_seqEngine.CurrentSession, filepath);
 	}
 }

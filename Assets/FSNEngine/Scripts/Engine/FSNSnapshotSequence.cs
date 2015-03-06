@@ -135,6 +135,11 @@ public sealed partial class FSNSnapshotSequence
 	}
 
 	/// <summary>
+	/// 원본 스크립트 경로
+	/// </summary>
+	public string OriginalScriptPath { get; private set; }
+
+	/// <summary>
 	/// 스크립트에서 생성한 해시 키
 	/// </summary>
 	public string ScriptHashKey { get; private set; }
@@ -287,6 +292,7 @@ public sealed partial class FSNSnapshotSequence
 			FSNSnapshotSequence	snapshotSeq		= new FSNSnapshotSequence();
 			State				builderState	= new State();
 
+			snapshotSeq.OriginalScriptPath		= sequence.OriginalScriptPath;	// 스크립트 경로 보관
 			snapshotSeq.ScriptHashKey			= sequence.ScriptHashKey;	// ScriptHashKey 복사해오기
 
 			// State 초기 세팅
@@ -690,6 +696,7 @@ public sealed partial class FSNSnapshotSequence
 	/// </summary>
 	public class Traveler
 	{
+		FSNSnapshotSequence	m_currentSeq;
 		Segment m_current;					// 현재 세그먼트
 
 
@@ -708,10 +715,11 @@ public sealed partial class FSNSnapshotSequence
 		/// </summary>
 		/// <param name="sequence"></param>
 		/// <returns></returns>
-		public static Traveler GenerateFrom(FSNSnapshotSequence sequence)
+		public static Traveler GenerateFrom(FSNSnapshotSequence sequence, int snapshotIndex = 0)
 		{
 			var newtr		= new Traveler();
-			newtr.m_current	= sequence.Get(0);				// 첫번째 세그먼트부터 시작
+			newtr.m_current	= sequence.Get(snapshotIndex);
+			newtr.m_currentSeq	= sequence;
 
 			return newtr;
 		}
@@ -720,6 +728,11 @@ public sealed partial class FSNSnapshotSequence
 		/// 현재 스냅샷
 		/// </summary>
 		public FSNSnapshot Current { get { return m_current.snapshot; } }
+
+		/// <summary>
+		/// 현재 스냅샷 인덱스
+		/// </summary>
+		public int CurrentIndex { get { return m_current.Index; } }
 
 		/// <summary>
 		/// 다음 snapshot 구하기
@@ -792,6 +805,16 @@ public sealed partial class FSNSnapshotSequence
 				}
 			}
 			return next;
+		}
+
+		/// <summary>
+		/// 특정 인덱스로 바로 점프
+		/// NOTE : Load 기능과 같이 사용하기 위한 메서드임. 일반적인 용도로는 쓰지 않음.
+		/// </summary>
+		/// <param name="index"></param>
+		public void JumpToIndex(int index)
+		{
+			m_current	= m_currentSeq.Get(index);
 		}
 	}
 }

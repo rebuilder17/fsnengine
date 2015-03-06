@@ -78,6 +78,8 @@ public static class FSNUtils
 					case "응":
 					case "켜기":
 					case "참":
+					case "ㅇㅇ":
+					case "ㅇㅋ":
 						return true;
 						
 					case "FALSE":
@@ -88,6 +90,7 @@ public static class FSNUtils
 					case "아니":
 					case "끄기":
 					case "거짓":
+					case "ㄴㄴ":
 						return false;
 						
 					default:

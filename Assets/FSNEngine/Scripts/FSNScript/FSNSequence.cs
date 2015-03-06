@@ -91,6 +91,11 @@ public class FSNScriptSequence
 	}
 
 	/// <summary>
+	/// 원본 스크립트 경로
+	/// </summary>
+	public string OriginalScriptPath { get; private set; }
+
+	/// <summary>
 	/// 스크립트에서 생성한 해시 키
 	/// </summary>
 	public string ScriptHashKey { get; private set; }
@@ -376,9 +381,10 @@ public class FSNScriptSequence
 		/// <returns></returns>
 		public static FSNScriptSequence FromString(string scriptData)
 		{
-			var sequence	= new FSNScriptSequence();
-			var strstream	= new System.IO.StringReader(scriptData);
-			sequence.ScriptHashKey	= GenerateHashKeyFromScript(scriptData);	// 해시키 생성해두기 (세이브 파일과 스크립트 파일 버전 체크용)
+			var sequence				= new FSNScriptSequence();
+			var strstream				= new System.IO.StringReader(scriptData);
+			sequence.OriginalScriptPath	= "(string)";
+			sequence.ScriptHashKey		= GenerateHashKeyFromScript(scriptData);	// 해시키 생성해두기 (세이브 파일과 스크립트 파일 버전 체크용)
 			Debug.Log("ScriptHashKey : " + sequence.ScriptHashKey);
 
 			// 스크립트 해석 상태값들
@@ -591,8 +597,10 @@ public class FSNScriptSequence
 		/// <returns></returns>
 		public static FSNScriptSequence FromAsset(string assetPath)
 		{
-			var textfile = Resources.Load<TextAsset>(assetPath);
-			return FromString(textfile.text);
+			var textfile	= Resources.Load<TextAsset>(assetPath);
+			var sequence	= FromString(textfile.text);
+			sequence.OriginalScriptPath	= assetPath;	// 경로를 기록해둔다
+			return sequence;
 		}
 
 

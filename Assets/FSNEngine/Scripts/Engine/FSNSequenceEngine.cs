@@ -16,11 +16,22 @@ public class FSNSequenceEngine : MonoBehaviour
 
 	// Members
 
+	FSNSnapshotSequence						m_snapshotSeq;				// 스냅샷 시퀀스
 	FSNSnapshotSequence.Traveler			m_snapshotTraveler;			// 스냅샷 트라벨러
 	SortedDictionary<int, IFSNLayerModule>	m_layerModules;				// 레이어 모듈
 
 	float									m_swipeAvailableTime;		// swipe가 가능해지는 시간. (이 시간이 지나야 가능해짐)
 	bool									m_lastSwipeWasBackward;		// 최근에 한 swipe가 반대방향이었는지.
+
+
+	/// <summary>
+	/// 현재 세션
+	/// </summary>
+	public FSNSession CurrentSession
+	{
+		get;
+		private set;
+	}
 
 	/// <summary>
 	/// 현재 InGame 세팅
@@ -104,8 +115,12 @@ public class FSNSequenceEngine : MonoBehaviour
 	/// <param name="sequence"></param>
 	public void StartSnapshotSequence(FSNSnapshotSequence sequence)
 	{
+		m_snapshotSeq		= sequence;
 		m_snapshotTraveler	= FSNSnapshotSequence.Traveler.GenerateFrom(sequence);
 		m_snapshotTraveler.ScriptLoadRequested += OnScriptNeedToBeLoaded;	// 스크립트 로딩 이벤트 등록
+
+		CurrentSession		= new FSNSession();								// 새 세션 생성. 세이브한 세션을 로드하는 경우라면 다시 여기에 덮어써야한다.
+		SaveToCurrentSession();
 	}
 
 	/// <summary>
@@ -180,6 +195,7 @@ public class FSNSequenceEngine : MonoBehaviour
 			m_swipeAvailableTime	= Time.time + transTime;				// 현재 시간 + 트랜지션에 걸리는 시간 뒤에 swipe가 가능해짐
 
 			m_snapshotTraveler.TravelTo(direction);							// 해당 방향으로 넘기기
+			CurrentSession.SnapshotIndex	= m_snapshotTraveler.CurrentIndex;	// Session 정보 업데이트 (스크립트는 변하지 않았으므로 snapshot index만 바꿔주면 된다)
 		}
 	}
 
@@ -190,5 +206,63 @@ public class FSNSequenceEngine : MonoBehaviour
 	void OnScriptNeedToBeLoaded(string scriptFile)
 	{
 		FSNEngine.Instance.RunScript(scriptFile);
+	}
+
+	/// <summary>
+	/// Session에 기록된 값을 통해 스크립트 상태 로딩
+	/// </summary>
+	/// <param name="session"></param>
+	/// <returns>정상적으로 로드했다면 true, 만약 스크립트 버전이 달라서 첫 번재 snapshot부터 보여줘야하는 경우 false</returns>
+	public bool LoadFromSession(FSNSession session)
+	{
+		bool fullSuccess	= false;
+
+		FSNEngine.Instance.RunScript(session.ScriptName);					// 스크립트 로드
+		CurrentSession		= session;										// 로딩시의 세션 정보를 사용하도록 지정
+		
+		if (m_snapshotSeq.ScriptHashKey == session.ScriptHashKey)			// 저장 당시의 hashkey가 일치한다면, 저장 당시의 snapshot index로 점프
+		{
+			m_snapshotTraveler.JumpToIndex(session.SnapshotIndex);
+			fullSuccess		= true;
+
+			// 실제로 트랜지션
+
+			var curshot			= m_snapshotTraveler.Current;
+			float transTime		= 0f;										// 트랜지션 시간
+
+			foreach(var module in m_layerModules.Values)					// 현재 로드된 모든 LayerModule 에 맞는 레이어를 찾아 각각 처리한다
+			{
+				int layerID		= module.LayerID;
+				var newLayer	= curshot.GetLayer(layerID);
+
+				if (newLayer != null && !newLayer.IsEmpty)
+				{
+					float curtt	= module.StartTransition(newLayer, 0, false);	// 트랜지션
+
+					if (transTime < curtt)									// 제일 긴 트랜지션 시간 추적
+						transTime = curtt;
+				}
+			}
+			m_lastSwipeWasBackward	= false;								// swipe 방향성, 정방향으로 취급하기
+			m_swipeAvailableTime	= Time.time + transTime;				// 현재 시간 + 트랜지션에 걸리는 시간 뒤에 swipe가 가능해짐
+		}
+		else
+		{
+			Debug.LogWarningFormat("[FSNSequenceEngine] Script version differs ({0}), so started from the begining", session.ScriptName);
+		}
+
+		return fullSuccess;
+	}
+
+	/// <summary>
+	/// 현재 스크립트 진행 상태를 session에 기록
+	/// </summary>
+	/// <param name="session"></param>
+	public void SaveToCurrentSession()
+	{
+		var session				= CurrentSession;
+		session.ScriptName		= m_snapshotSeq.OriginalScriptPath;
+		session.ScriptHashKey	= m_snapshotSeq.ScriptHashKey;
+		session.SnapshotIndex	= m_snapshotTraveler.CurrentIndex;
 	}
 }

@@ -9,13 +9,17 @@ public class JSONChecker : EditorWindow {
 		""SomeText"": ""Blah"",
 		""SomeObject"": {
 			""SomeNumber"": 42,
+			""SomeFloat"": 13.37,
 			""SomeBool"": true,
 			""SomeNull"": null
 		},
+		
 		""SomeEmptyObject"": { },
-		""SomeEmptyArray"": [ ]
+		""SomeEmptyArray"": [ ],
+		""EmbeddedObject"": ""{\""field\"":\""Value with \\\""escaped quotes\\\""\""}""
 	}
-}";
+}";	  //dat string literal...
+	string URL = "";
 	JSONObject j;
 	[MenuItem("Window/JSONChecker")]
 	static void Init() {
@@ -36,6 +40,20 @@ public class JSONChecker : EditorWindow {
 			j = JSONObject.Create(JSON);
 #endif
 			Debug.Log(j.ToString(true));
+		}
+		EditorGUILayout.Separator();
+		URL = EditorGUILayout.TextField("URL", URL);
+		if (GUILayout.Button("Get JSON")) {
+			Debug.Log(URL);
+			WWW test = new WWW(URL);
+			while (!test.isDone) ;
+			if (!string.IsNullOrEmpty(test.error)) {
+				Debug.Log(test.error);
+			} else {
+				Debug.Log(test.text);
+				j = new JSONObject(test.text);
+				Debug.Log(j.ToString(true));
+			}
 		}
 		if(j) {
 			//Debug.Log(System.GC.GetTotalMemory(false) + "");

@@ -465,6 +465,12 @@ namespace Segments
 			public string m_scriptPath;
 		}
 
+		private class UnityCallData : IControlData
+		{
+			public string		m_messageName;
+			public string []	m_parameters;
+		}
+
 		//------------------------------------------------------------
 
 		/// <summary>
@@ -576,6 +582,20 @@ namespace Segments
 		{
 			var data			= CheckOptionData<LoadData>(ControlType.Load);
 			return data.m_scriptPath;
+		}
+
+		public void SetUnityCallData(string msgname, string [] param)
+		{
+			var data			= CheckOptionData<UnityCallData>(ControlType.UnityCall);
+			data.m_messageName	= msgname;
+			data.m_parameters	= param;
+		}
+
+		public void GetUnityCallData(out string msgname, out string [] param)
+		{
+			var data	= CheckOptionData<UnityCallData>(ControlType.UnityCall);
+			msgname		= data.m_messageName;
+			param		= data.m_parameters;
 		}
 	}
 }
