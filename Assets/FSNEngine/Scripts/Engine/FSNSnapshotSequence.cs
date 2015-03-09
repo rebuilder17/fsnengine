@@ -23,13 +23,30 @@ public sealed partial class FSNSnapshotSequence
 	class Segment
 	{
 		/// <summary>
+		/// 함수 호출 정보
+		/// </summary>
+		public struct CallFuncInfo
+		{
+			public string funcname;
+			public string [] param;
+		}
+
+		/// <summary>
 		/// 각 방향마다 정보
 		/// </summary>
 		public struct FlowInfo
 		{
-			public Segment Linked;			// 연결된 세그먼트
+			/// <summary>
+			/// 조건부 링크
+			/// </summary>
+			public struct ConditionLink
+			{
+				public CallFuncInfo [] funcinfo;	// 링크 조건 함수 콜 (and 관계)
+				public Segment Linked;				// 조건이 모두 참일 때 이 세그먼트로 점프
+			}
 
-			// TODO : 조건식 같은 것이 필요하다면 이쪽에
+			public ConditionLink [] ConditionedLinks;	// 조건부 세그먼트 점프 (or 관계, 하나씩 체크하고 true가 있다면 바로 점프)
+			public Segment Linked;					// 연결된 세그먼트 (조건부가 없거나 모두 false일 때 이쪽으로)
 		}
 
 		//====================================================================
@@ -37,8 +54,6 @@ public sealed partial class FSNSnapshotSequence
 		public int	Index;		// 인덱스
 		public FSNSnapshot snapshot;	// 스냅샷 (본체)
 
-
-		// TODO : 컨트롤 명령어
 
 		/// <summary>
 		/// 세그먼트 종류 (컨트롤 관련)
@@ -69,6 +84,11 @@ public sealed partial class FSNSnapshotSequence
 		/// 파라미터
 		/// </summary>
 		public object Parameter	= null;
+
+		/// <summary>
+		/// 함수 콜. 해당 세그먼트로 이동할 때 (swipe 애니메이션과는 무관하게. TravelTo) 호출됨
+		/// </summary>
+		public CallFuncInfo [] FunctionCalls;
 
 
 		//=======================================================================
@@ -342,6 +362,7 @@ public sealed partial class FSNSnapshotSequence
 			var lastSeg			= prevCallSeg;									// 바로 이전에 처리한 스냅샷 (최초 루프시에는 실행 이전의 마지막 스냅샷과 동일)
 
 			List<Segments.Control>	jumpSegs	= new List<Segments.Control>();	// 점프(goto, SwipeOption 등) 세그먼트가 등장했을 경우 여기에 보관된다
+			List<Segment.CallFuncInfo> funcCalls= new List<Segment.CallFuncInfo>();	// 함수 콜이 있을 경우 여기에 먼저 누적하고 period때 한번에 처리한다
 			//
 
 
@@ -433,6 +454,7 @@ public sealed partial class FSNSnapshotSequence
 
 						case Segments.Control.ControlType.Goto:
 						case Segments.Control.ControlType.ReverseGoto:
+						case Segments.Control.ControlType.ConditionJump:
 							jumpSegs.Add(controlSeg);							// 점프 명령어로 보관해두고 나중에 처리한다.
 							break;
 
@@ -447,6 +469,14 @@ public sealed partial class FSNSnapshotSequence
 						case Segments.Control.ControlType.Load:
 							sseg.Type		= FlowType.Load;
 							sseg.Parameter	= controlSeg.GetLoadScriptData();	// 스냅샷 세그먼트의 parameter에 스크립트 파일명 보관
+							break;
+
+						case Segments.Control.ControlType.UnityCall:			// 함수콜
+							{
+								var callinfo	= new Segment.CallFuncInfo();
+								controlSeg.GetUnityCallData(out callinfo.funcname, out callinfo.param);
+								funcCalls.Add(callinfo);
+							}
 							break;
 					}
 				}
@@ -485,6 +515,9 @@ public sealed partial class FSNSnapshotSequence
 						//bs.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(bs.settings.CurrentFlowDirection);
 						//bs.SetSettingDirty();
 					}
+
+					sseg.FunctionCalls	= funcCalls.ToArray();					// 쌓인 함수콜 리스트를 배열로 변환하여 세팅
+					funcCalls.Clear();
 
 					snapshotSeq.Add(sseg);										// 현재 스냅샷을 시퀀스에 추가
 
@@ -590,6 +623,43 @@ public sealed partial class FSNSnapshotSequence
 							{																		// * HARD 라벨로 점프
 								Debug.LogError("Not implemented");
 							}
+						}
+						else if (jumpSeg.controlType == Segments.Control.ControlType.ConditionJump)	// ** 조건부 점프
+						{
+							string funcname;
+							string [] param;
+							string label;
+							jumpSeg.GetConditionJumpData(out funcname, out param, out label);
+							int labelIndex	= bs.sequence.GetIndexOfLabel(label);
+							var labelSeg	= bs.sequence.GetSegment(labelIndex) as Segments.Label;
+
+							if(labelSeg.labelType == Segments.Label.LabelType.Soft)					// * SOFT 라벨로 점프
+							{
+								if (labelIndex < bs.segIndex)										// SOFT 라벨은 거슬러올라갈 수 없다.
+									Debug.LogError("Cannot jump to previous soft label");
+
+								var clonnedState		= bs.Clone();								// 상태 복제
+								clonnedState.segIndex	= labelIndex;								// 라벨 인덱스 세팅
+
+								// 가장 마지막 세그먼트를 잠시동안만 UserChoice로 변경해서 새 스냅샷시퀀스를 정방향에 붙이지 못하게 막는다.
+								// 생성한 스냅샷을 역방향에 직접 붙여줘야하기 때문.
+								// 좀 Hacky한 방법이라서 변경이 필요할지도.
+
+								var origFlowType	= sseg.Type;											// 이전 flow type 보관
+								sseg.Type	= FlowType.UserChoice;											// UserChoice로 변경
+								var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석한 후 레퍼런스 받기
+								sseg.Type	= origFlowType;													// flow type 원상 복귀
+
+								// TODO : FlowInfo에 추가하기
+							}
+							else
+							{																		// * HARD 라벨로 점프
+								Debug.LogError("Not implemented");
+							}
+						}
+						else
+						{
+							Debug.LogError("Unknown or not-yet-implemented jump statement!");
 						}
 					}
 					jumpSegs.Clear();

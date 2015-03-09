@@ -471,6 +471,13 @@ namespace Segments
 			public string []	m_parameters;
 		}
 
+		private class ConditionJumpData : IControlData
+		{
+			public string		m_messageName;
+			public string []	m_parameters;
+			public string		m_jumpLabel;
+		}
+
 		//------------------------------------------------------------
 
 		/// <summary>
@@ -489,6 +496,7 @@ namespace Segments
 			Load,					// 새 스크립트 로드 (이 이전에 Clear 등이 선행되어야함)
 
 			UnityCall,				// 유니티 콜 (SendMessage)
+			ConditionJump,			// 조건부 점프
 		}
 
 		/// <summary>
@@ -596,6 +604,22 @@ namespace Segments
 			var data	= CheckOptionData<UnityCallData>(ControlType.UnityCall);
 			msgname		= data.m_messageName;
 			param		= data.m_parameters;
+		}
+
+		public void SetConditionJumpData(string msgname, string [] param, string jumplabel)
+		{
+			var data			= CheckOptionData<ConditionJumpData>(ControlType.ConditionJump);
+			data.m_messageName	= msgname;
+			data.m_parameters	= param;
+			data.m_jumpLabel	= jumplabel;
+		}
+
+		public void GetConditionJumpData(out string msgname, out string [] param, out string jumplabel)
+		{
+			var data	= CheckOptionData<ConditionJumpData>(ControlType.ConditionJump);
+			msgname		= data.m_messageName;
+			param		= data.m_parameters;
+			jumplabel	= data.m_jumpLabel;
 		}
 	}
 }
