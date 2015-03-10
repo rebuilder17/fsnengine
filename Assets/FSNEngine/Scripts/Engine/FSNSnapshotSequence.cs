@@ -95,7 +95,9 @@ public sealed partial class FSNSnapshotSequence
 
 		public Segment()
 		{
-			Flows	= new FlowInfo[4];
+			Flows			= new FlowInfo[4];
+			FlowDirection	= FSNInGameSetting.FlowDirection.None;
+			BackDirection	= FSNInGameSetting.FlowDirection.None;
 		}
 
 		/// <summary>
@@ -116,13 +118,23 @@ public sealed partial class FSNSnapshotSequence
 		{
 			return Flows[(int)dir].Linked;
 		}
-		/// <summary>
-		/// 연결 설정
-		/// </summary>
-		/// <param name="dir"></param>
-		public void SetFlow(FSNInGameSetting.FlowDirection dir, FlowInfo flow)
+		///// <summary>
+		///// 연결 설정
+		///// </summary>
+		///// <param name="dir"></param>
+		//public void SetFlow(FSNInGameSetting.FlowDirection dir, FlowInfo flow)
+		//{
+		//	Flows[(int)dir]	= flow;
+		//}
+
+		public void SetDirectFlow(FSNInGameSetting.FlowDirection dir, Segment linked)
 		{
-			Flows[(int)dir]	= flow;
+			Flows[(int)dir].Linked	= linked;
+		}
+
+		public void SetConditionFlow(FSNInGameSetting.FlowDirection dir, Segment.FlowInfo.ConditionLink [] links)
+		{
+			Flows[(int)dir].ConditionedLinks	= links;
 		}
 	}
 
@@ -521,6 +533,12 @@ public sealed partial class FSNSnapshotSequence
 
 					snapshotSeq.Add(sseg);										// 현재 스냅샷을 시퀀스에 추가
 
+
+					// Condition 링크 임시 보관소 - 나중에 한번에 특정 방향으로 몰아넣는다
+					FSNInGameSetting.FlowDirection			conditionLinkDir		= FSNInGameSetting.FlowDirection.None;
+					FSNInGameSetting.FlowDirection			conditionLinkBackDir	= FSNInGameSetting.FlowDirection.None;
+					List<Segment.FlowInfo.ConditionLink>	conditionLinks			= null;
+
 					foreach(var jumpSeg in jumpSegs)							// * 점프 세그먼트가 있을 경우 처리
 					{
 						// NOTE : 현재 Label은 Soft만 구현한다.
@@ -628,8 +646,7 @@ public sealed partial class FSNSnapshotSequence
 						{
 							string funcname;
 							string [] param;
-							string label;
-							jumpSeg.GetConditionJumpData(out funcname, out param, out label);
+							string label	= jumpSeg.GetConditionJumpLabel();
 							int labelIndex	= bs.sequence.GetIndexOfLabel(label);
 							var labelSeg	= bs.sequence.GetSegment(labelIndex) as Segments.Label;
 
@@ -650,7 +667,27 @@ public sealed partial class FSNSnapshotSequence
 								var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석한 후 레퍼런스 받기
 								sseg.Type	= origFlowType;													// flow type 원상 복귀
 
-								// TODO : FlowInfo에 추가하기
+
+								// Note : 현재 스크립트 스펙 상, 한 스냅샷 안에서 Condition Link은 한쪽 방향으로밖에 나올 수 없다.
+								// 따라서 방향 구분 없이 리스트 하나에 모두 모아둔 후, 기록해둔 방향에 모두 집어넣는다.
+								
+								conditionLinkDir	= newSeg.snapshot.InGameSetting.CurrentFlowDirection;
+								conditionLinkBackDir= newSeg.snapshot.InGameSetting.BackwardFlowDirection;
+
+								// 만약 일반 링크가 등장하지 않아 방향이 설정되지 않을 때를 대비해서 세팅
+								if (sseg.FlowDirection == FSNInGameSetting.FlowDirection.None)
+									sseg.FlowDirection = conditionLinkDir;
+								if (newSeg.BackDirection == FSNInGameSetting.FlowDirection.None)
+									newSeg.BackDirection = conditionLinkBackDir;
+
+								List<Segment.CallFuncInfo> callfuncs	= new List<Segment.CallFuncInfo>();
+								while (jumpSeg.DequeueConditionJumpData(out funcname, out param))			// AND 조건으로 묶인 모든 condition 읽기
+								{
+									callfuncs.Add(new Segment.CallFuncInfo() { funcname = funcname, param = param });
+								}
+								if (conditionLinks == null)
+									conditionLinks	= new List<Segment.FlowInfo.ConditionLink>();
+								conditionLinks.Add(new Segment.FlowInfo.ConditionLink() { funcinfo = callfuncs.ToArray(), Linked = newSeg });
 							}
 							else
 							{																		// * HARD 라벨로 점프
@@ -663,6 +700,11 @@ public sealed partial class FSNSnapshotSequence
 						}
 					}
 					jumpSegs.Clear();
+
+					if (conditionLinks != null)									// 모아뒀던 조건부 점프 한번에 세팅
+					{
+						sseg.SetConditionFlow(conditionLinkDir, conditionLinks.ToArray());
+					}
 
 					lastSeg	= sseg;
 					NewSnapshot(out sseg, out sshot);							// 새 스냅샷 인스턴스 준비
@@ -712,10 +754,10 @@ public sealed partial class FSNSnapshotSequence
 			prev.FlowDirection	= swipeDir;
 			next.BackDirection	= backDir;
 
-			prev.SetFlow(swipeDir, new Segment.FlowInfo() { Linked = next });
+			prev.SetDirectFlow(swipeDir, next);
 			if (!next.OneWay)															// 단방향이 아닐 경우 반대로 돌아가는 링크도 생성
 			{
-				next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+				next.SetDirectFlow(backDir, prev);
 			}
 		}
 
@@ -731,8 +773,8 @@ public sealed partial class FSNSnapshotSequence
 
 			next.BackDirection	= backDir;
 
-			prev.SetFlow(dir, new Segment.FlowInfo() { Linked = next });
-			next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+			prev.SetDirectFlow(dir, next);
+			next.SetDirectFlow(backDir, prev);
 
 			// FIX : 선택지 분기는 period 세그먼트의 isChaining을 체크하는 부분이 위쪽 UserChoice를 체크하는 조건문에 걸려 실행되지 못함.
 			// 선택지 바로 다음에는 LastOption 텍스트를 표시하는 snapshot이 무조건 나온다고 가정하고, 여기서 강제로 chaining을 해준다.
@@ -753,10 +795,10 @@ public sealed partial class FSNSnapshotSequence
 			//prev.FlowDirection	= swipeDir;
 			next.BackDirection	= backDir;
 
-			prev.SetFlow(swipeDir, new Segment.FlowInfo() { Linked = next });
+			prev.SetDirectFlow(swipeDir, next);
 			if (!next.OneWay)															// 단방향이 아닐 경우 반대로 돌아가는 링크도 생성
 			{
-				next.SetFlow(backDir, new Segment.FlowInfo() { Linked = prev });
+				next.SetDirectFlow(backDir, prev);
 			}
 		}
 	}

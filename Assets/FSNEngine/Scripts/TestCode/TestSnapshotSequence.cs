@@ -6,6 +6,7 @@ using System.Collections;
 
 public partial class FSNSnapshotSequence
 {
+	/*
 	public static FSNSnapshotSequence GenerateTestSequence()
 	{
 		var sequence	= new FSNSnapshotSequence();
@@ -197,4 +198,5 @@ public partial class FSNSnapshotSequence
 
 		return sequence;
 	}
+	 * */
 }

@@ -473,9 +473,13 @@ namespace Segments
 
 		private class ConditionJumpData : IControlData
 		{
-			public string		m_messageName;
-			public string []	m_parameters;
-			public string		m_jumpLabel;
+			public struct condition
+			{
+				public string		m_messageName;
+				public string []	m_parameters;
+			}
+			public Queue<condition>	m_conditions = new Queue<condition>();
+			public string			m_jumpLabel;
 		}
 
 		//------------------------------------------------------------
@@ -606,20 +610,38 @@ namespace Segments
 			param		= data.m_parameters;
 		}
 
-		public void SetConditionJumpData(string msgname, string [] param, string jumplabel)
+		public void SetConditionJumpLabel(string label)
 		{
-			var data			= CheckOptionData<ConditionJumpData>(ControlType.ConditionJump);
-			data.m_messageName	= msgname;
-			data.m_parameters	= param;
-			data.m_jumpLabel	= jumplabel;
+			var data = CheckOptionData<ConditionJumpData>(ControlType.ConditionJump);
+			data.m_jumpLabel	= label;
 		}
 
-		public void GetConditionJumpData(out string msgname, out string [] param, out string jumplabel)
+		public string GetConditionJumpLabel()
+		{
+			var data = CheckOptionData<ConditionJumpData>(ControlType.ConditionJump);
+			return data.m_jumpLabel;
+		}
+
+		public void EnqueueConditionJumpData(string msgname, string [] param)
+		{
+			var data = CheckOptionData<ConditionJumpData>(ControlType.ConditionJump);
+			data.m_conditions.Enqueue(new ConditionJumpData.condition() { m_messageName = msgname, m_parameters = param });
+		}
+
+		public bool DequeueConditionJumpData(out string msgname, out string [] param)
 		{
 			var data	= CheckOptionData<ConditionJumpData>(ControlType.ConditionJump);
-			msgname		= data.m_messageName;
-			param		= data.m_parameters;
-			jumplabel	= data.m_jumpLabel;
+			if (data.m_conditions.Count == 0)
+			{
+				msgname = null;
+				param = null;
+				return false;
+			}
+
+			var entry	= data.m_conditions.Dequeue();
+			msgname		= entry.m_messageName;
+			param		= entry.m_parameters;
+			return true;
 		}
 	}
 }
