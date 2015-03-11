@@ -113,13 +113,14 @@ public class FSNSequenceEngine : MonoBehaviour
 	/// Snapshot 시퀀스 시작
 	/// </summary>
 	/// <param name="sequence"></param>
-	public void StartSnapshotSequence(FSNSnapshotSequence sequence)
+	public void StartSnapshotSequence(FSNSnapshotSequence sequence, int snapshotIndex = 0)
 	{
 		m_snapshotSeq		= sequence;
-		m_snapshotTraveler	= FSNSnapshotSequence.Traveler.GenerateFrom(sequence);
+		m_snapshotTraveler	= FSNSnapshotSequence.Traveler.GenerateFrom(sequence, snapshotIndex);
 		m_snapshotTraveler.ScriptLoadRequested += OnScriptNeedToBeLoaded;	// 스크립트 로딩 이벤트 등록
 
-		CurrentSession		= new FSNSession();								// 새 세션 생성. 세이브한 세션을 로드하는 경우라면 다시 여기에 덮어써야한다.
+		if(CurrentSession == null)
+			CurrentSession	= new FSNSession();								// 진행중이던 세션이 없을 시엔 새 세션 생성. 세이브한 세션을 로드하는 경우라면 다시 여기에 덮어써야한다.
 		SaveToCurrentSession();
 	}
 
@@ -206,6 +207,7 @@ public class FSNSequenceEngine : MonoBehaviour
 	void OnScriptNeedToBeLoaded(string scriptFile)
 	{
 		FSNEngine.Instance.RunScript(scriptFile);
+		m_snapshotTraveler.ExecuteSnapshotFunctions();						// 첫째 스냅샷의 함수 실행은 자동으로 되지 않으므로, 수동으로 호출
 	}
 
 	/// <summary>
@@ -223,6 +225,7 @@ public class FSNSequenceEngine : MonoBehaviour
 		if (m_snapshotSeq.ScriptHashKey == session.ScriptHashKey)			// 저장 당시의 hashkey가 일치한다면, 저장 당시의 snapshot index로 점프
 		{
 			m_snapshotTraveler.JumpToIndex(session.SnapshotIndex);
+			m_snapshotTraveler.ExecuteSnapshotFunctions();					// 함수 실행이 자동으로 되지 않으므로, 수동으로 호출
 			fullSuccess		= true;
 
 			// 실제로 트랜지션
@@ -264,5 +267,13 @@ public class FSNSequenceEngine : MonoBehaviour
 		session.ScriptName		= m_snapshotSeq.OriginalScriptPath;
 		session.ScriptHashKey	= m_snapshotSeq.ScriptHashKey;
 		session.SnapshotIndex	= m_snapshotTraveler.CurrentIndex;
+	}
+
+	/// <summary>
+	/// 스크립트의 조건부 링크 등을 다시 체크해야할 경우 호출
+	/// </summary>
+	public void UpdateScriptConditions()
+	{
+		m_snapshotTraveler.ExecuteSnapshotFunctions(true);
 	}
 }

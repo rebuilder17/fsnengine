@@ -34,6 +34,10 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Image_set,		"imageset",		"이미지설정");
 		FSNScriptSequence.Parser.AddCommand(Image_initial,	"imageinit",	"이미지시작설정");
 		FSNScriptSequence.Parser.AddCommand(Image_final,	"imagefinal",	"이미지종료설정");
+
+		FSNScriptSequence.Parser.AddCommand(UnityCall,		"call",			"함수");
+
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_UnityCall,		"jumpif_call",	"함수가참이면");
 	}
 
 	//-------------------------------------------------------------------------------
@@ -479,5 +483,52 @@ public static class FSNBuiltInScriptCommands
 			var pParam	= protocol.parameters[settingIndexStart + i * 2 + 1];
 			seg.SetPropertyFromScriptParams(pName, pParam);									// 파라미터 하나씩 세팅
 		}
+	}
+
+	//------------------------------------------------------------------------------------
+
+	static void UnityCall(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
+
+		string funcname			= protocol.parameters[0];									// 함수 이름
+		int paramCount			= protocol.parameters.Length;
+		string [] param			= new string[paramCount - 1];
+		for (int i = 1; i < paramCount; i++)												// 함수 파라미터 (두번째부터 끝까지)
+			param[i]			= protocol.parameters[i];
+
+		newCallSeg.SetUnityCallData(funcname, param);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false, // ? ... 실제 사용 양상에 따라서 정해줘야할듯... 일단 함수콜이 출력에 영향을 미치지는 않으므로 false로 해둠.
+				selfPeriod		= false
+			});
+	}
+
+	static void ConditionJump_UnityCall(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
+
+		string funcname			= protocol.parameters[0];									// 함수 이름
+		int paramCount			= protocol.parameters.Length;
+		string [] param			= new string[paramCount - 1];
+		for (int i = 1; i < paramCount - 1; i++)												// 함수 파라미터 (두번째부터 끝에서 두번째까지)
+			param[i]			= protocol.parameters[i];
+
+		string label			= protocol.parameters[paramCount - 1];						// 맨 마지막은 점프할 레이블
+
+		newCallSeg.EnqueueConditionJumpData(funcname, param);
+		newCallSeg.SetConditionJumpLabel(label);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false, // ? ... 실제 사용 양상에 따라서 정해줘야할듯... 일단 함수콜이 출력에 영향을 미치지는 않으므로 false로 해둠.
+				selfPeriod		= false
+			});
 	}
 }

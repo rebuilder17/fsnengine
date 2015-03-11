@@ -61,6 +61,7 @@ public sealed class FSNEngine : MonoBehaviour
 	FSNInGameSetting				m_inGameSetting;								// 인게임 세팅 (기본세팅)
 
 	FSNSequenceEngine				m_seqEngine;									//
+	FSNDefaultUnityCallServer		m_unityCallSvr;									//
 
 
 	public ICollection<FSNModule>	AllModules
@@ -127,7 +128,10 @@ public sealed class FSNEngine : MonoBehaviour
 
 		// 보조 컴포넌트 초기화
 
-		m_seqEngine				= GetComponent<FSNSequenceEngine>();
+		m_unityCallSvr		= GetComponent<FSNDefaultUnityCallServer>();
+		gameObject.AddComponent<FSNFundamentalScriptFunctions>();
+
+		m_seqEngine			= GetComponent<FSNSequenceEngine>();
 		m_seqEngine.Initialize();
 	}
 
@@ -177,12 +181,13 @@ public sealed class FSNEngine : MonoBehaviour
 	/// </summary>
 	/// <param name="filepath"></param>
 	/// <param name="session">실행 중에 사용할 Session. 지정하지 않을 경우 새 세션을 사용</param>
-	public void RunScript(string filepath)
+	/// <param name="snapshotIndex">불러오기 시에만 사용. 시작할 Snapshot Index를 지정</param>
+	public void RunScript(string filepath, int snapshotIndex = 0)
 	{
 		FSNScriptSequence scriptSeq	= FSNScriptSequence.Parser.FromAsset(filepath);
 		var sshotSeq				= FSNSnapshotSequence.Builder.BuildSnapshotSequence(scriptSeq);
 
-		m_seqEngine.StartSnapshotSequence(sshotSeq);
+		m_seqEngine.StartSnapshotSequence(sshotSeq, snapshotIndex);
 	}
 
 	/// <summary>
@@ -203,5 +208,58 @@ public sealed class FSNEngine : MonoBehaviour
 	{
 		m_seqEngine.SaveToCurrentSession();
 		FSNSession.Save(m_seqEngine.CurrentSession, filepath);
+	}
+
+
+	/// <summary>
+	/// Script에서 메서드 호출, 리턴값 없음
+	/// </summary>
+	/// <param name="funcname"></param>
+	/// <param name="param"></param>
+	public void ScriptUnityCallVoid(string funcname, params string[] param)
+	{
+		m_unityCallSvr.CallVoidMethod(funcname, param);
+	}
+
+	/// <summary>
+	/// 스크립트에서 메서드 호출, 리턴값은 bool
+	/// </summary>
+	/// <param name="funcname"></param>
+	/// <param name="param"></param>
+	/// <returns></returns>
+	public bool ScriptUnityCallBool(string funcname, params string [] param)
+	{
+		return m_unityCallSvr.CallBoolMethod(funcname, param);
+	}
+
+
+	/// <summary>
+	/// 스크립트의 점프 조건 체크를 갱신한다. 현재 표시중인 스냅샷에서 내부적으로 변수값 등등이 바뀌어서 조건 점프 결과 등이 갱신되어야할 경우 호출해주면 됨.
+	/// 실질적으로는 조건 체크 함수들을 다시 호출하는 결과를 부른다.
+	/// </summary>
+	public void UpdateScriptConditions()
+	{
+		m_seqEngine.UpdateScriptConditions();
+	}
+
+
+	public bool GetSessionFlag(string name)
+	{
+		return m_seqEngine.CurrentSession.GetFlagValue(name);
+	}
+
+	public void SetSessionFlag(string name, bool value)
+	{
+		m_seqEngine.CurrentSession.SetFlagValue(name, value);
+	}
+
+	public float GetSessionValue(string name)
+	{
+		return m_seqEngine.CurrentSession.GetNumberValue(name);
+	}
+
+	public void SetSessionValue(string name, float value)
+	{
+		m_seqEngine.CurrentSession.SetNumberValue(name, value);
 	}
 }

@@ -190,10 +190,10 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 	/// </summary>
 	public enum FlowDirection
 	{
-		Up,
-		Down,
-		Left,
-		Right,
+		Up		= 0,
+		Down	= 1,
+		Left	= 2,
+		Right	= 3,
 
 		None	= -1	// 방향 없음
 	}
