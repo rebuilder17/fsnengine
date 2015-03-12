@@ -35,9 +35,20 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Image_initial,	"imageinit",	"이미지시작설정");
 		FSNScriptSequence.Parser.AddCommand(Image_final,	"imagefinal",	"이미지종료설정");
 
-		FSNScriptSequence.Parser.AddCommand(UnityCall,		"call",			"함수");
+		FSNScriptSequence.Parser.AddCommand(UnityCall,					"call",			"함수");
+		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagTrue,		"flagon",		"플래그켜기", "플래그올리기", "플래그세우기");
+		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagFalse,		"flagoff",		"플래그끄기", "플래그내리기");
+		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlags,			"setflag",		"플래그설정");
+		FSNScriptSequence.Parser.AddCommand(UnityCall_SetValues,		"setvalues",	"변수값설정");
 
-		FSNScriptSequence.Parser.AddCommand(ConditionJump_UnityCall,		"jumpif_call",	"함수가참이면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_UnityCall,			"jumpif_call",			"함수가참이면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_FlagIsTrue,			"jumpif_flagon",		"플래그가참이면", "플래그가켜졌으면", "플래그가섰으면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_FlagIsFalse,			"jumpif_flagoff",		"플래그가거짓이면", "플래그가꺼졌으면", "플래그가안섰으면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_CheckFlag,			"jumpif_flagequal",		"플래그가같다면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueEqual,			"jumpif_valueequal",	"값이같으면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueNotEqual,		"jumpif_valuenotequal",	"값이다르면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueGreaterThan,	"jumpif_valuegreater",	"왼쪽이크면", "오른쪽이작으면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueLesserThan,	"jumpif_valuelesser",	"왼쪽이작으면", "오른쪽이크면");
 	}
 
 	//-------------------------------------------------------------------------------
@@ -487,16 +498,41 @@ public static class FSNBuiltInScriptCommands
 
 	//------------------------------------------------------------------------------------
 
+	static void SplitParams_SingleList(string [] original, out string single, out string[] list)
+	{
+		int paramcount	= original.Length;
+		list			= new string[paramcount - 1];
+
+		single			= original[0];
+		for (int i = 1; i < paramcount; i++)
+			list[i - 1]	= original[i];
+	}
+
+	static void SplitParams_SingleListSingle(string [] original, out string single, out string[] list, out string single2)
+	{
+		int paramcount	= original.Length;
+		list			= new string[paramcount - 2];
+
+		single			= original[0];
+		single2			= original[paramcount - 1];
+		for (int i = 1; i < paramcount - 1; i++)
+			list[i - 1]	= original[i];
+	}
+
 	static void UnityCall(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
 	{
 		var newCallSeg			= new Segments.Control();
 		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
 
-		string funcname			= protocol.parameters[0];									// 함수 이름
-		int paramCount			= protocol.parameters.Length;
-		string [] param			= new string[paramCount - 1];
-		for (int i = 1; i < paramCount; i++)												// 함수 파라미터 (두번째부터 끝까지)
-			param[i]			= protocol.parameters[i];
+		//string funcname			= protocol.parameters[0];									// 함수 이름
+		//int paramCount			= protocol.parameters.Length;
+		//string [] param			= new string[paramCount - 1];
+		//for (int i = 1; i < paramCount; i++)												// 함수 파라미터 (두번째부터 끝까지)
+		//	param[i - 1]		= protocol.parameters[i];
+
+		string funcname;																	// 함수 이름
+		string [] param;																	// 함수 파라미터 (두번째부터 끝까지)
+		SplitParams_SingleList(protocol.parameters, out funcname, out param);
 
 		newCallSeg.SetUnityCallData(funcname, param);
 
@@ -508,18 +544,84 @@ public static class FSNBuiltInScriptCommands
 			});
 	}
 
+	static void UnityCall_SetFlagTrue(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
+
+		newCallSeg.SetUnityCallData("__fsnengine_SetFlagTrue", protocol.parameters[0]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void UnityCall_SetFlagFalse(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
+
+		newCallSeg.SetUnityCallData("__fsnengine_SetFlagFalse", protocol.parameters[0]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void UnityCall_SetFlags(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
+
+		newCallSeg.SetUnityCallData("__fsnengine_SetFlags", protocol.parameters);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void UnityCall_SetValues(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
+
+		newCallSeg.SetUnityCallData("__fsnengine_SetValues", protocol.parameters);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	//------------------------------------------------------------------------------------
+
 	static void ConditionJump_UnityCall(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
 	{
 		var newCallSeg			= new Segments.Control();
 		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
 
-		string funcname			= protocol.parameters[0];									// 함수 이름
-		int paramCount			= protocol.parameters.Length;
-		string [] param			= new string[paramCount - 1];
-		for (int i = 1; i < paramCount - 1; i++)												// 함수 파라미터 (두번째부터 끝에서 두번째까지)
-			param[i]			= protocol.parameters[i];
+		//string funcname			= protocol.parameters[0];									// 함수 이름
+		//int paramCount			= protocol.parameters.Length;
+		//string [] param			= new string[paramCount - 2];
+		//for (int i = 1; i < paramCount - 1; i++)												// 함수 파라미터 (두번째부터 끝에서 두번째까지)
+		//	param[i - 1]		= protocol.parameters[i];
+		//string label			= protocol.parameters[paramCount - 1];						// 맨 마지막은 점프할 레이블
 
-		string label			= protocol.parameters[paramCount - 1];						// 맨 마지막은 점프할 레이블
+		string funcname;																	// 함수 이름
+		string [] param;																	// 함수 파라미터 (두번째부터 끝에서 두번째까지)
+		string label;																		// 맨 마지막은 점프할 레이블
+		SplitParams_SingleListSingle(protocol.parameters, out funcname, out param, out label);
 
 		newCallSeg.EnqueueConditionJumpData(funcname, param);
 		newCallSeg.SetConditionJumpLabel(label);
@@ -527,7 +629,120 @@ public static class FSNBuiltInScriptCommands
 		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
 			{
 				newSeg			= newCallSeg,
-				usePrevPeriod	= false, // ? ... 실제 사용 양상에 따라서 정해줘야할듯... 일단 함수콜이 출력에 영향을 미치지는 않으므로 false로 해둠.
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+
+	static void ConditionJump_FlagIsTrue(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
+
+		newCallSeg.EnqueueConditionJumpData("__fsnengine_IfFlagIsTrue", protocol.parameters[0]);
+		newCallSeg.SetConditionJumpLabel(protocol.parameters[1]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void ConditionJump_FlagIsFalse(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
+
+		newCallSeg.EnqueueConditionJumpData("__fsnengine_IfFlagIsFalse", protocol.parameters[0]);
+		newCallSeg.SetConditionJumpLabel(protocol.parameters[1]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void ConditionJump_CheckFlag(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
+
+		newCallSeg.EnqueueConditionJumpData("__fsnengine_CheckFlagValue", protocol.parameters[0], protocol.parameters[1]);
+		newCallSeg.SetConditionJumpLabel(protocol.parameters[2]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void ConditionJump_IfValueEqual(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
+
+		newCallSeg.EnqueueConditionJumpData("__fsnengine_CheckValueIsEqualTo", protocol.parameters[0], protocol.parameters[1]);
+		newCallSeg.SetConditionJumpLabel(protocol.parameters[2]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void ConditionJump_IfValueNotEqual(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
+
+		newCallSeg.EnqueueConditionJumpData("__fsnengine_CheckValueIsNotEqualTo", protocol.parameters[0], protocol.parameters[1]);
+		newCallSeg.SetConditionJumpLabel(protocol.parameters[2]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void ConditionJump_IfValueGreaterThan(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
+
+		newCallSeg.EnqueueConditionJumpData("__fsnengine_CheckValueIsGreaterThan", protocol.parameters[0], protocol.parameters[1]);
+		newCallSeg.SetConditionJumpLabel(protocol.parameters[2]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void ConditionJump_IfValueLesserThan(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
+
+		newCallSeg.EnqueueConditionJumpData("__fsnengine_CheckValueIsLesserThan", protocol.parameters[0], protocol.parameters[1]);
+		newCallSeg.SetConditionJumpLabel(protocol.parameters[2]);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
 				selfPeriod		= false
 			});
 	}

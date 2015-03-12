@@ -596,7 +596,7 @@ namespace Segments
 			return data.m_scriptPath;
 		}
 
-		public void SetUnityCallData(string msgname, string [] param)
+		public void SetUnityCallData(string msgname, params string [] param)
 		{
 			var data			= CheckOptionData<UnityCallData>(ControlType.UnityCall);
 			data.m_messageName	= msgname;
@@ -622,7 +622,7 @@ namespace Segments
 			return data.m_jumpLabel;
 		}
 
-		public void EnqueueConditionJumpData(string msgname, string [] param)
+		public void EnqueueConditionJumpData(string msgname, params string [] param)
 		{
 			var data = CheckOptionData<ConditionJumpData>(ControlType.ConditionJump);
 			data.m_conditions.Enqueue(new ConditionJumpData.condition() { m_messageName = msgname, m_parameters = param });

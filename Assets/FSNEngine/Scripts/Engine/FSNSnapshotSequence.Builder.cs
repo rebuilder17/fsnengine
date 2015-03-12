@@ -162,7 +162,7 @@ public sealed partial class FSNSnapshotSequence
 			// 시작 Snapshot 만들기
 
 			FSNSnapshot startSnapshot			= new FSNSnapshot();
-			startSnapshot.LinkToForward			= true;
+			startSnapshot.NonstopToForward			= true;
 			startSnapshot.InGameSetting			= builderState.settings;
 
 			Segment startSegment				= new Segment();
@@ -184,8 +184,9 @@ public sealed partial class FSNSnapshotSequence
 		/// <param name="builderState"></param>
 		/// <param name="snapshotSeq">이번 콜에서 생성할 시퀀스 이전의 스냅샷 인덱스</param>
 		/// <param name="bs"></param>
+		/// <param name="linkToLast">이 메서드를 호출하기 바로 이전의 Snapshot에 연결할지 여부. 기본은 true. 선택지 등등에서 false로 해줘야함</param>
 		/// <returns>이번 콜에서 생성한 시퀀스들 중 제일 첫번째 것. 다른 시퀀스 흐름과 연결할 때 사용 가능</returns>
-		static Segment ProcessSnapshotBuild(State bs, FSNSnapshotSequence snapshotSeq, int prevSnapshotIndex)
+		static Segment ProcessSnapshotBuild(State bs, FSNSnapshotSequence snapshotSeq, int prevSnapshotIndex, bool linkToLast = true)
 		{
 			ModuleCallQueue moduleCalls	= new ModuleCallQueue();
 
@@ -331,20 +332,20 @@ public sealed partial class FSNSnapshotSequence
 
 					moduleCalls.ProcessCall(lastSeg.snapshot, sshot);			// 지금까지 모인 모듈 콜 집행하기
 
-					if(lastSeg.Type != FlowType.UserChoice)						// 이전 스냅샷이 선택지가 아니면 바로 연결하기 (선택지일 경우 호출자가 결정하게 함... <- 확실하진 않음)
+					//if(lastSeg.Type != FlowType.UserChoice)						// 이전 스냅샷이 선택지가 아니면 바로 연결하기 (선택지일 경우 호출자가 결정하게 함... <- 확실하진 않음)
+					if(linkToLast)												// 이전 스냅샷에 붙여야하는경우
 					{
 						LinkSnapshots(lastSeg, sseg);
 
 						if(bs.prevPeriodWasChain)								// 이전 period가 chaining이었다면, 역방향 chaining 걸기
 						{
-							sseg.snapshot.LinkToBackward	= true;
+							sseg.snapshot.NonstopToBackward	= true;
 							bs.prevPeriodWasChain			= false;			// (플래그 해제)
 						}
 
 						if(periodSeg.isChaining)								// Chaining 옵션이 켜져있을 경우
 						{
-							sseg.snapshot.LinkToForward		= true;
-							//sseg.snapshot.LinkToBackward	= true;
+							sseg.snapshot.NonstopToForward	= true;
 							bs.prevPeriodWasChain			= true;				// (chaining 상태 기록)
 						}
 
@@ -363,6 +364,7 @@ public sealed partial class FSNSnapshotSequence
 					FSNInGameSetting.FlowDirection			conditionLinkDir		= FSNInGameSetting.FlowDirection.None;
 					FSNInGameSetting.FlowDirection			conditionLinkBackDir	= FSNInGameSetting.FlowDirection.None;
 					List<Segment.FlowInfo.ConditionLink>	conditionLinks			= null;
+					Dictionary<string, Segment>				conditionLinkSegCache	= new Dictionary<string, Segment>();	// 조건부 점프시, 중복되는 점프는 이전 것을 사용하게
 
 					foreach(var jumpSeg in jumpSegs)							// * 점프 세그먼트가 있을 경우 처리
 					{
@@ -396,7 +398,7 @@ public sealed partial class FSNSnapshotSequence
 										clonnedState.settings.CurrentFlowDirection	= dir;			// 진행 방향 세팅 - 선택지 방향으로 진행 방향을 강제 세팅한다
 										clonnedState.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(dir);
 
-										var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석하기
+										var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index, false);	// 새 분기 해석하기. 이전 스냅샷에 바로 붙이지 않는다.
 										LinkSnapshotAsOption(sseg, newSeg, dir);					// 선택지로 연결하기
 									}
 									else
@@ -420,7 +422,7 @@ public sealed partial class FSNSnapshotSequence
 								var clonnedState		= bs.Clone();								// 상태 복제
 								clonnedState.segIndex	= labelIndex;								// 라벨 인덱스 세팅
 
-								ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석하기
+								ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);		// 새 분기 해석하기
 
 								// SOFT 라벨로 점프하는 경우엔 사실상 이 분기점으로 다시 되돌아올 일이 생기지 않는다.
 								// 추가 스크립트 해석을 중단한다.
@@ -453,10 +455,10 @@ public sealed partial class FSNSnapshotSequence
 								// 생성한 스냅샷을 역방향에 직접 붙여줘야하기 때문.
 								// 좀 Hacky한 방법이라서 변경이 필요할지도.
 
-								var origFlowType				= sseg.Type;								// 이전 flow type 보관
-								sseg.Type	= FlowType.UserChoice;											// UserChoice로 변경
-								var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석한 후 레퍼런스 받기
-								sseg.Type	= origFlowType;													// flow type 원상 복귀
+								//var origFlowType				= sseg.Type;								// 이전 flow type 보관
+								//sseg.Type	= FlowType.UserChoice;											// UserChoice로 변경
+								var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index, false);	// 새 분기 해석한 후 레퍼런스 받기. 링크는 하지 않음
+								//sseg.Type	= origFlowType;													// flow type 원상 복귀
 
 								LinkSnapshotsReverseOverride(sseg, newSeg);	//붙이기
 
@@ -480,18 +482,23 @@ public sealed partial class FSNSnapshotSequence
 								if (labelIndex < bs.segIndex)										// SOFT 라벨은 거슬러올라갈 수 없다.
 									Debug.LogError("Cannot jump to previous soft label");
 
-								var clonnedState		= bs.Clone();								// 상태 복제
-								clonnedState.segIndex	= labelIndex;								// 라벨 인덱스 세팅
+								Segment newSeg;
+								if(!conditionLinkSegCache.TryGetValue(label, out newSeg))			// 이전에 캐싱된 것이 없을 때만 새로 해석한다.
+								{
+									var clonnedState		= bs.Clone();							// 상태 복제
+									clonnedState.segIndex	= labelIndex;							// 라벨 인덱스 세팅
 
-								// 가장 마지막 세그먼트를 잠시동안만 UserChoice로 변경해서 새 스냅샷시퀀스를 정방향에 붙이지 못하게 막는다.
-								// 생성한 스냅샷을 역방향에 직접 붙여줘야하기 때문.
-								// 좀 Hacky한 방법이라서 변경이 필요할지도.
+									// 가장 마지막 세그먼트를 잠시동안만 UserChoice로 변경해서 새 스냅샷시퀀스를 정방향에 붙이지 못하게 막는다.
+									// 생성한 스냅샷을 역방향에 직접 붙여줘야하기 때문.
+									// 좀 Hacky한 방법이라서 변경이 필요할지도.
 
-								var origFlowType	= sseg.Type;											// 이전 flow type 보관
-								sseg.Type	= FlowType.UserChoice;											// UserChoice로 변경
-								var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index);	// 새 분기 해석한 후 레퍼런스 받기
-								sseg.Type	= origFlowType;													// flow type 원상 복귀
+									//var origFlowType	= sseg.Type;											// 이전 flow type 보관
+									//sseg.Type	= FlowType.UserChoice;											// UserChoice로 변경
+									newSeg		= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index, false);	// 새 분기 해석한 후 레퍼런스 받기. 링크는 하지 않음
+									//sseg.Type	= origFlowType;													// flow type 원상 복귀
 
+									conditionLinkSegCache[label]	= newSeg;									// 캐싱해두기
+								}
 
 								// Note : 현재 스크립트 스펙 상, 한 스냅샷 안에서 Condition Link은 한쪽 방향으로밖에 나올 수 없다.
 								// 따라서 방향 구분 없이 리스트 하나에 모두 모아둔 후, 기록해둔 방향에 모두 집어넣는다.
@@ -514,7 +521,8 @@ public sealed partial class FSNSnapshotSequence
 									conditionLinks	= new List<Segment.FlowInfo.ConditionLink>();
 								conditionLinks.Add(new Segment.FlowInfo.ConditionLink() { funcinfo = callfuncs.ToArray(), Linked = newSeg });
 
-								newSeg.SetDirectFlow(conditionLinkBackDir, sseg);							// 역방향 설정
+								if(!newSeg.OneWay)
+									newSeg.SetDirectFlow(conditionLinkBackDir, sseg);						// 역방향 설정
 
 							}
 							else
@@ -606,8 +614,8 @@ public sealed partial class FSNSnapshotSequence
 
 			// FIX : 선택지 분기는 period 세그먼트의 isChaining을 체크하는 부분이 위쪽 UserChoice를 체크하는 조건문에 걸려 실행되지 못함.
 			// 선택지 바로 다음에는 LastOption 텍스트를 표시하는 snapshot이 무조건 나온다고 가정하고, 여기서 강제로 chaining을 해준다.
-			next.snapshot.LinkToForward		= true;
-			next.snapshot.LinkToBackward	= true;
+			next.snapshot.NonstopToForward		= true;
+			next.snapshot.NonstopToBackward	= true;
 		}
 
 		/// <summary>

@@ -262,4 +262,14 @@ public sealed class FSNEngine : MonoBehaviour
 	{
 		m_seqEngine.CurrentSession.SetNumberValue(name, value);
 	}
+
+	public bool SessionFlagIsDeclared(string name)
+	{
+		return m_seqEngine.CurrentSession.FlagIsDeclared(name);
+	}
+
+	public bool SessionValueIsDeclared(string name)
+	{
+		return m_seqEngine.CurrentSession.ValueIsDeclared(name);
+	}
 }

@@ -51,7 +51,7 @@ public class FSNSession
 
 	public void SetFlagValue(string name, bool value, bool suppressWarning = false)
 	{
-		if(!m_flagTable.ContainsKey(name) && suppressWarning)
+		if(!m_flagTable.ContainsKey(name) && !suppressWarning)
 		{
 			Debug.LogWarningFormat("[FSNSession] flag named {0} has not been declared before. Assuming this is a new delcaration.", name);
 		}
@@ -71,11 +71,21 @@ public class FSNSession
 
 	public void SetNumberValue(string name, float value, bool suppressWarning = false)
 	{
-		if(!m_valueTable.ContainsKey(name) && suppressWarning)
+		if(!m_valueTable.ContainsKey(name) && !suppressWarning)
 		{
 			Debug.LogWarningFormat("[FSNSession] flag named {0} has not been declared before. Assuming this is a new delcaration.", name);
 		}
 		m_valueTable[name]	= value;
+	}
+
+	public bool FlagIsDeclared(string name)
+	{
+		return m_flagTable.ContainsKey(name);
+	}
+
+	public bool ValueIsDeclared(string name)
+	{
+		return m_valueTable.ContainsKey(name);
 	}
 
 	//-----------------------------------------------------------------

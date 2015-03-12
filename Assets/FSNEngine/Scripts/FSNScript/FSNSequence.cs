@@ -236,6 +236,7 @@ public class FSNScriptSequence
 		const string	c_token_Command		= "/";			// 명령문
 		const string	c_token_Period		= ".";			// period
 		const string	c_token_ForceText	= "~";			// 해당 라인 강제로 텍스트로 인식하게
+		const string	c_token_PreProcessor= "@";			// preprocessor 구문 (헤더 등)
 
 		const string	c_token_LineConcat	= "//";			// 줄 붙이기 (텍스트 끝)
 
@@ -433,6 +434,10 @@ public class FSNScriptSequence
 					{
 						case c_token_Comment:								// * 주석
 							// 스루. 뭐 왜 뭐 주석인데 뭐
+							break;
+
+						case c_token_PreProcessor:							// * 전처리 구문
+							// TODO
 							break;
 
 						case c_token_Command:								// * 명령

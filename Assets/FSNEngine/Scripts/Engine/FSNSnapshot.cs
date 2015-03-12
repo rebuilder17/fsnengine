@@ -417,12 +417,12 @@ public class FSNSnapshot
 	/// <summary>
 	/// 역진행의 경우, Swipe 동작으로 끊어지지 않고 바로 이전 스냅샷으로 이어지는가에 대하여
 	/// </summary>
-	public bool LinkToForward { get; set; }
+	public bool NonstopToForward { get; set; }
 
 	/// <summary>
 	/// 순진행의 경우, Swipe 동작으로 끊어지지 않고 바로 다음 스냅샷으로 이어지는가에 대하여
 	/// </summary>
-	public bool LinkToBackward { get; set; }
+	public bool NonstopToBackward { get; set; }
 
 	/// <summary>
 	/// 링크가 존재하더라도 역방향 이동을 막는다. 선택지에서 역방향 오버라이드가 된 경우에 사용한다.

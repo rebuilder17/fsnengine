@@ -46,6 +46,16 @@ public static class FSNUtils
 		}
 	}
 
+	/// <summary>
+	/// 문자열을 type에 맞는 값으로 변환.
+	/// </summary>
+	/// <param name="strval"></param>
+	/// <returns></returns>
+	public static T StringToValue<T>(string strval)
+	{
+		return (T)StringToValue(typeof(T), strval);
+	}
+
 	private delegate object StringToValueFunc(string strval);
 	/// <summary>
 	/// 문자열 변환 함수 딕셔너리

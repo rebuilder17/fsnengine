@@ -96,13 +96,13 @@ public class FSNSequenceEngine : MonoBehaviour
 			var curSnapshot	= m_snapshotTraveler.Current;
 
 			// 정방향 혹은 역방향으로 진행했는데 해당 방향으로 연결된 snapshot이 있다면 바로 transition을 건다
-			if(curSnapshot.LinkToForward && !m_lastSwipeWasBackward)
+			if(curSnapshot.NonstopToForward && !m_lastSwipeWasBackward)
 			{
 				var nextFlowDir	= m_snapshotTraveler.Next.InGameSetting.CurrentFlowDirection;
 				//FullSwipe(curSnapshot.InGameSetting.CurrentFlowDirection, 0f);
 				FullSwipe(nextFlowDir, 0f);
 			}
-			else if(curSnapshot.LinkToBackward && m_lastSwipeWasBackward)
+			else if(curSnapshot.NonstopToBackward && m_lastSwipeWasBackward)
 			{
 				FullSwipe(curSnapshot.InGameSetting.BackwardFlowDirection, 0f);
 			}
