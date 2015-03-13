@@ -103,11 +103,11 @@ public class FSNTextModule_UnityGUI : FSNTextModule<LayerObjects.Text_UnityGUI>
 		return new LayerObjects.Text_UnityGUI(this, newObj);
 	}
 
-	public override Vector2 CalculateTextSize(string text, float size)
+	public override Vector2 CalculateTextSize(string text, IInGameSetting setting)
 	{
 		// GUI 루프 바깥에서는 GUI 콜을 할 수가 없음. 따라서 임의로 값을 계산한다. (테스트용이니까 어차피 괜찮음...)
 
-		size *= 1.5f;// 약간 배수를 준다
+		float size = setting.FontSize * 1.5f;// 약간 배수를 준다
 		int lineCount	= 0;
 		int maxColCount	= 0;
 

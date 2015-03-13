@@ -113,7 +113,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	/// </summary>
 	/// <param name="text"></param>
 	/// <param name="size"></param>
-	public abstract Vector2 CalculateTextSize(string text, float size);
+	public abstract Vector2 CalculateTextSize(string text, IInGameSetting setting);
 
 	//=================================================================
 
@@ -163,7 +163,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	{
 		// TODO : 상하좌우 여백, 정렬 등도 따져야함
 
-		var newTextSize				= CalculateTextSize(textSeg.text, setting.FontSize);	// 텍스트 영역 크기 미리 구하기
+		var newTextSize				= CalculateTextSize(textSeg.text, setting);		// 텍스트 영역 크기 미리 구하기
 
 
 		// 새 텍스트 엘레먼트 세팅
@@ -244,7 +244,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		// 새 텍스트 엘레먼트 세팅 : 선택지 질문 텍스트
 
-		var newTextSize					= CalculateTextSize(textSeg.text, setting.FontSize);
+		var newTextSize					= CalculateTextSize(textSeg.text, setting);
 
 		var questionTextElem			= new SnapshotElems.Text();
 
@@ -274,7 +274,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		dirText		= textSeg.optionTexts[dirIndex];
 		if (textSeg.optionTexts.Length - 1 >= dirIndex && !string.IsNullOrEmpty(dirText))
 		{
-			var upTextSize					= CalculateTextSize(dirText, setting.FontSize);
+			var upTextSize					= CalculateTextSize(dirText, setting);
 
 			var upTextElem					= new SnapshotElems.Text();
 
@@ -302,7 +302,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		dirText		= textSeg.optionTexts[dirIndex];
 		if (textSeg.optionTexts.Length - 1 >= dirIndex && !string.IsNullOrEmpty(dirText))
 		{
-			var downTextSize				= CalculateTextSize(dirText, setting.FontSize);
+			var downTextSize				= CalculateTextSize(dirText, setting);
 
 			var downTextElem				= new SnapshotElems.Text();
 
@@ -330,7 +330,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		dirText		= textSeg.optionTexts[dirIndex];
 		if (textSeg.optionTexts.Length - 1 >= dirIndex && !string.IsNullOrEmpty(dirText))
 		{
-			var leftTextSize				= CalculateTextSize(dirText, setting.FontSize);
+			var leftTextSize				= CalculateTextSize(dirText, setting);
 
 			var leftTextElem				= new SnapshotElems.Text();
 
@@ -358,7 +358,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		dirText		= textSeg.optionTexts[dirIndex];
 		if (textSeg.optionTexts.Length - 1 >= dirIndex && !string.IsNullOrEmpty(dirText))
 		{
-			var rightTextSize				= CalculateTextSize(dirText, setting.FontSize);
+			var rightTextSize				= CalculateTextSize(dirText, setting);
 
 			var rightTextElem				= new SnapshotElems.Text();
 
@@ -407,7 +407,8 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			// 텍스트를 새로 만드는 것이 아니라 기존 것을 변경한다.
 			// PushTextsToDirection 에서는 이 시점의 LastOption텍스트는 건들지 않는다.
 
-			var textSize		= CalculateTextSize(optionText.text, optionText.fontSize);
+			//var textSize		= CalculateTextSize(optionText.text, optionText);
+			var textSize		= CalculateTextSize(optionText.text, setting);
 			var posToCenter		= optionText.Position;
 			switch(optionText.optionDir)													// 중앙 위치 맞추기
 			{
