@@ -20,6 +20,15 @@ namespace LayerObjects
 			m_rectTrans			= m_text.rectTransform;
 
 			m_rectTrans.pivot	= Vector2.zero;
+
+			// TODO : 여백도 고려해야함
+			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, FSNEngine.Instance.ScreenXSize);
+			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 1f);
+			m_text.horizontalOverflow	= HorizontalWrapMode.Wrap;
+			m_text.verticalOverflow	= VerticalWrapMode.Overflow;
+
+			var module			= parent as FSNTextModule_NewUI;
+			m_text.font			= module.font;
 		}
 
 		protected override void UpdatePosition(Vector3 position)
@@ -56,10 +65,25 @@ namespace LayerObjects
 
 public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 {
+	// Properties
+
+	[SerializeField]
+	Font					m_font;					// 폰트
+
+
 	// Members
 
 	TextGenerator			m_textGenerator;		// 텍스트 크기 등을 알아보기 위한
 	TextGenerationSettings	m_textGenSettings;
+
+
+	/// <summary>
+	/// Unity font
+	/// </summary>
+	public Font font
+	{
+		get { return m_font; }
+	}
 
 
 	public override void Initialize()
@@ -70,12 +94,17 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		m_textGenerator							= new TextGenerator();
 
 		m_textGenSettings						= new TextGenerationSettings();
+		m_textGenSettings.font					= m_font;
 		m_textGenSettings.textAnchor			= TextAnchor.UpperLeft;
 		m_textGenSettings.pivot					= Vector2.zero;
 		m_textGenSettings.richText				= true;
 		m_textGenSettings.fontStyle				= FontStyle.Normal;
 		m_textGenSettings.horizontalOverflow	= HorizontalWrapMode.Wrap;
 		m_textGenSettings.verticalOverflow		= VerticalWrapMode.Overflow;
+		m_textGenSettings.generateOutOfBounds	= true;
+		m_textGenSettings.lineSpacing			= 1;
+		m_textGenSettings.updateBounds			= true;
+
 	}
 
 	protected override LayerObjects.Text_NewUI MakeNewLayerObject()
@@ -83,7 +112,7 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		GameObject newObj		= new GameObject("Text_NewUI");
 		newObj.transform.parent	= ObjectRoot;
 
-		return new LayerObjects.Text_NewUI(this, newObj);
+		return new LayerObjects.Text_NewUI(this, newObj);;
 	}
 
 	public override Vector2 CalculateTextSize(string text, IInGameSetting setting)
@@ -92,8 +121,10 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		// TODO : 여백도 고려해야함
 		m_textGenSettings.generationExtents	= new Vector2(FSNEngine.Instance.ScreenXSize, 1f);
 
-		m_textGenerator.Populate(text, m_textGenSettings);
-		var textRect	= m_textGenerator.rectExtents;
-		return new Vector2(textRect.width, textRect.height);
+		Vector2 size;
+		size.x			= m_textGenerator.GetPreferredWidth(text, m_textGenSettings);
+		size.y			= m_textGenerator.GetPreferredHeight(text, m_textGenSettings);
+
+		return size;
 	}
 }

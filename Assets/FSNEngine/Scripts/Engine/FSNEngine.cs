@@ -57,6 +57,8 @@ public sealed class FSNEngine : MonoBehaviour
 
 	// Members
 
+	bool							m_awake	= false;
+
 	Dictionary<string, FSNModule>	m_moduleRefDict;								// 모듈들
 	FSNInGameSetting				m_inGameSetting;								// 인게임 세팅 (기본세팅)
 
@@ -81,6 +83,10 @@ public sealed class FSNEngine : MonoBehaviour
 	{
 		get
 		{
+			if(s_instance == null)
+			{
+				GameObject.FindObjectOfType<FSNEngine>().Awake();
+			}
 			return s_instance;
 		}
 	}
@@ -90,6 +96,10 @@ public sealed class FSNEngine : MonoBehaviour
 
 	void Awake()
 	{
+		if (m_awake)
+			return;
+		m_awake	= true;
+
 		if(s_instance)
 		{
 			Debug.LogError("[FSNEngine] Duplicated engine object!");

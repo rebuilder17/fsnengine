@@ -379,11 +379,14 @@ public sealed partial class FSNSnapshotSequence
 			if(!conditionCheckOnly)
 			{
 				var functions	= m_current.FunctionCalls;
-				int funcCount	= functions.Length;
-				for(int i = 0; i < funcCount; i++)
+				if (functions != null)
 				{
-					var funcInfo	= functions[i];
-					FSNEngine.Instance.ScriptUnityCallVoid(funcInfo.funcname, funcInfo.param);
+					int funcCount	= functions.Length;
+					for (int i = 0; i < funcCount; i++)
+					{
+						var funcInfo	= functions[i];
+						FSNEngine.Instance.ScriptUnityCallVoid(funcInfo.funcname, funcInfo.param);
+					}
 				}
 			}
 			
