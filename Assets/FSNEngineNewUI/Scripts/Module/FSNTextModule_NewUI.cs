@@ -42,7 +42,7 @@ namespace LayerObjects
 			//m_realPos.x				= screenDim.x / 2 + (position.x);
 			//m_realPos.y				= screenDim.y / 2 - (position.y);
 
-			m_rectTrans.position	= position;
+			m_rectTrans.localPosition	= position;
 		}
 
 		protected override void UpdateFontSize(float newSize)
@@ -104,15 +104,15 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		m_textGenSettings.generateOutOfBounds	= true;
 		m_textGenSettings.lineSpacing			= 1;
 		m_textGenSettings.updateBounds			= true;
-
 	}
 
 	protected override LayerObjects.Text_NewUI MakeNewLayerObject()
 	{
 		GameObject newObj		= new GameObject("Text_NewUI");
-		newObj.transform.parent	= ObjectRoot;
+		var lobj				= new LayerObjects.Text_NewUI(this, newObj);
+		newObj.transform.SetParent(ObjectRoot, false);
 
-		return new LayerObjects.Text_NewUI(this, newObj);;
+		return lobj;
 	}
 
 	public override Vector2 CalculateTextSize(string text, IInGameSetting setting)
