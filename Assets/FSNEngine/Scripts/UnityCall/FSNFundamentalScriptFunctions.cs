@@ -165,7 +165,8 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 	[UnityCallBoolMethod]
 	public bool TestBoolCheck(params string [] param)
 	{
-		testcounter = (testcounter + 1) % 4;
-		return testcounter < 2;
+		//testcounter = (testcounter + 1) % 4;
+		//return testcounter < 2;
+		return false;
 	}
 }
