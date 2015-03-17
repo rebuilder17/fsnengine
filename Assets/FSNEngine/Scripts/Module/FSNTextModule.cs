@@ -117,6 +117,73 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 	//=================================================================
 
+	/// <summary>
+	/// 가운데가 아닌 텍스트의 위치를 여백에 따라 보정
+	/// </summary>
+	/// <param name="textpos"></param>
+	/// <param name="flow"></param>
+	private static void ApplySideTextMargin(ref Vector3 textpos, IInGameSetting setting, FSNInGameSetting.FlowDirection flow)
+	{
+		float xoffset	= setting.TextMarginLeft - setting.TextMarginRight;
+		float yoffset	= setting.TextMarginTop - setting.TextMarginBottom;
+
+		// 해당 사이드에서 여백만큼 떨어트리기
+		switch(flow)
+		{
+			case FSNInGameSetting.FlowDirection.Up:
+				textpos.y	+= setting.TextMarginBottom;
+				//textpos.x	+= xoffset;
+				break;
+			case FSNInGameSetting.FlowDirection.Down:
+				textpos.y	-= setting.TextMarginTop;
+				//textpos.x	+= xoffset;
+				break;
+			case FSNInGameSetting.FlowDirection.Left:
+				textpos.x	-= setting.TextMarginRight;
+				textpos.y	+= yoffset;
+				break;
+			case FSNInGameSetting.FlowDirection.Right:
+				textpos.x	+= setting.TextMarginLeft;
+				textpos.y	+= yoffset;
+				break;
+		}
+
+		// 정렬에 따라 좌/우 여백을 적용해줘야하는 경우
+		if(flow == FSNInGameSetting.FlowDirection.Up || flow == FSNInGameSetting.FlowDirection.Down)
+		{
+			switch(setting.TextAlign)
+			{
+				case FSNInGameSetting.TextAlignType.Left:
+					textpos.x += setting.TextMarginLeft;
+					break;
+
+				case FSNInGameSetting.TextAlignType.Middle:
+					textpos.x += xoffset;
+					break;
+
+				case FSNInGameSetting.TextAlignType.Right:
+					textpos.x -= setting.TextMarginRight;
+					break;
+			}
+		}
+	}
+
+	/// <summary>
+	/// 가운데에 배치되는 텍스트의 위치를 여백에 따라 보정
+	/// </summary>
+	/// <param name="textpos"></param>
+	/// <param name="setting"></param>
+	private static void ApplyCenterTextMargin(ref Vector3 textpos, IInGameSetting setting)
+	{
+		float xoffset	= setting.TextMarginLeft - setting.TextMarginRight;
+		float yoffset	= setting.TextMarginTop - setting.TextMarginBottom;
+
+		textpos.x		+= xoffset;
+		textpos.y		+= yoffset;
+	}
+
+	//=================================================================
+
 	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, params FSNProcessModuleCallParam[] callParams)
 	{
 		FSNSnapshot.Layer newLayer	= curLayer.Clone();
@@ -206,6 +273,8 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		default:
 			throw new System.Exception("HUH???");
 		}
+		ApplySideTextMargin(ref fadeinpos, setting, setting.CurrentFlowDirection);	// 여백 적용
+
 		newTextElem.Position				= fadeinpos;			// 나중에 일괄적으로 이동시킬 것이기 때문에 시작 위치랑 화면 밖 위치를 같게 설정한다
 		newTextElem.InitialState.Position	= fadeinpos;
 
@@ -241,6 +310,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			default:
 				throw new System.Exception("HUH???");
 		}
+		ApplySideTextMargin(ref fadePosOffset, setting, setting.CurrentFlowDirection);	// 여백 적용
 
 		// 새 텍스트 엘레먼트 세팅 : 선택지 질문 텍스트
 
@@ -260,7 +330,10 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		questionTextElem.FinalState.Alpha	= 0;
 
 		// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
-		questionTextElem.Position				= new Vector3(-newTextSize.x / 2f, newTextSize.y / 2f);
+		var qtextPos							= new Vector3(-newTextSize.x / 2f, newTextSize.y / 2f);
+		ApplyCenterTextMargin(ref qtextPos, setting);					// 여백 지정
+
+		questionTextElem.Position				= qtextPos;
 		questionTextElem.InitialState.Position	= questionTextElem.Position - fadePosOffset;
 
 		layer.AddElement(questionTextElem);								// 텍스트 엘리멘트 추가
@@ -291,7 +364,9 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			upTextElem.FinalState.Alpha		= 0;
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
-			upTextElem.Position					= new Vector3(upTextSize.x / 2f, -screenDim.y / 2f + upTextSize.y);
+			var tpos							= new Vector3(upTextSize.x / 2f, -screenDim.y / 2f + upTextSize.y);
+			ApplySideTextMargin(ref tpos, setting, FSNInGameSetting.FlowDirection.Up);
+			upTextElem.Position					= tpos;
 			upTextElem.InitialState.Position	= upTextElem.Position - fadePosOffset;
 
 			layer.AddElement(upTextElem);								// 텍스트 엘리멘트 추가
@@ -319,7 +394,9 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			downTextElem.FinalState.Alpha	= 0;
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
-			downTextElem.Position				= new Vector3(downTextSize.x / 2f, screenDim.y / 2f);
+			var tpos							= new Vector3(downTextSize.x / 2f, screenDim.y / 2f);
+			ApplySideTextMargin(ref tpos, setting, FSNInGameSetting.FlowDirection.Down);
+			downTextElem.Position				= tpos;
 			downTextElem.InitialState.Position	= downTextElem.Position - fadePosOffset;
 
 			layer.AddElement(downTextElem);								// 텍스트 엘리멘트 추가
@@ -347,7 +424,9 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			leftTextElem.FinalState.Alpha	= 0;
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
-			leftTextElem.Position				= new Vector3(screenDim.x / 2f - leftTextSize.x, -leftTextSize.y * 3f);
+			var tpos							= new Vector3(screenDim.x / 2f - leftTextSize.x, -leftTextSize.y * 3f);
+			ApplySideTextMargin(ref tpos, setting, FSNInGameSetting.FlowDirection.Left);
+			leftTextElem.Position				= tpos;
 			leftTextElem.InitialState.Position	= leftTextElem.Position - fadePosOffset;
 
 			layer.AddElement(leftTextElem);								// 텍스트 엘리멘트 추가
@@ -375,7 +454,9 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			rightTextElem.FinalState.Alpha	= 0;
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
-			rightTextElem.Position				= new Vector3(-screenDim.x / 2f, rightTextSize.y * 3f);
+			var tpos							= new Vector3(-screenDim.x / 2f, rightTextSize.y * 3f);
+			ApplySideTextMargin(ref tpos, setting, FSNInGameSetting.FlowDirection.Right);
+			rightTextElem.Position				= tpos;
 			rightTextElem.InitialState.Position	= rightTextElem.Position - fadePosOffset;
 
 			layer.AddElement(rightTextElem);								// 텍스트 엘리멘트 추가
@@ -422,6 +503,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 					posToCenter.x	= -textSize.x / 2f;
 					break;
 			}
+			ApplyCenterTextMargin(ref posToCenter, setting);								// 여백 맞추기
 			optionText.Position	= posToCenter;
 			optionText.type		= SnapshotElems.Text.Type.LastOption;						// LastOption 타입으로 변경
 
