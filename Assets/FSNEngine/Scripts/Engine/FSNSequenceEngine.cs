@@ -186,7 +186,7 @@ public class FSNSequenceEngine : MonoBehaviour
 				if(oldLayer.IsEmpty && newLayer.IsEmpty)					// * 둘 다 비어있으면 아무것도 하지 않는다
 					continue;
 
-				float curtt		= module.StartTransition(newLayer, transitionStartRatio, isBackward);	// 트랜지션
+				float curtt		= module.StartTransition(newLayer, nextshot.InGameSetting, transitionStartRatio, isBackward);	// 트랜지션
 
 				if(transTime < curtt)										// 제일 긴 트랜지션 시간 추적
 					transTime = curtt;
@@ -240,7 +240,7 @@ public class FSNSequenceEngine : MonoBehaviour
 
 				if (newLayer != null && !newLayer.IsEmpty)
 				{
-					float curtt	= module.StartTransition(newLayer, 0, false);	// 트랜지션
+					float curtt	= module.StartTransition(newLayer, curshot.InGameSetting, 0, false);	// 트랜지션
 
 					if (transTime < curtt)									// 제일 긴 트랜지션 시간 추적
 						transTime = curtt;

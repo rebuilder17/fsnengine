@@ -13,8 +13,8 @@ namespace LayerObjects
 		RawImage		m_image;
 
 
-		public Image_NewUI(FSNModule parent, GameObject gameObj)
-			: base(parent, gameObj)
+		public Image_NewUI(FSNModule parent, GameObject gameObj, IInGameSetting setting)
+			: base(parent, gameObj, setting)
 		{
 			m_image				= gameObj.AddComponent<RawImage>();
 			m_rectTrans			= m_image.rectTransform;
@@ -76,10 +76,10 @@ public class FSNImageModule_NewUI : FSNImageModule<LayerObjects.Image_NewUI>
 
 	}
 
-	protected override LayerObjects.Image_NewUI MakeNewLayerObject()
+	protected override LayerObjects.Image_NewUI MakeNewLayerObject(IInGameSetting setting)
 	{
 		GameObject newObj	= new GameObject("Image_NewUI");
-		var lobj			= new LayerObjects.Image_NewUI(this, newObj);
+		var lobj			= new LayerObjects.Image_NewUI(this, newObj, setting);
 		newObj.transform.SetParent(ObjectRoot, false);
 
 		return lobj;

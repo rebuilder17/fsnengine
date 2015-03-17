@@ -9,8 +9,8 @@ namespace LayerObjects
 		Color m_realCol;
 		Texture2D m_realTex;
 
-		public Image_UnityGUI(FSNModule parent, GameObject gameObj)
-			: base(parent, gameObj)
+		public Image_UnityGUI(FSNModule parent, GameObject gameObj, IInGameSetting setting)
+			: base(parent, gameObj, setting)
 		{
 			
 		}
@@ -61,12 +61,12 @@ public class FSNImageModule_UnityGUI : FSNImageModule<LayerObjects.Image_UnityGU
 		
 	}
 
-	protected override LayerObjects.Image_UnityGUI MakeNewLayerObject()
+	protected override LayerObjects.Image_UnityGUI MakeNewLayerObject(IInGameSetting setting)
 	{
 		GameObject newObj		= new GameObject("Image_UnityGUI");
 		newObj.transform.parent	= ObjectRoot;
 		
-		return new LayerObjects.Image_UnityGUI(this, newObj);
+		return new LayerObjects.Image_UnityGUI(this, newObj, setting);
 	}
 
 	void OnGUI()

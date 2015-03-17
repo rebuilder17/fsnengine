@@ -10,8 +10,8 @@ namespace LayerObjects
 		string m_realStr;
 		Color m_realCol;
 
-		public Text_UnityGUI(FSNModule parent, GameObject gameObj)
-			: base(parent, gameObj)
+		public Text_UnityGUI(FSNModule parent, GameObject gameObj, IInGameSetting setting)
+			: base(parent, gameObj, setting)
 		{
 			//var module				= parent as FSNTextModule_UnityGUI;
 			//gameObject.guiText.font	= module.font;
@@ -94,13 +94,13 @@ public class FSNTextModule_UnityGUI : FSNTextModule<LayerObjects.Text_UnityGUI>
 		//Debug.Log(GUI.skin.label.CalcSize(new GUIContent("HELLOOOO")));
 	}
 
-	protected override LayerObjects.Text_UnityGUI MakeNewLayerObject()
+	protected override LayerObjects.Text_UnityGUI MakeNewLayerObject(IInGameSetting setting)
 	{
 		GameObject newObj		= new GameObject("Text_UnityGUI");
 		newObj.transform.parent	= ObjectRoot;
 		//newObj.AddComponent<GUIText>();
 		
-		return new LayerObjects.Text_UnityGUI(this, newObj);
+		return new LayerObjects.Text_UnityGUI(this, newObj, setting);
 	}
 
 	public override Vector2 CalculateTextSize(string text, IInGameSetting setting)

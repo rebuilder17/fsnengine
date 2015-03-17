@@ -12,8 +12,8 @@ namespace LayerObjects
 	public abstract class BaseObjectLayerObject<ImageElem> : FSNLayerObject<ImageElem>
 		where ImageElem : SnapshotElems.ObjectBase<ImageElem>, new()
 	{
-		public BaseObjectLayerObject(FSNModule parent, GameObject gameObj)
-			: base(parent, gameObj)
+		public BaseObjectLayerObject(FSNModule parent, GameObject gameObj, IInGameSetting setting)
+			: base(parent, gameObj, setting)
 		{
 
 		}

@@ -35,8 +35,8 @@ namespace LayerObjects
 		}
 
 
-		public ImageLayerObject(FSNModule parent, GameObject gameObj)
-			: base(parent, gameObj)
+		public ImageLayerObject(FSNModule parent, GameObject gameObj, IInGameSetting setting)
+			: base(parent, gameObj, setting)
 		{
 			
 		}

@@ -37,6 +37,33 @@ public interface IInGameSetting
 	/// 텍스트들을 쌓는지 여부. (이전 텍스트가 바로 없어지지 않고 화면 바깥으로 밀려나가야 사라지는 식)
 	/// </summary>
 	bool StackTexts { get; }
+
+	/// <summary>
+	/// 텍스트, 위쪽 여백
+	/// </summary>
+	float TextMarginTop { get; }
+	/// <summary>
+	/// 텍스트 아래쪽 여백
+	/// </summary>
+	float TextMarginBottom { get; }
+	/// <summary>
+	/// 텍스트 왼쪽 여백
+	/// </summary>
+	float TextMarginLeft { get; }
+	/// <summary>
+	/// 텍스트 오른쪽 여백
+	/// </summary>
+	float TextMarginRight { get; }
+
+	/// <summary>
+	/// 텍스트 정렬
+	/// </summary>
+	FSNInGameSetting.TextAlignType TextAlign { get; }
+
+	/// <summary>
+	/// 텍스트 줄 간격
+	/// </summary>
+	float TextLineSpacing { get; }
 }
 
 /// <summary>
@@ -176,6 +203,12 @@ public abstract class BaseInGameSetting : IInGameSetting
 	public virtual float FontSize { get; set; }
 	public virtual bool ScreenCenterText { get; set; }
 	public virtual bool StackTexts { get; set; }
+	public virtual float TextMarginLeft { get; set; }
+	public virtual float TextMarginRight { get; set; }
+	public virtual float TextMarginTop { get; set; }
+	public virtual float TextMarginBottom { get; set; }
+	public virtual FSNInGameSetting.TextAlignType TextAlign { get; set; }
+	public virtual float TextLineSpacing { get; set; }
 }
 
 
@@ -198,6 +231,16 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		None	= -1	// 방향 없음
 	}
 
+	/// <summary>
+	/// 텍스트 정렬
+	/// </summary>
+	public enum TextAlignType
+	{
+		Left	= 0,
+		Middle	= 1,
+		Right	= 2,
+	}
+
 	//==============================================================================
 
 	/// <summary>
@@ -210,6 +253,12 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		{"글자크기",				"FontSize"},				
 		{"문장을화면가운데로",		"ScreenCenterText"},		
 		{"문장쌓기",				"StackTexts"},				
+		{"글위쪽여백",				"TextMarginTop"},
+		{"글아래쪽여백",			"TextMarginBottom"},
+		{"글왼쪽여백",				"TextMarginLeft"},
+		{"글오른쪽여백",			"TextMarginRight"},
+		{"문장정렬",				"TextAlign"},
+		{"줄간격",					"TextLineSpacing"},
 	};
 
 	/// <summary>
@@ -238,9 +287,17 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 			CurrentFlowDirection	= FlowDirection.Up;
 			BackwardFlowDirection	= FlowDirection.Down;
 			SwipeWeight				= 0.3f;
-			FontSize				= 18;
+			FontSize				= 24;
 			ScreenCenterText		= false;
 			StackTexts				= true;
+
+			TextMarginTop			= 10;
+			TextMarginBottom		= 10;
+			TextMarginLeft			= 10;
+			TextMarginRight			= 10;
+
+			TextAlign				= TextAlignType.Left;
+			TextLineSpacing			= 1.2f;
 		}
 	}
 
@@ -560,6 +617,42 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		{
 			get { return GetProperty<bool>(MethodBase.GetCurrentMethod().Name); }
 			set { SetProperty<bool>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+
+		public float TextMarginLeft
+		{
+			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+
+		public float TextMarginRight
+		{
+			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+
+		public float TextMarginTop
+		{
+			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+
+		public float TextMarginBottom
+		{
+			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+
+		public FSNInGameSetting.TextAlignType TextAlign
+		{
+			get { return GetProperty<FSNInGameSetting.TextAlignType>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<FSNInGameSetting.TextAlignType>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+
+		public float TextLineSpacing
+		{
+			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }
 		}
 	}
 }

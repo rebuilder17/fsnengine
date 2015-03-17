@@ -58,8 +58,8 @@ namespace LayerObjects
 		public TextAlign Align { get; set; }
 
 
-		public TextLayerObject(FSNModule parent, GameObject gameObj)
-			: base(parent, gameObj)
+		public TextLayerObject(FSNModule parent, GameObject gameObj, IInGameSetting setting)
+			: base(parent, gameObj, setting)
 		{
 
 		}

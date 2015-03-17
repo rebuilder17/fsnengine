@@ -13,19 +13,23 @@ namespace LayerObjects
 		RectTransform	m_rectTrans;
 
 
-		public Text_NewUI(FSNModule parent, GameObject gameObj)
-			: base(parent, gameObj)
+		public Text_NewUI(FSNModule parent, GameObject gameObj, IInGameSetting setting)
+			: base(parent, gameObj, setting)
 		{
 			m_text				= gameObj.AddComponent<Text>();
 			m_rectTrans			= m_text.rectTransform;
 
 			m_rectTrans.pivot	= Vector2.zero;
 
-			// TODO : 여백도 고려해야함
-			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, FSNEngine.Instance.ScreenXSize);
+			// 여백까지 고려한 텍스트 최대 width 설정
+			float textWidth		= FSNEngine.Instance.ScreenXSize - setting.TextMarginLeft - setting.TextMarginRight;
+			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, textWidth);
 			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 1f);
-			m_text.horizontalOverflow	= HorizontalWrapMode.Wrap;
-			m_text.verticalOverflow	= VerticalWrapMode.Overflow;
+
+			m_text.horizontalOverflow	= HorizontalWrapMode.Wrap;	// word-wrap
+			m_text.verticalOverflow	= VerticalWrapMode.Overflow;	// 줄 갯수는 제한 없도록
+
+			m_text.lineSpacing	= setting.TextLineSpacing;
 
 			var module			= parent as FSNTextModule_NewUI;
 			m_text.font			= module.font;
@@ -106,10 +110,10 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		m_textGenSettings.updateBounds			= true;
 	}
 
-	protected override LayerObjects.Text_NewUI MakeNewLayerObject()
+	protected override LayerObjects.Text_NewUI MakeNewLayerObject(IInGameSetting setting)
 	{
 		GameObject newObj		= new GameObject("Text_NewUI");
-		var lobj				= new LayerObjects.Text_NewUI(this, newObj);
+		var lobj				= new LayerObjects.Text_NewUI(this, newObj, setting);
 		newObj.transform.SetParent(ObjectRoot, false);
 
 		return lobj;
@@ -118,8 +122,9 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 	public override Vector2 CalculateTextSize(string text, IInGameSetting setting)
 	{
 		m_textGenSettings.fontSize	= (int)setting.FontSize;
-		// TODO : 여백도 고려해야함
-		m_textGenSettings.generationExtents	= new Vector2(FSNEngine.Instance.ScreenXSize, 1f);
+		m_textGenSettings.lineSpacing= setting.TextLineSpacing;
+		float maxWidth				= FSNEngine.Instance.ScreenXSize - setting.TextMarginLeft - setting.TextMarginRight;
+		m_textGenSettings.generationExtents	= new Vector2(maxWidth, 1f);
 
 		Vector2 size;
 		size.x			= m_textGenerator.GetPreferredWidth(text, m_textGenSettings);

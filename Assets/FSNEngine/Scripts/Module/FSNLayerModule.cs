@@ -103,7 +103,7 @@ public abstract class FSNLayerObject<ElmT>
 	}
 
 
-	public FSNLayerObject(FSNModule parent, GameObject realObject)
+	public FSNLayerObject(FSNModule parent, GameObject realObject, IInGameSetting setting)
 	{
 		m_object	= realObject;
 		m_trans		= m_object.transform;
@@ -211,7 +211,7 @@ public abstract class FSNLayerObject<ElmT>
 public interface IFSNLayerModule
 {
 	void OldElementOnlyTransition(FSNSnapshot.Layer toLayer, float ratio, bool backward);
-	float StartTransition(FSNSnapshot.Layer toLayer, float startRatioForOlds, bool backward);
+	float StartTransition(FSNSnapshot.Layer toLayer, IInGameSetting nextSetting, float startRatioForOlds, bool backward);
 	int LayerID { get; }
 }
 
@@ -277,7 +277,7 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	/// 새 레이어 오브젝트 인스턴스 생성
 	/// </summary>
 	/// <returns></returns>
-	protected abstract ObjT MakeNewLayerObject();
+	protected abstract ObjT MakeNewLayerObject(IInGameSetting setting);
 
 	/// <summary>
 	/// 레이어 오브젝트 구하기
@@ -296,9 +296,9 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	/// </summary>
 	/// <param name="element"></param>
 	/// <param name="backward"></param>
-	ObjT AddNewLayerObject(ElmT element)
+	ObjT AddNewLayerObject(ElmT element, IInGameSetting nextSetting)
 	{
-		ObjT newObj		= MakeNewLayerObject();
+		ObjT newObj		= MakeNewLayerObject(nextSetting);
 		newObj.ConenctKillEvent(OnObjectKilled, element.UniqueID);
 		newObj.SetStateFully(element);
 		m_objectDict[element.UniqueID]	= newObj;
@@ -377,7 +377,7 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	/// <param name="startRatioForOlds">기존 오브젝트들은 해당 비율부터 애니메이션 시작</param>
 	/// <param name="backward">진행 반대 방향으로 swipe를 한 경우에는 false</param>
 	/// <returns>트랜지션이 모두 끝나는데 걸리는 시간</returns>
-	public float StartTransition(FSNSnapshot.Layer toLayer, float startRatioForOlds, bool backward)
+	public float StartTransition(FSNSnapshot.Layer toLayer, IInGameSetting nextSetting, float startRatioForOlds, bool backward)
 	{
 		UpdateTargetLayerDiff(toLayer);											// 비교 업데이트
 		float longestDuration	= 0f;											// 트랜지션 중 제일 오래걸리는 것의 시간
@@ -415,7 +415,7 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 			var initialElem	= backward? currentElem.GenericFinalState : currentElem.GenericInitialState;	// 역방향이면 finalState, 정방향이면 InitialState 로 초기세팅한다
 			float trTime	= initialElem.TransitionTime;						// 현재 상태로 transition하지만 시간값은 최초 상태값에 지정된 걸 사용한다.
 
-			var newobj		= AddNewLayerObject(initialElem as ElmT);
+			var newobj		= AddNewLayerObject(initialElem as ElmT, nextSetting);
 			newobj.DoTransition(currentElem, 0, trTime, false);
 
 			if(longestDuration < trTime) longestDuration = trTime;				// 제일 긴 트랜지션 시간 추적하기
