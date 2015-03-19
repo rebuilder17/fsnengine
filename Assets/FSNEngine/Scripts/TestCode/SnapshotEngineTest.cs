@@ -77,10 +77,12 @@ public class SnapshotEngineTest : MonoBehaviour
 		//var sshotSeq		= FSNSnapshotSequence.Builder.BuildSnapshotSequence(rawSeq);
 
 		// 테스트 3.
-		FSNScriptSequence	rawSeq	= FSNScriptSequence.Parser.FromAsset("testscript");
-		var sshotSeq		= FSNSnapshotSequence.Builder.BuildSnapshotSequence(rawSeq);
+		//FSNScriptSequence	rawSeq	= FSNScriptSequence.Parser.FromAsset("testscript");
+		//var sshotSeq		= FSNSnapshotSequence.Builder.BuildSnapshotSequence(rawSeq);
 
-		m_seqEngine.StartSnapshotSequence(sshotSeq);
+		//m_seqEngine.StartSnapshotSequence(sshotSeq);
+
+		FSNEngine.Instance.RunScript("testscript");
 
 		// 세팅 체인 테스트
 

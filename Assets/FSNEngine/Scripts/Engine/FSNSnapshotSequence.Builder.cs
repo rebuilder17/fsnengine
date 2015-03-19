@@ -151,6 +151,7 @@ public sealed partial class FSNSnapshotSequence
 
 			snapshotSeq.OriginalScriptPath		= sequence.OriginalScriptPath;	// 스크립트 경로 보관
 			snapshotSeq.ScriptHashKey			= sequence.ScriptHashKey;	// ScriptHashKey 복사해오기
+			snapshotSeq.ScriptHeader			= sequence.Header;
 
 			// State 초기 세팅
 

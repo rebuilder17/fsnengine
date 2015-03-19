@@ -121,7 +121,31 @@ public class FSNSequenceEngine : MonoBehaviour
 
 		if(CurrentSession == null)
 			CurrentSession	= new FSNSession();								// 진행중이던 세션이 없을 시엔 새 세션 생성. 세이브한 세션을 로드하는 경우라면 다시 여기에 덮어써야한다.
-		SaveToCurrentSession();
+
+
+		var session	= CurrentSession;
+
+		foreach (var pair in sequence.ScriptHeader.FlagDeclarations)		// 플래그 선언
+		{
+			if (!session.FlagIsDeclared(pair.Key))							// 아직 선언되지 않은 경우만 세팅
+			{
+				bool value	= string.IsNullOrEmpty(pair.Value)?
+						false : FSNUtils.StringToValue<bool>(pair.Value);	// 초기값까지 선언한 경우 값 해독, 아니면 기본값 false
+				session.SetFlagValue(pair.Key, value, true);
+			}	
+		}
+
+		foreach (var pair in sequence.ScriptHeader.ValueDeclarations)		// 값 선언
+		{
+			if (!session.ValueIsDeclared(pair.Key))							// 아직 선언되지 않은 경우만 세팅
+			{
+				float value	= string.IsNullOrEmpty(pair.Value)?
+						0 : FSNUtils.StringToValue<float>(pair.Value);		// 초기값까지 선언한 경우 값 해독, 아니면 기본값 false
+				session.SetNumberValue(pair.Key, value, true);
+			}
+		}
+
+		SaveToCurrentSession();												// 현재 스크립트 진행 정보를 세션쪽에 기록
 	}
 
 	/// <summary>

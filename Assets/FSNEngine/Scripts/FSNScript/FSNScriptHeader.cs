@@ -114,7 +114,7 @@ public sealed class FSNScriptHeader
 	}
 
 
-	private FSNScriptHeader()
+	public FSNScriptHeader()
 	{
 		m_inGameSettings	= new Category();
 		m_flagDecl			= new Category();
@@ -137,28 +137,66 @@ public sealed class FSNScriptHeader
 	//=====================================================================
 
 	/// <summary>
-	/// 헤더 파서
+	/// 문자열에서 직접 헤더 파싱. 이전에 읽은 내용도 제거하지 않고 계속 누적하여 읽어들인다.
 	/// </summary>
-	public static class Parser
+	/// <param name="scriptData"></param>
+	/// <returns></returns>
+	public void FromString(string scriptData)
 	{
-		/// <summary>
-		/// 문자열에서 직접 헤더 파싱
-		/// </summary>
-		/// <param name="scriptData"></param>
-		/// <returns></returns>
-		public static FSNScriptHeader FromString(string scriptData)
+		var strstream	= new System.IO.StringReader(scriptData);
+		string line		= null;
+		Category curCategory	= null;
+		while ((line = strstream.ReadLine()) != null)				// 줄 단위로 읽는다.
 		{
-			return new FSNScriptHeader();
+			line		= line.Trim();
+			if (line.Length == 0)									// 공백을 제거하고도 빈 라인은 스킵한다
+				continue;
+
+			char firstc	= line[0];
+			var afterc	= line.Substring(1);
+			switch(firstc)											// 라인 첫 번째 문자로 어떤 구문인지 판단
+			{
+				case '#':	// 주석
+					break;
+
+				case '@':	// 카테고리 지정
+					if(!m_indexToCategory.TryGetValue(afterc, out curCategory))
+					{
+						Debug.LogErrorFormat("[FSNScriptHeader] No such category named {0}", afterc);
+					}
+					break;
+
+				default:	// 일반 구문
+					if(curCategory == null)
+					{
+						Debug.LogError("[FSNScriptHeader] No category has been indicated.");
+					}
+					else
+					{
+						curCategory.ParseAndAddEntry(line);
+					}
+					break;
+			}
 		}
 
-		/// <summary>
-		/// Asset에서 헤더 읽어오기
-		/// </summary>
-		/// <param name="assetPath"></param>
-		/// <returns></returns>
-		public static FSNScriptHeader FromAsset(string assetPath)
+		// 카테고리 빌드
+		m_inGameSettings.BuildPairList();
+		m_flagDecl.BuildPairList();
+		m_valueDecl.BuildPairList();
+	}
+
+	/// <summary>
+	/// Asset에서 헤더 읽어오기. 이전에 읽은 내용도 제거하지 않고 계속 누적하여 읽어들인다.
+	/// </summary>
+	/// <param name="assetPath"></param>
+	/// <returns></returns>
+	public void FromAsset(string assetPath)
+	{
+		var textfile	= Resources.Load<TextAsset>(assetPath);
+		if (textfile == null)
 		{
-			return new FSNScriptHeader();
+			Debug.LogErrorFormat("[FSNSequence] Cannot open header asset : {0}", assetPath);
 		}
+		FromString(textfile.text);
 	}
 }

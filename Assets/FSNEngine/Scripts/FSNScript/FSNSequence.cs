@@ -63,6 +63,8 @@ public class FSNScriptSequence
 	{
 		m_segments		= new List<Segment>();
 		m_labelToIndex	= new Dictionary<string, int>();
+
+		Header			= new FSNScriptHeader();
 	}
 
 	//=====================================================================================
@@ -99,6 +101,11 @@ public class FSNScriptSequence
 	/// 스크립트에서 생성한 해시 키
 	/// </summary>
 	public string ScriptHashKey { get; private set; }
+
+	/// <summary>
+	/// 현재 스크립트에서 해석한 헤더 정보
+	/// </summary>
+	public FSNScriptHeader Header { get; private set; }
 
 	//=====================================================================================
 
@@ -389,12 +396,12 @@ public class FSNScriptSequence
 			Debug.Log("ScriptHashKey : " + sequence.ScriptHashKey);
 
 			// 스크립트 해석 상태값들
-			CommandGenerateProtocol protocol		= new CommandGenerateProtocol();
+			CommandGenerateProtocol protocol	= new CommandGenerateProtocol();
 
 			// flags
-			Segments.Period	periodSeg				= null;				// Period 세그먼트. 먼저 만들어놓고 있다가 적당한 때에 삽입한다. (스크립트와 실제 세그먼트 순서가 다르기 때문)
-			bool			textMultilineMode		= false;			// 텍스트 여러줄 처리중인지 (//)
-			string			multilineText			= "";				// 멀티라인 모드에서, 텍스트 처리중일 때
+			Segments.Period	periodSeg			= null;				// Period 세그먼트. 먼저 만들어놓고 있다가 적당한 때에 삽입한다. (스크립트와 실제 세그먼트 순서가 다르기 때문)
+			bool			textMultilineMode	= false;			// 텍스트 여러줄 처리중인지 (//)
+			string			multilineText		= "";				// 멀티라인 모드에서, 텍스트 처리중일 때
 			//
 
 			// ** 스크립트 로드 후 첫번째 스냅샷에서 다시 이전으로 돌아가는 것은 불가능하므로, 맨 처음에 oneway 컨트롤 세그먼트를 추가해준다
@@ -437,7 +444,21 @@ public class FSNScriptSequence
 							break;
 
 						case c_token_PreProcessor:							// * 전처리 구문
-							// TODO
+							{
+								var commandAndParam	= line.Substring(1).Split(c_whiteSpaceArray, 2);			// 명령어 파라미터 구분
+								var command			= commandAndParam[0];
+								var paramStr		= commandAndParam.Length > 1? commandAndParam[1] : "";
+
+								// 아직까지는 header 커맨드밖에 없으므로 간단하게 if로만 체크한다. 더 늘어나면 리팩토링이 필요해질듯...
+								if (command == "헤더" || command == "header")
+								{
+									sequence.Header.FromAsset(paramStr);
+								}
+								else
+								{
+									Debug.LogErrorFormat("[FSNSequence] line {0} : unknown preprocessor command {1}", linenumber, command);
+								}
+							}
 							break;
 
 						case c_token_Command:								// * 명령
@@ -603,6 +624,10 @@ public class FSNScriptSequence
 		public static FSNScriptSequence FromAsset(string assetPath)
 		{
 			var textfile	= Resources.Load<TextAsset>(assetPath);
+			if (textfile == null)
+			{
+				Debug.LogErrorFormat("[FSNSequence] Cannot open script asset : {0}", assetPath);
+			}
 			var sequence	= FromString(textfile.text);
 			sequence.OriginalScriptPath	= assetPath;	// 경로를 기록해둔다
 			return sequence;

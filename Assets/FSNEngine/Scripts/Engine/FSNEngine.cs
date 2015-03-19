@@ -194,9 +194,22 @@ public sealed class FSNEngine : MonoBehaviour
 	/// <param name="snapshotIndex">불러오기 시에만 사용. 시작할 Snapshot Index를 지정</param>
 	public void RunScript(string filepath, int snapshotIndex = 0)
 	{
-		FSNScriptSequence scriptSeq	= FSNScriptSequence.Parser.FromAsset(filepath);
-		var sshotSeq				= FSNSnapshotSequence.Builder.BuildSnapshotSequence(scriptSeq);
+		FSNScriptSequence scriptSeq	= FSNScriptSequence.Parser.FromAsset(filepath);			// 스크립트 해석
 
+
+		// TODO : header 적용, 여기에 코드를 삽입하는 것이 맞는지는 잘 모르겠음. 리팩토링이 필요할수도.
+
+		// 인게임 세팅
+
+		var stchain	= new FSNInGameSetting.Chain(FSNInGameSetting.DefaultInGameSetting);	// 디폴트 속성을 베이스로 chain 만들기
+		foreach (var pair in scriptSeq.Header.InGameSettings)
+		{
+			stchain.SetPropertyByString(pair.Key, pair.Value);
+		}
+		m_inGameSetting	= stchain.Freeze();													// 속성값 고정, 현재 엔진의 디폴트 속성을 덮어씌운다.
+
+
+		var sshotSeq = FSNSnapshotSequence.Builder.BuildSnapshotSequence(scriptSeq);		// Snapshot 시퀀스 생성, 실행
 		m_seqEngine.StartSnapshotSequence(sshotSeq, snapshotIndex);
 	}
 

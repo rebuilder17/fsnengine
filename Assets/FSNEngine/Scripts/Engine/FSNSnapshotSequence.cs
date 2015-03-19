@@ -211,6 +211,12 @@ public sealed partial class FSNSnapshotSequence
 	public string ScriptHashKey			{ get; private set; }
 
 
+	/// <summary>
+	/// 스크립트에서 읽은 헤더
+	/// </summary>
+	public FSNScriptHeader ScriptHeader { get; private set; }
+
+
 	//====================================================================
 
 	
