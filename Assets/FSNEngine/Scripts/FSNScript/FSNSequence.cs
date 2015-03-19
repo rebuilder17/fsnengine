@@ -452,7 +452,7 @@ public class FSNScriptSequence
 								// 아직까지는 header 커맨드밖에 없으므로 간단하게 if로만 체크한다. 더 늘어나면 리팩토링이 필요해질듯...
 								if (command == "헤더" || command == "header")
 								{
-									sequence.Header.FromAsset(paramStr);
+									sequence.Header.FromAsset(paramStr.Trim());
 								}
 								else
 								{

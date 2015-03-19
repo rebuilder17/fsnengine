@@ -125,7 +125,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	private static void ApplySideTextMargin(ref Vector3 textpos, IInGameSetting setting, FSNInGameSetting.FlowDirection flow)
 	{
 		float xoffset	= setting.TextMarginLeft - setting.TextMarginRight;
-		float yoffset	= setting.TextMarginTop - setting.TextMarginBottom;
+		float yoffset	= setting.TextMarginBottom - setting.TextMarginTop;
 
 		// 해당 사이드에서 여백만큼 떨어트리기
 		switch(flow)
@@ -176,7 +176,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	private static void ApplyCenterTextMargin(ref Vector3 textpos, IInGameSetting setting)
 	{
 		float xoffset	= setting.TextMarginLeft - setting.TextMarginRight;
-		float yoffset	= setting.TextMarginTop - setting.TextMarginBottom;
+		float yoffset	= setting.TextMarginBottom - setting.TextMarginTop;
 
 		textpos.x		+= xoffset;
 		textpos.y		+= yoffset;
@@ -310,7 +310,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			default:
 				throw new System.Exception("HUH???");
 		}
-		ApplySideTextMargin(ref fadePosOffset, setting, setting.CurrentFlowDirection);	// 여백 적용
+		//ApplySideTextMargin(ref fadePosOffset, setting, setting.CurrentFlowDirection);	// 여백 적용
 
 		// 새 텍스트 엘레먼트 세팅 : 선택지 질문 텍스트
 
@@ -496,14 +496,18 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 				case FSNInGameSetting.FlowDirection.Up:
 				case FSNInGameSetting.FlowDirection.Down:
 					posToCenter.y	= textSize.y / 2f;
+					ApplyCenterTextMargin(ref posToCenter, setting);
+					posToCenter.x	= optionText.Position.x;
 					break;
 
 				case FSNInGameSetting.FlowDirection.Left:
 				case FSNInGameSetting.FlowDirection.Right:
 					posToCenter.x	= -textSize.x / 2f;
+					ApplyCenterTextMargin(ref posToCenter, setting);
+					posToCenter.y	= optionText.Position.y;
 					break;
 			}
-			ApplyCenterTextMargin(ref posToCenter, setting);								// 여백 맞추기
+			//ApplyCenterTextMargin(ref posToCenter, setting);								// 여백 맞추기
 			optionText.Position	= posToCenter;
 			optionText.type		= SnapshotElems.Text.Type.LastOption;						// LastOption 타입으로 변경
 

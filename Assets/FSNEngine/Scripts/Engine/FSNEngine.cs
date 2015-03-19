@@ -204,7 +204,8 @@ public sealed class FSNEngine : MonoBehaviour
 		var stchain	= new FSNInGameSetting.Chain(FSNInGameSetting.DefaultInGameSetting);	// 디폴트 속성을 베이스로 chain 만들기
 		foreach (var pair in scriptSeq.Header.InGameSettings)
 		{
-			stchain.SetPropertyByString(pair.Key, pair.Value);
+			var alias	= FSNInGameSetting.ConvertPropertyNameAlias(pair.Key);
+			stchain.SetPropertyByString(alias, pair.Value);
 		}
 		m_inGameSetting	= stchain.Freeze();													// 속성값 고정, 현재 엔진의 디폴트 속성을 덮어씌운다.
 
