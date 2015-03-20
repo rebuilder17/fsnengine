@@ -64,6 +64,11 @@ public interface IInGameSetting
 	/// 텍스트 줄 간격
 	/// </summary>
 	float TextLineSpacing { get; }
+
+	/// <summary>
+	/// 전환 속도 비율
+	/// </summary>
+	float TransitionSpeedRatio { get; }
 }
 
 /// <summary>
@@ -209,6 +214,8 @@ public abstract class BaseInGameSetting : IInGameSetting
 	public virtual float TextMarginBottom { get; set; }
 	public virtual FSNInGameSetting.TextAlignType TextAlign { get; set; }
 	public virtual float TextLineSpacing { get; set; }
+
+	public virtual float TransitionSpeedRatio { get; set; }
 }
 
 
@@ -259,6 +266,7 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		{"글오른쪽여백",			"TextMarginRight"},
 		{"문장정렬",				"TextAlign"},
 		{"줄간격",					"TextLineSpacing"},
+		{"속도비율",				"TransitionSpeedRatio"},
 	};
 
 	/// <summary>
@@ -650,6 +658,12 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		}
 
 		public float TextLineSpacing
+		{
+			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+
+		public float TransitionSpeedRatio
 		{
 			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
 			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }

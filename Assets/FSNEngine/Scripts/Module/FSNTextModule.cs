@@ -182,6 +182,32 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		textpos.y		+= yoffset;
 	}
 
+	/// <summary>
+	/// 텍스트 좌표를 가운데로 밀어내기. LastOption이나 가운데 텍스트 옵션 등에서 사용
+	/// </summary>
+	/// <param name="textpos"></param>
+	/// <param name="setting"></param>
+	private static void TextPositionToCenter(ref Vector3 textpos, Vector2 textSize, FSNInGameSetting.FlowDirection direction, IInGameSetting setting)
+	{
+		var oldPos	= textpos;
+		switch(direction)
+		{
+			case FSNInGameSetting.FlowDirection.Up:
+			case FSNInGameSetting.FlowDirection.Down:
+				textpos.y	= textSize.y / 2f;
+				ApplyCenterTextMargin(ref textpos, setting);
+				textpos.x	= oldPos.x;
+				break;
+
+			case FSNInGameSetting.FlowDirection.Left:
+			case FSNInGameSetting.FlowDirection.Right:
+				textpos.x	= -textSize.x / 2f;
+				ApplyCenterTextMargin(ref textpos, setting);
+				textpos.y	= oldPos.y;
+				break;
+		}
+	}
+
 	//=================================================================
 
 	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, params FSNProcessModuleCallParam[] callParams)
@@ -249,10 +275,9 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
 
-		//Vector3 dirVec		= FSNInGameSetting.GetUnitVectorFromFlowDir(nextSetting.CurrentFlowDirection);
-		Vector2 screenDim	= FSNEngine.Instance.ScreenDimension;	// (계산용) 화면 크기
+		Vector2 screenDim	= FSNEngine.Instance.ScreenDimension;					// (계산용) 화면 크기
 		Vector3 fadeinpos;
-		switch(setting.CurrentFlowDirection)					// 흐름 방향에 따라 시작 위치를 지정해준다
+		switch(setting.CurrentFlowDirection)										// 흐름 방향에 따라 시작 위치를 지정해준다
 		{
 		case FSNInGameSetting.FlowDirection.Up:
 			fadeinpos	= new Vector3(-screenDim.x / 2, -screenDim.y / 2);
@@ -275,11 +300,30 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		}
 		ApplySideTextMargin(ref fadeinpos, setting, setting.CurrentFlowDirection);	// 여백 적용
 
-		newTextElem.Position				= fadeinpos;			// 나중에 일괄적으로 이동시킬 것이기 때문에 시작 위치랑 화면 밖 위치를 같게 설정한다
+		newTextElem.Position				= fadeinpos;							// 나중에 일괄적으로 이동시킬 것이기 때문에 시작 위치랑 화면 밖 위치를 같게 설정한다
 		newTextElem.InitialState.Position	= fadeinpos;
 
-		layer.AddElement(newTextElem);							// 텍스트 엘리멘트 추가
-		PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
+		if (!setting.StackTexts || setting.ScreenCenterText)						// 텍스트를 쌓지 않는 경우, 기존 텍스트를 전부 Clear한다.
+																					// 가운데텍스트 모드일 경우에도 (텍스트 쌓기 여부와는 상관 없이) 기존 텍스트를 지운다.
+		{
+			ClearTextsToDirection(layer, setting.CurrentFlowDirection);
+		}
+
+		if(setting.ScreenCenterText)												// * 가운데 텍스트일 경우,
+		{
+			PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 기존 텍스트를 일괄적으로 해당 방향으로 밀기
+			layer.AddElement(newTextElem);											// 텍스트 엘리멘트 추가
+
+			var posToCenter		= newTextElem.Position;								
+			TextPositionToCenter(ref posToCenter, newTextSize, setting.CurrentFlowDirection, setting);// 텍스트 중앙으로 움직이기
+			newTextElem.Position	= posToCenter;
+		}
+		else
+		{																			// * 일반 텍스트
+			layer.AddElement(newTextElem);											// 텍스트 엘리멘트 추가
+			PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
+		}
+		
 	}
 
 
@@ -488,26 +532,26 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			// 텍스트를 새로 만드는 것이 아니라 기존 것을 변경한다.
 			// PushTextsToDirection 에서는 이 시점의 LastOption텍스트는 건들지 않는다.
 
-			//var textSize		= CalculateTextSize(optionText.text, optionText);
 			var textSize		= CalculateTextSize(optionText.text, setting);
 			var posToCenter		= optionText.Position;
-			switch(optionText.optionDir)													// 중앙 위치 맞추기
-			{
-				case FSNInGameSetting.FlowDirection.Up:
-				case FSNInGameSetting.FlowDirection.Down:
-					posToCenter.y	= textSize.y / 2f;
-					ApplyCenterTextMargin(ref posToCenter, setting);
-					posToCenter.x	= optionText.Position.x;
-					break;
+			//switch(optionText.optionDir)													// 중앙 위치 맞추기
+			//{
+			//	case FSNInGameSetting.FlowDirection.Up:
+			//	case FSNInGameSetting.FlowDirection.Down:
+			//		posToCenter.y	= textSize.y / 2f;
+			//		ApplyCenterTextMargin(ref posToCenter, setting);
+			//		posToCenter.x	= optionText.Position.x;
+			//		break;
 
-				case FSNInGameSetting.FlowDirection.Left:
-				case FSNInGameSetting.FlowDirection.Right:
-					posToCenter.x	= -textSize.x / 2f;
-					ApplyCenterTextMargin(ref posToCenter, setting);
-					posToCenter.y	= optionText.Position.y;
-					break;
-			}
-			//ApplyCenterTextMargin(ref posToCenter, setting);								// 여백 맞추기
+			//	case FSNInGameSetting.FlowDirection.Left:
+			//	case FSNInGameSetting.FlowDirection.Right:
+			//		posToCenter.x	= -textSize.x / 2f;
+			//		ApplyCenterTextMargin(ref posToCenter, setting);
+			//		posToCenter.y	= optionText.Position.y;
+			//		break;
+			//}
+			TextPositionToCenter(ref posToCenter, textSize, optionText.optionDir, setting);	// 중앙 위치 맞추기
+			
 			optionText.Position	= posToCenter;
 			optionText.type		= SnapshotElems.Text.Type.LastOption;						// LastOption 타입으로 변경
 

@@ -386,7 +386,7 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 		IterateMatchingUIDs((int uId) =>
 		{
 			var elem		= toLayer.GetElement(uId) as ElmT;
-			float trTime	= elem.TransitionTime;
+			float trTime	= elem.TransitionTime * nextSetting.TransitionSpeedRatio; // 전환속도 비율 적용
 
 			m_objectDict[uId].DoTransition(elem, startRatioForOlds, trTime, false);
 
@@ -399,7 +399,7 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 			var currentElem	= m_curLayerRef.GetElement(uId);
 			var finalElem	= (!backward)?	currentElem.GenericFinalState		// 정방향일 경우 마지막 스테이트로 움직인 뒤 소멸,
 										:	currentElem.GenericInitialState;	// 역방향일 경우 최초 스테이트로 움직인 뒤 소멸해야한다.
-			float trTime	= finalElem.TransitionTime;
+			float trTime	= finalElem.TransitionTime * nextSetting.TransitionSpeedRatio; // 전환속도 비율 적용
 
 			m_objectDict[uId].DoTransition(finalElem as ElmT, startRatioForOlds, trTime, true);
 
@@ -413,7 +413,7 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 		{
 			var currentElem	= toLayer.GetElement(uId) as ElmT;
 			var initialElem	= backward? currentElem.GenericFinalState : currentElem.GenericInitialState;	// 역방향이면 finalState, 정방향이면 InitialState 로 초기세팅한다
-			float trTime	= initialElem.TransitionTime;						// 현재 상태로 transition하지만 시간값은 최초 상태값에 지정된 걸 사용한다.
+			float trTime	= initialElem.TransitionTime * nextSetting.TransitionSpeedRatio;// 현재 상태로 transition하지만 시간값은 최초 상태값에 지정된 걸 사용한다.
 
 			var newobj		= AddNewLayerObject(initialElem as ElmT, nextSetting);
 			newobj.DoTransition(currentElem, 0, trTime, false);
