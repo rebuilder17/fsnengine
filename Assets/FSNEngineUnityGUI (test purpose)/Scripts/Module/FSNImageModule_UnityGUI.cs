@@ -61,7 +61,7 @@ public class FSNImageModule_UnityGUI : FSNImageModule<LayerObjects.Image_UnityGU
 		
 	}
 
-	protected override LayerObjects.Image_UnityGUI MakeNewLayerObject(IInGameSetting setting)
+	protected override LayerObjects.Image_UnityGUI MakeNewLayerObject(SnapshotElems.Image elem, IInGameSetting setting)
 	{
 		GameObject newObj		= new GameObject("Image_UnityGUI");
 		newObj.transform.parent	= ObjectRoot;

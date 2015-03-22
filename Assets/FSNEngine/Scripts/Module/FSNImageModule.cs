@@ -52,7 +52,7 @@ public abstract class FSNImageModule<ObjT> : FSNBaseObjectModule<Segments.Image,
 		{ 
 			// Layer ID가 0번이라면 기본 모듈로 인식한다 (이름 : Image)
 			// 아닐 경우, 뒤에 Layer ID가 추가로 붙는다 (예 : Image1)
-			return FSNEngine.ModuleType.Image.ToString() + (m_layerID == 0? "" : m_layerID.ToString()); 
+			return FSNEngine.ModuleType.Image.ToString() + (m_layerID == (int)FSNSnapshot.PreDefinedLayers.Image_Default? "" : m_layerID.ToString()); 
 		}
 	}
 

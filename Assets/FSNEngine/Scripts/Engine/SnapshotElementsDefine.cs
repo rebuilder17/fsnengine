@@ -83,8 +83,8 @@ namespace SnapshotElems
 			Position	= Vector3.Lerp(elem1.Position, elem2.Position, t);
 			Color		= Color.Lerp(elem1.Color, elem2.Color, t);
 			Alpha		= Mathf.Lerp(elem1.Alpha, elem2.Alpha, t);
-
-			// TODO : Scale, Rotate
+			Scale		= Vector3.Lerp(elem1.Scale, elem2.Scale, t);
+			Rotate		= Vector3.Lerp(elem1.Rotate, elem2.Rotate, t);
 		}
 	}
 
@@ -99,6 +99,50 @@ namespace SnapshotElems
 		{
 			base.CopyDataTo(to);
 			to.texture	= texture;
+		}
+	}
+
+	/// <summary>
+	/// 일반적인 게임 오브젝트
+	/// </summary>
+	public class GObject : ObjectBase<GObject>
+	{
+		public GameObject	prefab;
+
+		public override void CopyDataTo(GObject to)
+		{
+			base.CopyDataTo(to);
+			to.prefab	= prefab;
+		}
+	}
+
+	/// <summary>
+	/// 사운드 클립
+	/// </summary>
+	public class Sound : ObjectBase<Sound>
+	{
+		public AudioClip	clip;
+		public float		volume;
+		public float		panning;
+		public bool			looping;
+
+		public override void CopyDataTo(Sound to)
+		{
+			base.CopyDataTo(to);
+			to.clip			= clip;
+			to.volume		= volume;
+			to.panning		= panning;
+			to.looping		= looping;
+		}
+
+		public override void LerpBetweenElems(ObjectBase<Sound> elem1, ObjectBase<Sound> elem2, float t)
+		{
+			// 기존 것은 사용하지 않음
+			//base.LerpBetweenElems(elem1, elem2, t);
+			var se1			= elem1 as Sound;
+			var se2			= elem2 as Sound;
+			volume			= Mathf.Lerp(se1.volume, se2.volume, t);
+			panning			= Mathf.Lerp(se1.panning, se2.panning, t);
 		}
 	}
 }

@@ -94,7 +94,7 @@ public class FSNTextModule_UnityGUI : FSNTextModule<LayerObjects.Text_UnityGUI>
 		//Debug.Log(GUI.skin.label.CalcSize(new GUIContent("HELLOOOO")));
 	}
 
-	protected override LayerObjects.Text_UnityGUI MakeNewLayerObject(IInGameSetting setting)
+	protected override LayerObjects.Text_UnityGUI MakeNewLayerObject(SnapshotElems.Text elem, IInGameSetting setting)
 	{
 		GameObject newObj		= new GameObject("Text_UnityGUI");
 		newObj.transform.parent	= ObjectRoot;

@@ -124,7 +124,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	/// <param name="flow"></param>
 	private static void ApplySideTextMargin(ref Vector3 textpos, IInGameSetting setting, FSNInGameSetting.FlowDirection flow)
 	{
-		float xoffset	= setting.TextMarginLeft - setting.TextMarginRight;
+		//float xoffset	= setting.TextMarginLeft - setting.TextMarginRight;
 		float yoffset	= setting.TextMarginBottom - setting.TextMarginTop;
 
 		// 해당 사이드에서 여백만큼 떨어트리기
@@ -132,11 +132,11 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		{
 			case FSNInGameSetting.FlowDirection.Up:
 				textpos.y	+= setting.TextMarginBottom;
-				//textpos.x	+= xoffset;
+				textpos.x	+= setting.TextMarginLeft;
 				break;
 			case FSNInGameSetting.FlowDirection.Down:
 				textpos.y	-= setting.TextMarginTop;
-				//textpos.x	+= xoffset;
+				textpos.x	+= setting.TextMarginLeft;
 				break;
 			case FSNInGameSetting.FlowDirection.Left:
 				textpos.x	-= setting.TextMarginRight;
@@ -146,25 +146,6 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 				textpos.x	+= setting.TextMarginLeft;
 				textpos.y	+= yoffset;
 				break;
-		}
-
-		// 정렬에 따라 좌/우 여백을 적용해줘야하는 경우
-		if(flow == FSNInGameSetting.FlowDirection.Up || flow == FSNInGameSetting.FlowDirection.Down)
-		{
-			switch(setting.TextAlign)
-			{
-				case FSNInGameSetting.TextAlignType.Left:
-					textpos.x += setting.TextMarginLeft;
-					break;
-
-				case FSNInGameSetting.TextAlignType.Middle:
-					textpos.x += xoffset;
-					break;
-
-				case FSNInGameSetting.TextAlignType.Right:
-					textpos.x -= setting.TextMarginRight;
-					break;
-			}
 		}
 	}
 
@@ -311,7 +292,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		if(setting.ScreenCenterText)												// * 가운데 텍스트일 경우,
 		{
-			PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 기존 텍스트를 일괄적으로 해당 방향으로 밀기
+			//PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 기존 텍스트를 일괄적으로 해당 방향으로 밀기
 			layer.AddElement(newTextElem);											// 텍스트 엘리멘트 추가
 
 			var posToCenter		= newTextElem.Position;								
@@ -321,7 +302,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		else
 		{																			// * 일반 텍스트
 			layer.AddElement(newTextElem);											// 텍스트 엘리멘트 추가
-			PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
+			PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize, setting.ParagraphSpacing);	// 텍스트 일괄적으로 해당 방향으로 밀기
 		}
 		
 	}
@@ -534,22 +515,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 			var textSize		= CalculateTextSize(optionText.text, setting);
 			var posToCenter		= optionText.Position;
-			//switch(optionText.optionDir)													// 중앙 위치 맞추기
-			//{
-			//	case FSNInGameSetting.FlowDirection.Up:
-			//	case FSNInGameSetting.FlowDirection.Down:
-			//		posToCenter.y	= textSize.y / 2f;
-			//		ApplyCenterTextMargin(ref posToCenter, setting);
-			//		posToCenter.x	= optionText.Position.x;
-			//		break;
 
-			//	case FSNInGameSetting.FlowDirection.Left:
-			//	case FSNInGameSetting.FlowDirection.Right:
-			//		posToCenter.x	= -textSize.x / 2f;
-			//		ApplyCenterTextMargin(ref posToCenter, setting);
-			//		posToCenter.y	= optionText.Position.y;
-			//		break;
-			//}
 			TextPositionToCenter(ref posToCenter, textSize, optionText.optionDir, setting);	// 중앙 위치 맞추기
 			
 			optionText.Position	= posToCenter;
@@ -569,7 +535,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	/// <param name="layer">변경할 레이어 (이미 복제된 상태여야함)</param>
 	/// <param name="direction"></param>
 	/// <param name="newTextSize"></param>
-	private static void PushTextsToDirection(FSNSnapshot.Layer layer, FSNInGameSetting.FlowDirection direction, Vector2 newTextSize)
+	private static void PushTextsToDirection(FSNSnapshot.Layer layer, FSNInGameSetting.FlowDirection direction, Vector2 newTextSize, float paraSpacing = 0)
 	{
 		Vector2 dirVec		= FSNInGameSetting.GetUnitVectorFromFlowDir(direction);
 		List<int> UIDtoRemove	= new List<int>();	// 삭제 리스트
@@ -584,6 +550,8 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			if (textElem.type == SnapshotElems.Text.Type.Normal)						// ** 일반 텍스트
 			{
 				Vector3 transVec		= Vector2.Scale(newTextSize, dirVec);			// 이동할 벡터 양
+				if (elemAge > 0)
+					transVec			+= (Vector3)(dirVec * paraSpacing);				// 최초에 등장한 이후엔 문단 간격도 적용
 
 				if (elemAge < c_textLife)												// 텍스트가 아직 살아있어야하는 경우
 				{

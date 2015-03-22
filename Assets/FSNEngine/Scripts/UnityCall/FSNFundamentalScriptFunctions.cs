@@ -160,7 +160,7 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 		Debug.Log("TestCall2 called! " + gameObject.name);
 	}
 
-	static int testcounter = 0;
+	//static int testcounter = 0;
 
 	[UnityCallBoolMethod]
 	public bool TestBoolCheck(params string [] param)

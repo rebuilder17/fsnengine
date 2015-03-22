@@ -135,6 +135,22 @@ public static class FSNUtils
 				}
 				return null;
 			}},
+			{typeof(FSNInGameSetting.TextAlignType), (strval) =>
+			{
+				switch(strval.ToUpper())
+				{
+					case "LEFT":
+					case "왼쪽":
+						return FSNInGameSetting.TextAlignType.Left;
+					case "MIDDLE":
+					case "가운데":
+						return FSNInGameSetting.TextAlignType.Middle;
+					case "RIGHT":
+					case "오른쪽":
+						return FSNInGameSetting.TextAlignType.Right;
+				}
+				return null;
+			}},
 		};
 
 	public static Color ConvertHexCodeToColor(string hexcode)

@@ -35,6 +35,12 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Image_initial,	"imageinit",	"이미지시작설정");
 		FSNScriptSequence.Parser.AddCommand(Image_final,	"imagefinal",	"이미지종료설정");
 
+		FSNScriptSequence.Parser.AddCommand(Object_start,	"showobject",	"객체생성");
+		FSNScriptSequence.Parser.AddCommand(Object_end,		"removeobject",	"객체제거");
+		FSNScriptSequence.Parser.AddCommand(Object_set,		"objectset",	"객체설정");
+		FSNScriptSequence.Parser.AddCommand(Object_initial,	"objectinit",	"객체시작설정");
+		FSNScriptSequence.Parser.AddCommand(Object_final,	"objectfinal",	"객체종료설정");
+
 		FSNScriptSequence.Parser.AddCommand(UnityCall,					"call",			"함수");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagTrue,		"flagon",		"플래그켜기", "플래그올리기", "플래그세우기");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagFalse,		"flagoff",		"플래그끄기", "플래그내리기");
@@ -476,24 +482,201 @@ public static class FSNBuiltInScriptCommands
 			});
 	}
 
-	static void _Image_setupSegment(Segments.Image seg, FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	/// <summary>
+	/// BaseObject 계열의 세그먼트를 파싱해주는 함수
+	/// </summary>
+	/// <typeparam name="SegT"></typeparam>
+	/// <param name="defaultLayer"></param>
+	/// <param name="seg"></param>
+	/// <param name="protocol"></param>
+	static void _BaseObject_setupSegment<SegT>(int defaultLayer, SegT seg, FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+		where SegT : Segments.Object
 	{
 		bool useDefaultLayer	= !int.TryParse(protocol.parameters[0], out seg.layerID);	// 첫번째 파라미터가 정수라면 지정한 레이어를 사용
 
-		if (useDefaultLayer)																// 기본 레이어를 사용하는 경우, layerID는 0 (기본값)으로
-			seg.layerID	= 0;
+		if (useDefaultLayer)																// 기본 레이어를 사용하는 경우, layerID는 기본값으로
+			seg.layerID			= defaultLayer;
 
 		seg.objectName			= protocol.parameters[useDefaultLayer? 0 : 1];
 
 		//
 		int settingIndexStart	= useDefaultLayer? 1 : 2;									// 세팅값이 시작되는 인덱스
 		int settingCount		= (protocol.parameters.Length - settingIndexStart) / 2;		// 세팅 pair 갯수
-		for(int i = 0; i < settingCount; i++)
+		for (int i = 0; i < settingCount; i++)
 		{
 			var pName	= protocol.parameters[settingIndexStart + i * 2];
 			var pParam	= protocol.parameters[settingIndexStart + i * 2 + 1];
 			seg.SetPropertyFromScriptParams(pName, pParam);									// 파라미터 하나씩 세팅
 		}
+	}
+
+	static void _Image_setupSegment(Segments.Image seg, FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		_BaseObject_setupSegment<Segments.Image>((int)FSNSnapshot.PreDefinedLayers.Image_Default, seg, protocol);
+	}
+
+	//------------------------------------------------------------------------------------
+
+	static void Object_start(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.GObject();
+		newObjectSeg.command	= Segments.Object.CommandType.Create;
+
+		_Object_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Object_end(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.GObject();
+		newObjectSeg.command	= Segments.Object.CommandType.Remove;
+
+		_Object_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Object_initial(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.GObject();
+		newObjectSeg.command	= Segments.Object.CommandType.SetInitial;
+
+		_Object_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Object_final(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.GObject();
+		newObjectSeg.command	= Segments.Object.CommandType.SetFinal;
+
+		_Object_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Object_set(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.GObject();
+		newObjectSeg.command	= Segments.Object.CommandType.SetKey;
+
+		_Object_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void _Object_setupSegment(Segments.GObject seg, FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		_BaseObject_setupSegment<Segments.GObject>((int)FSNSnapshot.PreDefinedLayers.Object_Default, seg, protocol);
+	}
+
+	//------------------------------------------------------------------------------------
+
+	static void Sound_start(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.Sound();
+		newObjectSeg.command	= Segments.Object.CommandType.Create;
+
+		_Sound_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Sound_end(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.Sound();
+		newObjectSeg.command	= Segments.Object.CommandType.Remove;
+
+		_Sound_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Sound_initial(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.Sound();
+		newObjectSeg.command	= Segments.Object.CommandType.SetInitial;
+
+		_Sound_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Sound_final(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.Sound();
+		newObjectSeg.command	= Segments.Object.CommandType.SetFinal;
+
+		_Sound_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Sound_set(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.Sound();
+		newObjectSeg.command	= Segments.Object.CommandType.SetKey;
+
+		_Sound_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void _Sound_setupSegment(Segments.Sound seg, FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		_BaseObject_setupSegment<Segments.Sound>((int)FSNSnapshot.PreDefinedLayers.Sound, seg, protocol);
 	}
 
 	//------------------------------------------------------------------------------------
@@ -523,12 +706,6 @@ public static class FSNBuiltInScriptCommands
 	{
 		var newCallSeg			= new Segments.Control();
 		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
-
-		//string funcname			= protocol.parameters[0];									// 함수 이름
-		//int paramCount			= protocol.parameters.Length;
-		//string [] param			= new string[paramCount - 1];
-		//for (int i = 1; i < paramCount; i++)												// 함수 파라미터 (두번째부터 끝까지)
-		//	param[i - 1]		= protocol.parameters[i];
 
 		string funcname;																	// 함수 이름
 		string [] param;																	// 함수 파라미터 (두번째부터 끝까지)

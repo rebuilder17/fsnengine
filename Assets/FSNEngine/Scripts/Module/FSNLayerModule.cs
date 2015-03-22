@@ -15,6 +15,10 @@ public abstract class FSNLayerObject<ElmT>
 	Color		m_color;		// 색조
 	float		m_alpha	= 1f;	// 트랜지션 알파 (유저 컨트롤 아님, Color에 곱해짐)
 
+	Vector3		m_scale	= Vector3.one;	// 스케일
+	Vector3		m_rotate;		// 회전 (Euler각)
+
+
 	GameObject	m_object;		// 이 FSNLayerObject가 맞물린 GameObject
 	Transform	m_trans;		// Transform 캐시
 	FSNModule	m_module;		// 이 오브젝트를 생성한 모듈
@@ -52,6 +56,26 @@ public abstract class FSNLayerObject<ElmT>
 		{
 			m_position	= value;
 			UpdatePosition(m_position);
+		}
+	}
+
+	protected Vector3 Scale
+	{
+		get { return m_scale; }
+		set
+		{
+			m_scale		= value;
+			UpdateScale(value);
+		}
+	}
+
+	protected Vector3 Rotate
+	{
+		get { return m_rotate; }
+		set
+		{
+			m_rotate	= value;
+			UpdateRotate(value);
 		}
 	}
 
@@ -132,6 +156,24 @@ public abstract class FSNLayerObject<ElmT>
 	}
 
 	/// <summary>
+	/// 스케일 업데이트
+	/// </summary>
+	/// <param name="scale"></param>
+	protected virtual void UpdateScale(Vector3 scale)
+	{
+		m_trans.localScale	= scale;
+	}
+
+	/// <summary>
+	/// 회전 업데이트
+	/// </summary>
+	/// <param name="rotate"></param>
+	protected virtual void UpdateRotate(Vector3 rotate)
+	{
+		m_trans.localRotation	= Quaternion.Euler(rotate);
+	}
+
+	/// <summary>
 	/// to 의 상태와 현재 상태를 ratio 비율만큼 섞는다. 현재 상태에 적용하지는 않는다.
 	/// </summary>
 	/// <param name="to"></param>
@@ -141,13 +183,17 @@ public abstract class FSNLayerObject<ElmT>
 		var trPos	= Vector3.Lerp(m_position, to.Position, ratio);
 		var trColor	= Color.Lerp(m_color, to.Color, ratio);
 		var trAlpha	= Mathf.Lerp(m_alpha, to.Alpha, ratio);
+		var trScale	= Vector3.Lerp(m_scale, to.Scale, ratio);
+		var trRotate= Vector3.Lerp(m_rotate, to.Rotate, ratio);
 
 		UpdatePosition(trPos);
 		UpdateColor(CalculateFinalColor(trColor, trAlpha));
+		UpdateScale(trScale);
+		UpdateRotate(trRotate);
 	}
 
 	/// <summary>
-	/// 현재 상태에 to 내용을 완전히 적용.
+	/// 현재 상태에 to 내용을 완전히 적용. 오브젝트를 맨 처음 생성했을 시에도 호출된다.
 	/// </summary>
 	/// <param name="to"></param>
 	public virtual void SetStateFully(ElmT to)
@@ -155,6 +201,8 @@ public abstract class FSNLayerObject<ElmT>
 		Position	= to.Position;
 		Color		= to.Color;
 		Alpha		= to.Alpha;
+		Scale		= to.Scale;
+		Rotate		= to.Rotate;
 	}
 
 	/// <summary>
@@ -244,6 +292,8 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	FSNSnapshot.Layer		m_lastTargetLayerRef	= null;					// 가장 최근에 비교한 트랜지션 타겟 레이어
 	FSNSnapshot.Layer.Match	m_lastTargetLayerDiff;							// 가장 최근에 비교한 내역
 
+	bool					m_useTransitionDelay	= true;					// 트랜지션 시 delay 시간을 사용할지 여부
+
 
 	/// <summary>
 	/// 오브젝트가 배치될 루트
@@ -271,13 +321,29 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	/// </summary>
 	public int LayerID { get { return m_layerID; } }
 
+	/// <summary>
+	/// 트랜지션 시 트랜지션 시간만큼 Delay를 걸지 여부. 기본값은 True.
+	/// False가 되면 SetTransition 의 리턴값이 0으로 된다.
+	/// </summary>
+	public bool UseTransitionDelay
+	{ 
+		get
+		{
+			return m_useTransitionDelay;
+		}
+		protected set
+		{
+			m_useTransitionDelay	= value;
+		}
+	}
+
 	//=============================================================================
 
 	/// <summary>
 	/// 새 레이어 오브젝트 인스턴스 생성
 	/// </summary>
 	/// <returns></returns>
-	protected abstract ObjT MakeNewLayerObject(IInGameSetting setting);
+	protected abstract ObjT MakeNewLayerObject(ElmT element, IInGameSetting setting);
 
 	/// <summary>
 	/// 레이어 오브젝트 구하기
@@ -298,7 +364,7 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	/// <param name="backward"></param>
 	ObjT AddNewLayerObject(ElmT element, IInGameSetting nextSetting)
 	{
-		ObjT newObj		= MakeNewLayerObject(nextSetting);
+		ObjT newObj		= MakeNewLayerObject(element, nextSetting);
 		newObj.ConenctKillEvent(OnObjectKilled, element.UniqueID);
 		newObj.SetStateFully(element);
 		m_objectDict[element.UniqueID]	= newObj;
@@ -424,9 +490,9 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 
 		// NOTE : 트랜지션이 완전히 끝난 뒤에 레이어를 교체해야할 수도 있다. 이슈가 생기면 그때 바꾸자...
 		m_curLayerRef	= toLayer;												// 현재 레이어를 트랜지션 타겟 레이어로 교체.
-		
 
-		return longestDuration;
+
+		return m_useTransitionDelay? longestDuration : 0;						// 트랜지션 딜레이를 사용하지 않는다면 딜레이 시간은 0으로
 	}
 
 	/// <summary>

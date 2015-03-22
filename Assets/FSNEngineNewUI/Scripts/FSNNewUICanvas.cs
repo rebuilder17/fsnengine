@@ -53,12 +53,12 @@ public class FSNNewUICanvas : MonoBehaviour
 				Debug.LogWarning("[FSNNewUICanvas] This UI canvas cannot shown by the camera - the camera's layer mask doesn't include this object's layer.");
 			}
 
-			if (m_camera.orthographic)											// Orthogonal일 시 카메라 세팅
+			if (m_camera.orthographic)											// Orthogonal일 시 카메라에 맞춘 스케일 세팅
 			{
-				m_camera.orthographicSize	= FSNEngine.Instance.ScreenYSize / 2f;
+				m_rectTrans.localScale	= Vector3.one * (m_camera.orthographicSize / (FSNEngine.Instance.ScreenYSize / 2f));
 			}
 			else
-			{																	// Perspective일 시 카메라 세팅
+			{																	// Perspective일 시 카메라에 맞춘 스케일 세팅
 
 				var screensize	= FSNEngine.Instance.ScreenDimension;
 

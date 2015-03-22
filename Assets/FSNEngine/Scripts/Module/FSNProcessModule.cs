@@ -42,37 +42,37 @@ public abstract class FSNProcessModule<SegT, ElmT, ObjT> : FSNLayerModule<ElmT, 
 	where ElmT : class, FSNSnapshot.IElement
 	where ObjT : FSNLayerObject<ElmT>
 {
-	/// <summary>
-	/// (이거 안쓸지도 모름.)
-	/// </summary>
-	protected class Footprint : IFSNProcessModuleFootprint
-	{
-		public struct PhaseAndLayerPair
-		{
-			public int					phaseCount;
-			public FSNSnapshot.Layer	layer;
-		}
+	///// <summary>
+	///// (이거 안쓸지도 모름.)
+	///// </summary>
+	//protected class Footprint : IFSNProcessModuleFootprint
+	//{
+	//	public struct PhaseAndLayerPair
+	//	{
+	//		public int					phaseCount;
+	//		public FSNSnapshot.Layer	layer;
+	//	}
 
-		Dictionary<int, LinkedList<PhaseAndLayerPair>> m_uIdToLayerList;	// 오브젝트의 UID => 해당 오브젝트가 포함된 모든 레이어들(+ 각 레이어가 등장하는 페이즈 번호)
+	//	Dictionary<int, LinkedList<PhaseAndLayerPair>> m_uIdToLayerList;	// 오브젝트의 UID => 해당 오브젝트가 포함된 모든 레이어들(+ 각 레이어가 등장하는 페이즈 번호)
 
-		//
+	//	//
 
-		public Footprint()
-		{
-			m_uIdToLayerList	= new Dictionary<int, LinkedList<PhaseAndLayerPair>>();
-		}
+	//	public Footprint()
+	//	{
+	//		m_uIdToLayerList	= new Dictionary<int, LinkedList<PhaseAndLayerPair>>();
+	//	}
 
-		/// <summary>
-		/// 해당 uId 오브젝트의 흔적 추가
-		/// </summary>
-		/// <param name="uId"></param>
-		/// <param name="phaseCount"></param>
-		/// <param name="layer"></param>
-		public void Add(int uId, int phaseCount, FSNSnapshot.Layer layer)
-		{
+	//	/// <summary>
+	//	/// 해당 uId 오브젝트의 흔적 추가
+	//	/// </summary>
+	//	/// <param name="uId"></param>
+	//	/// <param name="phaseCount"></param>
+	//	/// <param name="layer"></param>
+	//	public void Add(int uId, int phaseCount, FSNSnapshot.Layer layer)
+	//	{
 
-		}
-	}
+	//	}
+	//}
 
 	//======================================================================================
 

@@ -31,22 +31,36 @@ namespace LayerObjects
 
 			m_text.lineSpacing	= setting.TextLineSpacing;
 
+			switch(setting.TextAlign)
+			{
+				case FSNInGameSetting.TextAlignType.Left:
+					m_text.alignment	= TextAnchor.UpperLeft;
+					break;
+				case FSNInGameSetting.TextAlignType.Middle:
+					m_text.alignment	= TextAnchor.UpperCenter;
+					break;
+				case FSNInGameSetting.TextAlignType.Right:
+					m_text.alignment	= TextAnchor.UpperRight;
+					break;
+			}
+
 			var module			= parent as FSNTextModule_NewUI;
 			m_text.font			= module.font;
 		}
 
 		protected override void UpdatePosition(Vector3 position)
 		{
-			// Z 값은 어쩌지...?
-
-			// 구 Transform은 사용하지 않는다.
-			//base.UpdatePosition(position);
-
-			//var screenDim			= FSNEngine.Instance.ScreenDimension;
-			//m_realPos.x				= screenDim.x / 2 + (position.x);
-			//m_realPos.y				= screenDim.y / 2 - (position.y);
-
 			m_rectTrans.localPosition	= position;
+		}
+
+		protected override void UpdateScale(Vector3 scale)
+		{
+			m_rectTrans.localScale		= scale;
+		}
+
+		protected override void UpdateRotate(Vector3 rotate)
+		{
+			m_rectTrans.localRotation	= Quaternion.Euler(rotate);
 		}
 
 		protected override void UpdateFontSize(float newSize)
@@ -110,7 +124,7 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		m_textGenSettings.updateBounds			= true;
 	}
 
-	protected override LayerObjects.Text_NewUI MakeNewLayerObject(IInGameSetting setting)
+	protected override LayerObjects.Text_NewUI MakeNewLayerObject(SnapshotElems.Text elem, IInGameSetting setting)
 	{
 		GameObject newObj		= new GameObject("Text_NewUI");
 		var lobj				= new LayerObjects.Text_NewUI(this, newObj, setting);

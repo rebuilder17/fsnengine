@@ -176,11 +176,11 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 					break;
 
 				case Segments.Object.c_property_Scale:
-					// TODO
+					elem.Scale		= seg.scale;
 					break;
 
 				case Segments.Object.c_property_Rotation:
-					// TODO
+					elem.Rotate		= seg.rotation;
 					break;
 
 				case Segments.Object.c_property_Color:
@@ -189,6 +189,10 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 
 				case Segments.Object.c_property_Alpha:
 					elem.Alpha		= seg.alpha;
+					break;
+
+				case Segments.Object.c_property_Transition:
+					elem.TransitionTime	= seg.transition;
 					break;
 			}
 		}
@@ -225,7 +229,7 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		var curNode				= elems.First.Next;
 		for(int i = 0; i < needProcessedCount; i++)			// 중간 노드마다 Lerp해줌
 		{
-			float t				= (float)(i + 1) / elemCount;
+			float t				= (float)(i + 1) / (elemCount - 1);
 			curNode.Value.LerpBetweenElems(first, last, t);
 
 			curNode.Value.motionState	= SnapshotElems.ObjectBase<ElemT>.State.Calculated;	// "계산됨" 상태로
@@ -247,14 +251,14 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 
 		newElem.Alpha		= 1;
 		newElem.Color		= Color.white;
+		newElem.TransitionTime	= 1;
 		SetElemBySegProperties(newElem, segment);				// 세팅하기
-		newElem.TransitionTime	= 1;// TODO
 		newElem.MakeItUnique();
 
 		var initialState	= newElem.InitialState as ElemT;	// Inital State 기본값 주기 - 시작 세팅에서 알파만 0
-		SetElemBySegProperties(initialState, segment);
 		initialState.Alpha	= 0;
-		initialState.TransitionTime	= 1;// TODO
+		initialState.TransitionTime	= 1;
+		SetElemBySegProperties(initialState, segment);
 
 		newElem.motionState	= SnapshotElems.ObjectBase<ElemT>.State.MotionKey; // Key로 지정
 

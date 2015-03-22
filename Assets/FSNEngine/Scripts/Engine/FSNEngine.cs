@@ -7,12 +7,13 @@ using System.Collections.Generic;
 public sealed class FSNEngine : MonoBehaviour
 {
 	/// <summary>
-	/// 엔진에 필요한 모듈 이름들
+	/// 엔진에 필요한 모듈 이름들.
 	/// </summary>
 	public enum ModuleType
 	{
 		Text,
 		Image,
+		//Object,
 	}
 
 	//===========================================================================

@@ -268,7 +268,7 @@ public sealed partial class FSNSnapshotSequence
 				//////////////////////////////////////////////////////////////
 				case FSNScriptSequence.Segment.Type.Label:						// ** 레이블
 				{
-					var labelSeg		= curSeg as Segments.Label;
+					//var labelSeg		= curSeg as Segments.Label;
 					// 현재 이 시점에서는 labelSeg로 하는 일이 없다...
 					//Debug.Log("Label : " + labelSeg.labelName);
 				}

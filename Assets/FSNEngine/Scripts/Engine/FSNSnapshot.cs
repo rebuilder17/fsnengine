@@ -41,6 +41,8 @@ public class FSNSnapshot
 		Vector3 Position { get; }
 		Color Color { get; }
 		float Alpha { get; }
+		Vector3 Scale { get; }
+		Vector3 Rotate { get; }
 		float TransitionTime { get; }
 
 		/// <summary>
@@ -87,6 +89,16 @@ public class FSNSnapshot
 		/// Color 에 추가로 적용되는 Alpha
 		/// </summary>
 		public float Alpha { get; set; }
+
+		/// <summary>
+		/// 스케일
+		/// </summary>
+		public Vector3 Scale { get; set; }
+
+		/// <summary>
+		/// 회전 (Euler 회전)
+		/// </summary>
+		public Vector3 Rotate { get; set; }
 
 		/// <summary>
 		/// 트랜지션 애니메이션 시간.
@@ -184,7 +196,13 @@ public class FSNSnapshot
 		/// <returns></returns>
 		protected virtual SelfT MakeInstance()
 		{
-			return new SelfT();
+			var inst	= new SelfT();
+			return inst;
+		}
+
+		public Element()
+		{
+			Scale		= Vector3.one;	//초기값 설정
 		}
 
 
@@ -197,9 +215,11 @@ public class FSNSnapshot
 			to.InitialState	= InitialState;
 			to.FinalState	= FinalState;
 
-			to.Position	= Position;
-			to.Color	= Color;
-			to.Alpha	= Alpha;
+			to.Position		= Position;
+			to.Color		= Color;
+			to.Alpha		= Alpha;
+			to.Scale		= Scale;
+			to.Rotate		= Rotate;
 			to.TransitionTime	= TransitionTime;
 		}
 
@@ -403,7 +423,10 @@ public class FSNSnapshot
 	/// </summary>
 	public enum PreDefinedLayers
 	{
-		Text	= 99,
+		Image_Default	= 0,
+		Sound			= 98,
+		Text			= 99,
+		Object_Default	= 100,
 	}
 
 	//=========================================================================================

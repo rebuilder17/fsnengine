@@ -138,17 +138,20 @@ namespace Segments
 		public const string		c_property_Rotation	= "Rotation";
 		public const string		c_property_Color	= "Color";
 		public const string		c_property_Alpha	= "Alpha";
+		public const string		c_property_Transition	= "Transition";
 
 		public Vector3			position;
-		public Vector3			scale;
+		public Vector3			scale	= Vector3.one;
 		public Vector3			rotation;
 		public Color			color;
 		public float			alpha;
+		public float			transition	= 1;
 
 		HashSet<string>	PropertySetList	= new HashSet<string>();
 
 		/// <summary>
 		/// 설정된 프로퍼티 리스트 리턴 (Ienumerable로 변환해서)
+		/// 주 : Alias가 아닌 원래 이름이 들어가있음.
 		/// </summary>
 		public IEnumerable<string> PropertyNames
 		{ get { return PropertySetList; } }
@@ -160,6 +163,16 @@ namespace Segments
 		{
 			var realname	= ConvertAliasPropertyName(FSNUtils.RemoveAllWhiteSpaces(name));	// 공백을 제거해서 별명 변환 시도
 			PropertySetList.Add(realname);
+		}
+
+		/// <summary>
+		/// 특정 프로퍼티가 설정되었는지.
+		/// 주 : Alias가 아닌 원래 이름만 받는다.
+		/// </summary>
+		/// <param name="realname"></param>
+		public bool IsPropertySet(string realname)
+		{
+			return PropertySetList.Contains(realname);
 		}
 
 		/// <summary>
@@ -181,6 +194,8 @@ namespace Segments
 					return c_property_Color;
 				case "알파":
 					return c_property_Alpha;
+				case "시간":
+					return c_property_Transition;
 			}
 			return name;	// 변환 실패시 이름 그냥 리턴
 		}
@@ -331,7 +346,13 @@ namespace Segments
 					success	= true;
 					break;
 
+				case c_property_Transition:
+					transition	= float.Parse(param);
+					success	= true;
+					break;
+
 				default:
+					Debug.LogErrorFormat("[Segments.Object] Wrong property name {0}", name);
 					success	= false;
 					break;
 			}
@@ -359,12 +380,114 @@ namespace Segments
 
 		protected override bool SetPropertyImpl(string name, string param)
 		{
-			if(name == c_property_TexturePath)
+			if (name == c_property_TexturePath)
 			{
 				texturePath	= param;
 				return true;
 			}
 			return base.SetPropertyImpl(name, param);
+		}
+	}
+
+	/// <summary>
+	/// 게임 오브젝트 (프리팹에서 로드)
+	/// </summary>
+	public class GObject : Object
+	{
+		public const string		c_property_PrefabPath	= "Prefab";
+
+		public string			prefabPath;
+		protected override string ConvertAliasPropertyName(string name)
+		{
+			if (name == "파일")
+			{
+				return c_property_PrefabPath;
+			}
+			return base.ConvertAliasPropertyName(name);
+		}
+
+		protected override bool SetPropertyImpl(string name, string param)
+		{
+			if (name == c_property_PrefabPath)
+			{
+				prefabPath	= param;
+				return true;
+			}
+			return base.SetPropertyImpl(name, param);
+		}
+	}
+
+	/// <summary>
+	/// 사운드 클립
+	/// </summary>
+	public class Sound : Object
+	{
+		public const string		c_property_clipPath		= "AudioClip";
+		public const string		c_property_volume		= "Volume";
+		public const string		c_property_panning		= "Pan";
+		public const string		c_property_looping		= "Looping";
+
+		public string			clipPath;
+		public float			volume;
+		public float			panning;
+		public bool				looping;
+
+		protected override string ConvertAliasPropertyName(string name)
+		{
+			// 기존 속성들은 사용하지 않음
+			//return base.ConvertAliasPropertyName(name);
+
+			switch(name)
+			{
+				case "파일":
+					return c_property_clipPath;
+				case "볼륨":
+					return c_property_volume;
+				case "패닝":
+					return c_property_panning;
+				case "루프":
+				case "반복":
+					return c_property_looping;
+				case "시간":
+					return c_property_Transition;
+			}
+			return name;			// 변환 실패시에는 그대로 리턴
+		}
+
+		protected override bool SetPropertyImpl(string name, string param)
+		{
+			// 기존 속성들은 사용하지 않음
+			//return base.SetPropertyImpl(name, param);
+			
+			bool success = false;
+			switch(name)
+			{
+				case c_property_clipPath:
+					clipPath	= param;
+					break;
+
+				case c_property_volume:
+					volume		= float.Parse(param);
+					break;
+
+				case c_property_panning:
+					panning		= float.Parse(param);
+					break;
+
+				case c_property_looping:
+					looping		= FSNUtils.StringToValue<bool>(param);
+					break;
+
+				case c_property_Transition:
+					transition	= float.Parse(param);
+					break;
+
+				default:
+					Debug.LogErrorFormat("[Segments.Sound] Wrong property name {0}", name);
+					success		= false;
+					break;
+			}
+			return success;
 		}
 	}
 
