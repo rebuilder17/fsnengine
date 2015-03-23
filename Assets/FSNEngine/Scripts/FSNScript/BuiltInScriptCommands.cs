@@ -41,6 +41,12 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Object_initial,	"objectinit",	"객체시작설정");
 		FSNScriptSequence.Parser.AddCommand(Object_final,	"objectfinal",	"객체종료설정");
 
+		FSNScriptSequence.Parser.AddCommand(Sound_start,	"startsound",	"소리생성");
+		FSNScriptSequence.Parser.AddCommand(Sound_end,		"removesound",	"소리제거");
+		FSNScriptSequence.Parser.AddCommand(Sound_set,		"soundset",		"소리설정");
+		FSNScriptSequence.Parser.AddCommand(Sound_initial,	"soundinit",	"소리시작설정");
+		FSNScriptSequence.Parser.AddCommand(Sound_final,	"soundfinal",	"소리종료설정");
+
 		FSNScriptSequence.Parser.AddCommand(UnityCall,					"call",			"함수");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagTrue,		"flagon",		"플래그켜기", "플래그올리기", "플래그세우기");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagFalse,		"flagoff",		"플래그끄기", "플래그내리기");

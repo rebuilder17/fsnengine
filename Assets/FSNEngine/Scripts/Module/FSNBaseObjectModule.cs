@@ -29,6 +29,11 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	where ObjT : LayerObjects.BaseObjectLayerObject<ElemT>
 	
 {
+	// constants
+
+	const string		c_customDataName	= "ObjectList";
+
+
 	// Members
 
 	///// <summary>
@@ -38,11 +43,12 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 
 	static bool AddToLookupDict(string name, ElemT elem, FSNSnapshot.Layer layer)
 	{
-		var nameDict = layer.CustomData as Dictionary<string, int>;
+		var nameDict = layer.GetCustomData(c_customDataName) as Dictionary<string, int>;
 		if(nameDict == null)
 		{
 			nameDict	= new Dictionary<string,int>();
-			layer.CustomData	= nameDict;
+			//layer.CustomData	= nameDict;
+			layer.SetCustomData(c_customDataName, nameDict);
 		}
 
 		if (nameDict.ContainsKey(name))
@@ -56,11 +62,12 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 
 	static void RemoveFromLookupDict(string name, FSNSnapshot.Layer layer)
 	{
-		var nameDict = layer.CustomData as Dictionary<string, int>;
+		var nameDict = layer.GetCustomData(c_customDataName) as Dictionary<string, int>;
 		if(nameDict == null)
 		{
 			nameDict	= new Dictionary<string,int>();
-			layer.CustomData	= nameDict;
+			//layer.CustomData	= nameDict;
+			layer.SetCustomData(c_customDataName, nameDict);
 		}
 
 		nameDict.Remove(name);
@@ -74,11 +81,12 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	/// <returns></returns>
 	protected static bool FindUIDFromLookupDict(string name, out int uid, FSNSnapshot.Layer layer)
 	{
-		var nameDict = layer.CustomData as Dictionary<string, int>;
+		var nameDict = layer.GetCustomData(c_customDataName) as Dictionary<string, int>;
 		if(nameDict == null)
 		{
 			nameDict	= new Dictionary<string,int>();
-			layer.CustomData	= nameDict;
+			//layer.CustomData	= nameDict;
+			layer.SetCustomData(c_customDataName, nameDict);
 		}
 
 		if(!nameDict.ContainsKey(name))
@@ -97,9 +105,9 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, params FSNProcessModuleCallParam[] callParams)
 	{
 		FSNSnapshot.Layer newLayer	= curLayer.Clone();
-		if(curLayer.CustomData != null)							// 이름 dictionary 카피
+		if(curLayer.GetCustomData(c_customDataName) != null)		// 이름 dictionary 카피
 		{
-			newLayer.CustomData	= new Dictionary<string, int>(curLayer.CustomData as Dictionary<string, int>);
+			newLayer.SetCustomData(c_customDataName, new Dictionary<string, int>(curLayer.GetCustomData(c_customDataName) as Dictionary<string, int>));
 		}
 
 		foreach(var callParam in callParams)
@@ -154,8 +162,18 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		}
 
 		// TODO : call 처리 이후, snapshot 마무리
+		OnAfterGenerateNextLayerImage(newLayer);
 
 		return newLayer;
+	}
+
+	/// <summary>
+	/// 레이어에 후처리 필요할 때
+	/// </summary>
+	/// <param name="newLayer"></param>
+	protected virtual void OnAfterGenerateNextLayerImage(FSNSnapshot.Layer newLayer)
+	{
+
 	}
 
 	//========================================================================

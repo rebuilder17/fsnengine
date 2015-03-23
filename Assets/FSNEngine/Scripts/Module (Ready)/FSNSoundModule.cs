@@ -70,6 +70,7 @@ namespace LayerObjects
 			{
 				m_asource.clip	= to.clip;
 				m_asource.loop	= to.looping;
+				m_asource.Play();
 			}
 		}
 
@@ -112,9 +113,22 @@ public class FSNSoundModule : FSNBaseObjectModule<Segments.Sound, SnapshotElems.
 	{
 		base.SetElemBySegProperties(elem, seg);
 
-		if (seg.IsPropertySet(Segments.Sound.c_property_looping))
+		foreach(var property in seg.PropertyNames)
 		{
-			elem.looping	= seg.looping;
+			switch(property)
+			{
+				case Segments.Sound.c_property_volume:
+					elem.volume		= seg.volume;
+					break;
+
+				case Segments.Sound.c_property_panning:
+					elem.panning	= seg.panning;
+					break;
+
+				case Segments.Sound.c_property_looping:
+					elem.looping	= seg.looping;
+					break;
+			}
 		}
 	}
 
@@ -126,5 +140,14 @@ public class FSNSoundModule : FSNBaseObjectModule<Segments.Sound, SnapshotElems.
 		elemCreated.clip					= clip;
 		elemCreated.InitialState.clip		= clip;				// 실행 순서 문제 때문에 initial/finalstate의 텍스쳐를 직접 세팅해줘야함
 		elemCreated.FinalState.clip			= clip;
+
+		elemCreated.looping					= segment.looping;
+		elemCreated.InitialState.looping	= segment.looping;
+		elemCreated.FinalState.looping		= segment.looping;
+	}
+
+	public override void ProcessCustomElementCommand(Segments.Sound segment, FSNSnapshot.Layer layer)
+	{
+		//base.ProcessCustomElementCommand(segment, layer);
 	}
 }

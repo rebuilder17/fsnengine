@@ -264,10 +264,41 @@ public class FSNSnapshot
 		
 		private Dictionary<int, IElement>	m_elements;		// 레이어에 포함된 Element
 
+		///// <summary>
+		///// 추가 데이터
+		///// </summary>
+		//public object CustomData { get; set; }
+
+		private Dictionary<string, object>	m_customDataDict	= null;	// 추가 데이터 딕셔너리
+
 		/// <summary>
-		/// 추가 데이터
+		/// 추가 데이터 구하기
 		/// </summary>
-		public object CustomData { get; set; }
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public object GetCustomData(string name)
+		{
+			if (m_customDataDict == null)
+				return null;
+
+			object retv	= null;
+			m_customDataDict.TryGetValue(name, out retv);
+			return retv;
+		}
+
+		/// <summary>
+		/// 추가 데이터 세팅하기
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="obj"></param>
+		public void SetCustomData(string name, object obj)
+		{
+			if (m_customDataDict == null)
+				m_customDataDict	= new Dictionary<string, object>();
+
+			m_customDataDict[name]	= obj;
+		}
+
 
 		// Static Memebers
 

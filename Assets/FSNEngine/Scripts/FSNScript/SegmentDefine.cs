@@ -428,7 +428,7 @@ namespace Segments
 		public const string		c_property_looping		= "Looping";
 
 		public string			clipPath;
-		public float			volume;
+		public float			volume		= 1;
 		public float			panning;
 		public bool				looping;
 
@@ -464,22 +464,27 @@ namespace Segments
 			{
 				case c_property_clipPath:
 					clipPath	= param;
+					success		= true;
 					break;
 
 				case c_property_volume:
 					volume		= float.Parse(param);
+					success		= true;
 					break;
 
 				case c_property_panning:
 					panning		= float.Parse(param);
+					success		= true;
 					break;
 
 				case c_property_looping:
 					looping		= FSNUtils.StringToValue<bool>(param);
+					success		= true;
 					break;
 
 				case c_property_Transition:
 					transition	= float.Parse(param);
+					success		= true;
 					break;
 
 				default:

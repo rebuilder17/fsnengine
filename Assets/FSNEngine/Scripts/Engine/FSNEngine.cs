@@ -72,9 +72,20 @@ public sealed class FSNEngine : MonoBehaviour
 		get { return m_moduleRefDict.Values; }
 	}
 
-	public FSNInGameSetting InGameSetting
+	/// <summary>
+	/// 기본 세팅
+	/// </summary>
+	public FSNInGameSetting DefaultInGameSetting
 	{
 		get { return m_inGameSetting; }
+	}
+
+	/// <summary>
+	/// 현재 스크립트 실행 상태에서의 세팅
+	/// </summary>
+	public IInGameSetting InGameSetting
+	{
+		get { return m_seqEngine.InGameSetting; }
 	}
 
 	// Statics

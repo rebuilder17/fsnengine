@@ -157,7 +157,7 @@ public sealed partial class FSNSnapshotSequence
 
 			builderState.sequence				= sequence;
 			builderState.segIndex				= 0;
-			builderState.settings				= new FSNInGameSetting.Chain(FSNEngine.Instance.InGameSetting);
+			builderState.settings				= new FSNInGameSetting.Chain(FSNEngine.Instance.DefaultInGameSetting);
 
 
 			// 시작 Snapshot 만들기

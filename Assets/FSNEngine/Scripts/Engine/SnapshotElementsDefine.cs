@@ -122,7 +122,7 @@ namespace SnapshotElems
 	public class Sound : ObjectBase<Sound>
 	{
 		public AudioClip	clip;
-		public float		volume;
+		public float		volume = 1;
 		public float		panning;
 		public bool			looping;
 
