@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 
 namespace LayerObjects
@@ -86,6 +87,9 @@ namespace LayerObjects
 
 public class FSNSoundModule : FSNBaseObjectModule<Segments.Sound, SnapshotElems.Sound, LayerObjects.Sound>
 {
+	const string		c_oneshotSoundData	= "OneShotSounds";
+
+
 	public override string ModuleName
 	{
 		get
@@ -149,5 +153,40 @@ public class FSNSoundModule : FSNBaseObjectModule<Segments.Sound, SnapshotElems.
 	public override void ProcessCustomElementCommand(Segments.Sound segment, FSNSnapshot.Layer layer)
 	{
 		//base.ProcessCustomElementCommand(segment, layer);
+
+		// One-Shot 사운드에 대한 처리
+
+		// 레이어에 one-shot 사운드 리스트가 없다면 생성
+		var oneshotSounds	= layer.GetCustomData(c_oneshotSoundData) as List<Segments.Sound>;
+		if (oneshotSounds == null)
+		{
+			oneshotSounds	= new List<Segments.Sound>();
+			layer.SetCustomData(c_oneshotSoundData, oneshotSounds);
+		}
+
+		oneshotSounds.Add(segment);						// 세그먼트채로 집어넣는다.
+	}
+
+	protected override void OnLayerTransitionStart(FSNSnapshot.Layer toLayer)
+	{
+		//base.OnLayerTransitionStart(toLayer);
+
+		var oneshotSounds	= toLayer.GetCustomData(c_oneshotSoundData) as List<Segments.Sound>;
+		if(oneshotSounds != null)							// one-shot sound가 있는 경우에만, 트랜지션 시작시에 사운드 재생
+		{
+			foreach(var sound in oneshotSounds)				// 사운드마다 게임 오브젝트, 오디오소스 생성 등등...
+			{
+				var clip			= FSNResourceCache.Load<AudioClip>(FSNResourceCache.Category.Script, sound.clipPath);
+				var go				= new GameObject();
+				go.transform.SetParent(ObjectRoot, false);
+
+				var source			= go.AddComponent<AudioSource>();
+				source.volume		= sound.volume;
+				source.panStereo	= sound.panning;
+				source.PlayOneShot(clip);
+
+				Destroy(go, clip.length + 0.1f);			// 오디오 재생 길이만큼만 게임 오브젝트 유지
+			}
+		}
 	}
 }

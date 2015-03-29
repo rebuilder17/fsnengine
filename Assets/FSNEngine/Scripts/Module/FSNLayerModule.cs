@@ -491,6 +491,8 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 		// NOTE : 트랜지션이 완전히 끝난 뒤에 레이어를 교체해야할 수도 있다. 이슈가 생기면 그때 바꾸자...
 		m_curLayerRef	= toLayer;												// 현재 레이어를 트랜지션 타겟 레이어로 교체.
 
+		OnLayerTransitionStart(toLayer);										// 이벤트 호출
+
 
 		return m_useTransitionDelay? longestDuration : 0;						// 트랜지션 딜레이를 사용하지 않는다면 딜레이 시간은 0으로
 	}
@@ -503,4 +505,10 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	{
 		m_objectDict.Remove(uId);	// 딕셔너리에서 삭제
 	}
+
+	/// <summary>
+	/// 특정 레이어로 트랜지션하는 애니메이션이 시작될 때 호출됨
+	/// </summary>
+	/// <param name="toLayer"></param>
+	protected virtual void OnLayerTransitionStart(FSNSnapshot.Layer toLayer) { }
 }

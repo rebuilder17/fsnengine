@@ -47,6 +47,8 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Sound_initial,	"soundinit",	"소리시작설정");
 		FSNScriptSequence.Parser.AddCommand(Sound_final,	"soundfinal",	"소리종료설정");
 
+		FSNScriptSequence.Parser.AddCommand(Sound_oneshot,	"sound",		"소리");
+
 		FSNScriptSequence.Parser.AddCommand(UnityCall,					"call",			"함수");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagTrue,		"flagon",		"플래그켜기", "플래그올리기", "플래그세우기");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagFalse,		"flagoff",		"플래그끄기", "플래그내리기");
@@ -495,7 +497,8 @@ public static class FSNBuiltInScriptCommands
 	/// <param name="defaultLayer"></param>
 	/// <param name="seg"></param>
 	/// <param name="protocol"></param>
-	static void _BaseObject_setupSegment<SegT>(int defaultLayer, SegT seg, FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	/// <param name="useObjName">오브젝트 이름을 사용할 것인지. 기본값은 true, false일 시 맨 첫번째 인자부터 파라미터 파싱을 시작한다.</param>
+	static void _BaseObject_setupSegment<SegT>(int defaultLayer, SegT seg, FSNScriptSequence.Parser.ICommandGenerateProtocol protocol, bool useObjName = true)
 		where SegT : Segments.Object
 	{
 		bool useDefaultLayer	= !int.TryParse(protocol.parameters[0], out seg.layerID);	// 첫번째 파라미터가 정수라면 지정한 레이어를 사용
@@ -503,10 +506,11 @@ public static class FSNBuiltInScriptCommands
 		if (useDefaultLayer)																// 기본 레이어를 사용하는 경우, layerID는 기본값으로
 			seg.layerID			= defaultLayer;
 
-		seg.objectName			= protocol.parameters[useDefaultLayer? 0 : 1];
+		if (useObjName)
+			seg.objectName		= protocol.parameters[useDefaultLayer? 0 : 1];
 
 		//
-		int settingIndexStart	= useDefaultLayer? 1 : 2;									// 세팅값이 시작되는 인덱스
+		int settingIndexStart	= (useDefaultLayer? 1 : 2) - (useObjName? 0 : 1);			// 세팅값이 시작되는 인덱스
 		int settingCount		= (protocol.parameters.Length - settingIndexStart) / 2;		// 세팅 pair 갯수
 		for (int i = 0; i < settingCount; i++)
 		{
@@ -671,6 +675,22 @@ public static class FSNBuiltInScriptCommands
 		newObjectSeg.command	= Segments.Object.CommandType.SetKey;
 
 		_Sound_setupSegment(newObjectSeg, protocol);		// 셋업
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg			= newObjectSeg,
+			usePrevPeriod	= true,
+			selfPeriod		= false
+		});
+	}
+
+	static void Sound_oneshot(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newObjectSeg		= new Segments.Sound();
+		newObjectSeg.command	= Segments.Object.CommandType.Custom;
+
+		//_Sound_setupSegment(newObjectSeg, protocol);		// 셋업
+		_BaseObject_setupSegment<Segments.Sound>((int)FSNSnapshot.PreDefinedLayers.Sound, newObjectSeg, protocol, false);	// 원샷 사운드는 오브젝트 이름을 지정하지 않는다.
 
 		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
 		{
