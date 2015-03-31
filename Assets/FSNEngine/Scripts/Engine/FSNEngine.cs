@@ -65,6 +65,7 @@ public sealed class FSNEngine : MonoBehaviour
 
 	FSNSequenceEngine				m_seqEngine;									//
 	FSNDefaultUnityCallServer		m_unityCallSvr;									//
+	FSNControlSystem				m_ctrlSystem;
 
 
 	public ICollection<FSNModule>	AllModules
@@ -86,6 +87,11 @@ public sealed class FSNEngine : MonoBehaviour
 	public IInGameSetting InGameSetting
 	{
 		get { return m_seqEngine.InGameSetting; }
+	}
+
+	public FSNControlSystem ControlSystem
+	{
+		get { return m_ctrlSystem; }
 	}
 
 	// Statics
@@ -155,6 +161,9 @@ public sealed class FSNEngine : MonoBehaviour
 
 		m_seqEngine			= GetComponent<FSNSequenceEngine>();
 		m_seqEngine.Initialize();
+
+		m_ctrlSystem		= GetComponent<FSNControlSystem>();
+		m_ctrlSystem.Initialize();
 	}
 
 	/// <summary>

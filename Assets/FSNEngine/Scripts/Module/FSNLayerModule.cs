@@ -9,6 +9,8 @@ using System.Collections.Generic;
 public abstract class FSNLayerObject<ElmT>
 	where ElmT : FSNSnapshot.IElement
 {
+	public delegate void KillDelegate(int uid, FSNLayerObject<ElmT> self);
+
 	// Members
 
 	Vector3		m_position;		// 현재 스냅샷에서의 위치 (트랜지션 거치기 전)
@@ -25,7 +27,7 @@ public abstract class FSNLayerObject<ElmT>
 	FSNCoroutineComponent m_coComp;	// 코루틴 컴포넌트
 
 	int			m_uId;			// Unique ID
-	System.Action<int>	m_killedDel;	// 오브젝트 Kill 시 호출할 델리게이트
+	KillDelegate	m_killedDel;	// 오브젝트 Kill 시 호출할 델리게이트
 
 
 	/// <summary>
@@ -236,7 +238,7 @@ public abstract class FSNLayerObject<ElmT>
 
 	//============================================================================
 
-	public void ConenctKillEvent(System.Action<int> del, int uId)
+	public void ConenctKillEvent(KillDelegate del, int uId)
 	{
 		m_uId		= uId;
 		m_killedDel	= del;
@@ -249,7 +251,7 @@ public abstract class FSNLayerObject<ElmT>
 	{
 		GameObject.Destroy(gameObject);
 		if(m_killedDel != null)
-			m_killedDel(m_uId);
+			m_killedDel(m_uId, this);
 	}
 }
 
@@ -501,9 +503,11 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 	/// 오브젝트가 Kill되었을 때
 	/// </summary>
 	/// <param name="uId"></param>
-	protected void OnObjectKilled(int uId)
+	protected void OnObjectKilled(int uId, FSNLayerObject<ElmT> self)
 	{
-		m_objectDict.Remove(uId);	// 딕셔너리에서 삭제
+		var valueInDict	= m_objectDict[uId];
+		if (valueInDict == self)
+			m_objectDict.Remove(uId);	// 자기 자신인지 확실히 체크한 뒤 딕셔너리에서 삭제
 	}
 
 	/// <summary>

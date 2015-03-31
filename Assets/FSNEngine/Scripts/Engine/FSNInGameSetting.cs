@@ -301,7 +301,7 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		{
 			CurrentFlowDirection	= FlowDirection.Up;
 			BackwardFlowDirection	= FlowDirection.Down;
-			SwipeWeight				= 0.3f;
+			SwipeWeight				= 0.24f;
 			FontSize				= 24;
 			ScreenCenterText		= false;
 			StackTexts				= true;

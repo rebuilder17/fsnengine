@@ -225,6 +225,16 @@ public class FSNSequenceEngine : MonoBehaviour
 	}
 
 	/// <summary>
+	/// 특정 방향으로 진행 가능한지 여부
+	/// </summary>
+	/// <param name="direction"></param>
+	/// <returns></returns>
+	public bool SwipeDirectionAvailable(FSNInGameSetting.FlowDirection direction)
+	{
+		return CanSwipe && m_snapshotTraveler.GetLinkedSnapshot(direction) != null;
+	}
+
+	/// <summary>
 	/// 스크립트 로딩되어야만하는 경우
 	/// </summary>
 	/// <param name="scriptFile"></param>

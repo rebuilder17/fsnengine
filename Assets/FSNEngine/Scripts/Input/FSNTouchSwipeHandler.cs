@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// <summary>
 /// 전체 화면 터치 입력을 인식하는 모듈
 /// </summary>
-public sealed class FSNTouchSwipeDetector : MonoBehaviour
+public sealed class FSNTouchSwipeHandler : MonoBehaviour
 {
 	// Properties
 
@@ -33,6 +33,9 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 		m_touchStartPoints	= new Dictionary<int, Vector2>();
 
 		m_screenSizeRatio	= (float)Screen.height / FSNEngine.Instance.ScreenYSize;
+
+		// 프로세스 등록
+		m_touchProcedures[1]	= new SingleTouchProcess(this);
 	}
 
 	void Update()
@@ -69,7 +72,6 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 		for (int i = 0; i < count; i++)
 		{
 			var touch	= touches[i];
-			var phase	= touch.phase;
 			if (isActiveTouch(touch))							// 끝난 터치가 아니라면(=유효한 터치) 시작점 보관해두기
 			{
 				m_touchStartPoints[touch.fingerId]	= touch.position * m_screenSizeRatio;
@@ -132,7 +134,7 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 
 	abstract class TouchProcess
 	{
-		protected FSNTouchSwipeDetector Detector { get; private set; }
+		protected FSNTouchSwipeHandler Detector { get; private set; }
 
 		/// <summary>
 		/// 터치 시작
@@ -151,7 +153,7 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 		public abstract void Process(Touch[] touches);
 
 
-		public TouchProcess(FSNTouchSwipeDetector detector)
+		public TouchProcess(FSNTouchSwipeHandler detector)
 		{
 			Detector	= detector;
 		}
@@ -169,7 +171,9 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 		bool		m_singleTouchRecStart = false;			// 터치 시작 후 인식 영역을 벗어난 적이 있는지 여부
 		Vector2		m_singleTouchAxisMask = Vector2.zero;	// 특정 축으로 입력 걸러내기
 
-		public SingleTouchProcess(FSNTouchSwipeDetector detector)
+		bool		m_swipeBlocked			= false;
+
+		public SingleTouchProcess(FSNTouchSwipeHandler detector)
 			: base(detector)
 		{
 
@@ -177,16 +181,23 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 
 		public override void Begin(Touch[] touches)
 		{
-			//throw new System.NotImplementedException();
+			m_swipeBlocked	= FSNEngine.Instance.ControlSystem.SwipeBlocked;	// swipe가 블락되었는지 먼저 구한다
+			FSNEngine.Instance.ControlSystem.StartSwipe();
 		}
 
 		public override void End(Touch[] touches)
 		{
 			m_singleTouchRecStart	= false;
+			m_swipeBlocked			= false;
+
+			FSNEngine.Instance.ControlSystem.ClearSwipe();
 		}
 
 		public override void Process(Touch[] touches)
 		{
+			if (m_swipeBlocked)								// 첫 터치시 입력이 블락된 상태였다면 어떤 처리도 하지 않는다.
+				return;
+
 			int count = touches.Length;
 			for(int i = 0; i < count; i++)					// 끝난 터치에 대한 정보가 있을 수 있으므로 루프를 돌아 체크한다.
 			{
@@ -207,7 +218,13 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 					{
 						if(touch.phase == TouchPhase.Moved)	// 움직인 경우만 처리한다. 매 프레임 항상 처리해야할수도...?
 						{
-							Debug.Log("recognized move vector : " + moveVec);
+							moveVec.Scale(m_singleTouchAxisMask);	// 특정한 축으로 필터링
+							//Debug.Log("recognized move vector : " + moveVec);
+
+							var dir		= FilteredVectorToDirection(moveVec);
+							var dist	= Mathf.Abs(moveVec.x + moveVec.y);
+
+							FSNEngine.Instance.ControlSystem.Swipe(dir, dist);	// 엔진으로 보내기
 						}
 					}
 
@@ -215,6 +232,25 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// 축으로 필터링된 벡터에서 방향을 얻어옴
+	/// </summary>
+	/// <param name="vec"></param>
+	/// <returns></returns>
+	static FSNInGameSetting.FlowDirection FilteredVectorToDirection(Vector2 vec)
+	{
+		if (vec.y > 0)
+			return FSNInGameSetting.FlowDirection.Up;
+		else if (vec.y < 0)
+			return FSNInGameSetting.FlowDirection.Down;
+		else if (vec.x > 0)
+			return FSNInGameSetting.FlowDirection.Right;
+		else if (vec.x < 0)
+			return FSNInGameSetting.FlowDirection.Left;
+
+		return FSNInGameSetting.FlowDirection.None;
 	}
 
 	//======================================================================
@@ -229,7 +265,44 @@ public sealed class FSNTouchSwipeDetector : MonoBehaviour
 
 		public static Touch[] UpdateAndGet()
 		{
-			return new Touch[0];
+			UnityTouchCreator touch	= null;
+
+			var mousePos3D	= Input.mousePosition;
+			var mousePos	= new Vector2(mousePos3D.x, mousePos3D.y);
+			var downNow		= Input.GetMouseButton(0);
+
+			if (!s_downLastFrame && downNow)			// 안눌렸다가 새로 눌림
+			{
+				touch			= new UnityTouchCreator();
+				touch.phase		= TouchPhase.Began;
+			}
+			else if(s_downLastFrame && downNow)			// 계속 눌린 경우
+			{
+				touch			= new UnityTouchCreator();
+				touch.phase		= (mousePos == s_lastPosition)? TouchPhase.Stationary : TouchPhase.Moved;
+			}
+			else if(s_downLastFrame && !downNow)
+			{											// 눌렀다가 뗀 경우
+				touch			= new UnityTouchCreator();
+				touch.phase		= TouchPhase.Ended;
+			}
+
+			s_downLastFrame		= downNow;				// 눌렸는지 여부 보관
+
+			if (touch != null)							// touch 오브젝트를 어쨌거나 생성하는 경우
+			{
+				touch.fingerId	= 1;
+				touch.position	= mousePos;
+				touch.deltaPosition	= mousePos - s_lastPosition;
+
+				s_lastPosition	= mousePos;				// 마우스 좌표 보관
+
+				return new Touch[] { touch.Create() };
+			}
+			else
+			{											// Touch 오브젝트를 생성하지 않는 경우, 빈 배열 리턴
+				return new Touch[0];
+			}
 		}
 	}
 }
