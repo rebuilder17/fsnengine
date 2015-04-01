@@ -182,6 +182,8 @@ public abstract class FSNLayerObject<ElmT>
 	/// <param name="ratio"></param>
 	public virtual void TransitionWith(ElmT to, float ratio)
 	{
+		ratio		= TimeRatioFunction(ratio);	// 시간 곡선 적용
+
 		var trPos	= Vector3.Lerp(m_position, to.Position, ratio);
 		var trColor	= Color.Lerp(m_color, to.Color, ratio);
 		var trAlpha	= Mathf.Lerp(m_alpha, to.Alpha, ratio);
@@ -219,7 +221,7 @@ public abstract class FSNLayerObject<ElmT>
 	{
 		float startTime	= Time.time;								// 시작 시간 기록
 		float elapsed;
-		while((elapsed = Time.time - startTime) <= duration)		// 지속시간동안 매 프레임마다 루프, 각 시점마다 진행율에 따라서 트랜지션
+		while((elapsed = Time.time - startTime) <= duration)			// 지속시간동안 매 프레임마다 루프, 각 시점마다 진행율에 따라서 트랜지션
 		{
 			float t		= Mathf.Pow(elapsed / duration, 0.5f);		// TODO : Transition 애니메이션 시 t 곡선 커스터마이징 가능하게
 			TransitionWith(to, Mathf.Lerp(startRatio, 1, t));
@@ -252,6 +254,20 @@ public abstract class FSNLayerObject<ElmT>
 		GameObject.Destroy(gameObject);
 		if(m_killedDel != null)
 			m_killedDel(m_uId, this);
+	}
+
+	//============================================================================
+
+	/// <summary>
+	/// 트랜지션 시의 T 곡선 함수. TransitionWith 에서 쓰기 위한 것.
+	/// 기본형 TransitionWith 에 이미 적용되어있으며, 오버라이드해서 구현할 시에는 따로 적용해줘야한다.
+	/// (파라미터로 들어오는 ratio에는 이 함수가 적용되어있지 않다.)
+	/// </summary>
+	/// <param name="t"></param>
+	/// <returns></returns>
+	protected static float TimeRatioFunction(float t)
+	{
+		return Mathf.Pow(t, 0.5f);
 	}
 }
 

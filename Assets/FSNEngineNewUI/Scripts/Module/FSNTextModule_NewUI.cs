@@ -46,6 +46,12 @@ namespace LayerObjects
 
 			var module			= parent as FSNTextModule_NewUI;
 			m_text.font			= module.font;
+
+			// TEST : 그림자 효과를 추가해본다....
+			var shadow			= gameObj.AddComponent<Shadow>();
+			float shadowDist	= Mathf.Max(1f, setting.FontSize * 0.08f);
+			shadow.effectColor	= new Color(0, 0, 0, 0.7f);
+			shadow.effectDistance	= new Vector2(shadowDist, -shadowDist);
 		}
 
 		protected override void UpdatePosition(Vector3 position)

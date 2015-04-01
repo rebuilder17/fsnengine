@@ -177,7 +177,7 @@ public class FSNSoundModule : FSNBaseObjectModule<Segments.Sound, SnapshotElems.
 			foreach(var sound in oneshotSounds)				// 사운드마다 게임 오브젝트, 오디오소스 생성 등등...
 			{
 				var clip			= FSNResourceCache.Load<AudioClip>(FSNResourceCache.Category.Script, sound.clipPath);
-				var go				= new GameObject();
+				var go				= new GameObject("Sound oneshot");
 				go.transform.SetParent(ObjectRoot, false);
 
 				var source			= go.AddComponent<AudioSource>();
