@@ -389,6 +389,9 @@ public class FSNScriptSequence
 		/// <returns></returns>
 		public static FSNScriptSequence FromString(string scriptData)
 		{
+			// 디버깅 세션 세팅
+			FSNDebug.currentRuntimeStage = FSNDebug.RuntimeStage.Compile;
+
 			var sequence				= new FSNScriptSequence();
 			var strstream				= new System.IO.StringReader(scriptData);
 			sequence.OriginalScriptPath	= "(string)";
@@ -419,6 +422,7 @@ public class FSNScriptSequence
 			while ((line = strstream.ReadLine()) != null)				// 줄 단위로 읽는다.
 			{
 				linenumber++;
+				FSNDebug.currentProcessingScriptLine	= linenumber;	// 디버깅 정보 설정
 
 				if (!textMultilineMode && line.Length == 0)				// * 빈 줄은 스루. 단 여러줄 텍스트 모드일 경우 빈 줄에서는 여러줄 모드를 끝내게 한다.
 					continue;
@@ -613,6 +617,9 @@ public class FSNScriptSequence
 				periodSeg = null;
 			}
 
+			// 디버깅 세션 세팅
+			FSNDebug.currentRuntimeStage = FSNDebug.RuntimeStage.Runtime;
+
 			return sequence;
 		}
 
@@ -623,6 +630,8 @@ public class FSNScriptSequence
 		/// <returns></returns>
 		public static FSNScriptSequence FromAsset(string assetPath)
 		{
+			FSNDebug.currentProcessingScript = assetPath;	// 디버깅 정보 세팅
+
 			var textfile	= Resources.Load<TextAsset>(assetPath);
 			if (textfile == null)
 			{

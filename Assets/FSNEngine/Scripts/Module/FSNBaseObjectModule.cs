@@ -265,6 +265,14 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 	/// <param name="layer"></param>
 	void CreateElement(SegT segment, FSNSnapshot.Layer layer)
 	{
+		{
+			int uid;
+			if(FindUIDFromLookupDict(segment.objectName, out uid, layer))	// 이미 해당 이름으로 오브젝트가 존재한다면 에러
+			{
+				Debug.LogError("there is already a SnapshotElem named " + segment.objectName);
+			}
+		}
+
 		var newElem			= new ElemT();
 
 		newElem.Alpha		= 1;

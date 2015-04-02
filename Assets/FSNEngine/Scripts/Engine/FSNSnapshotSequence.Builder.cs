@@ -146,6 +146,10 @@ public sealed partial class FSNSnapshotSequence
 		/// <returns></returns>
 		public static FSNSnapshotSequence BuildSnapshotSequence(FSNScriptSequence sequence)
 		{
+			// 디버깅 정보 설정
+			FSNDebug.currentRuntimeStage		= FSNDebug.RuntimeStage.SnapshotBuild;
+			FSNDebug.currentProcessingScript	= sequence.OriginalScriptPath;
+
 			FSNSnapshotSequence	snapshotSeq		= new FSNSnapshotSequence();
 			State				builderState	= new State();
 
@@ -175,6 +179,9 @@ public sealed partial class FSNSnapshotSequence
 
 			// 빌드 시작
 			ProcessSnapshotBuild(builderState, snapshotSeq, 0);
+
+			// 디버깅 정보 설정
+			FSNDebug.currentRuntimeStage		= FSNDebug.RuntimeStage.Runtime;
 
 			return snapshotSeq;
 		}
@@ -211,6 +218,7 @@ public sealed partial class FSNSnapshotSequence
 			while(keepProcess)
 			{
 				var curSeg	= bs.sequence[bs.segIndex];							// 현재 명령어 (Sequence 세그먼트)
+				FSNDebug.currentProcessingScriptLine = curSeg.scriptLineNumber;	// 디버깅 정보 세팅 (줄 번호)
 
 				//Debug.Log("NewSeg : " + curSeg.type.ToString());
 				switch(curSeg.type)												// 명령어 타입 체크 후 분기

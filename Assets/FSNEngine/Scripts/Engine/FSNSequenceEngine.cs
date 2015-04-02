@@ -115,6 +115,8 @@ public class FSNSequenceEngine : MonoBehaviour
 	/// <param name="sequence"></param>
 	public void StartSnapshotSequence(FSNSnapshotSequence sequence, int snapshotIndex = 0)
 	{
+		FSNDebug.currentProcessingScript	= sequence.OriginalScriptPath;	// 디버깅 정보 설정
+
 		m_snapshotSeq		= sequence;
 		m_snapshotTraveler	= FSNSnapshotSequence.Traveler.GenerateFrom(sequence, snapshotIndex);
 		m_snapshotTraveler.ScriptLoadRequested += OnScriptNeedToBeLoaded;	// 스크립트 로딩 이벤트 등록

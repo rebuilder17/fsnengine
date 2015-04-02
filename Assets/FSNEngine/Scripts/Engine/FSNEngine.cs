@@ -164,6 +164,15 @@ public sealed class FSNEngine : MonoBehaviour
 
 		m_ctrlSystem		= GetComponent<FSNControlSystem>();
 		m_ctrlSystem.Initialize();
+
+		// 디버그 모듈 초기화
+		FSNDebug.Install();
+	}
+
+	void OnDestroy()
+	{
+		// 디버그 모듈 해제
+		FSNDebug.Uninstall();
 	}
 
 	/// <summary>
