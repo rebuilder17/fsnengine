@@ -247,6 +247,9 @@ public sealed class FSNEngine : MonoBehaviour
 		FSNResourceCache.EndLoadingSession();												// 리소스 로딩 세션 종료
 
 		m_seqEngine.StartSnapshotSequence(sshotSeq, snapshotIndex);							// 실행
+
+
+		ControlSystem.ScriptLoadComplete();													// 스크립트 로딩 완료 이벤트
 	}
 
 	/// <summary>

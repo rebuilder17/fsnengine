@@ -242,7 +242,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		// 새 텍스트 엘레먼트 세팅
 
-		var newTextElem				= new SnapshotElems.Text();
+		var newTextElem				= new SnapshotElems.Text(setting);
 
 		newTextElem.text			= textSeg.text;
 		newTextElem.fontSize		= setting.FontSize;
@@ -341,7 +341,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		var newTextSize					= CalculateTextSize(textSeg.text, setting);
 
-		var questionTextElem			= new SnapshotElems.Text();
+		var questionTextElem			= new SnapshotElems.Text(setting);
 
 		questionTextElem.text			= textSeg.text;
 		questionTextElem.fontSize		= setting.FontSize;
@@ -374,7 +374,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		{
 			var upTextSize					= CalculateTextSize(dirText, setting);
 
-			var upTextElem					= new SnapshotElems.Text();
+			var upTextElem					= new SnapshotElems.Text(setting);
 
 			upTextElem.text					= dirText;
 			upTextElem.fontSize				= setting.FontSize;
@@ -404,7 +404,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		{
 			var downTextSize				= CalculateTextSize(dirText, setting);
 
-			var downTextElem				= new SnapshotElems.Text();
+			var downTextElem				= new SnapshotElems.Text(setting);
 
 			downTextElem.text				= dirText;
 			downTextElem.fontSize			= setting.FontSize;
@@ -434,7 +434,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		{
 			var leftTextSize				= CalculateTextSize(dirText, setting);
 
-			var leftTextElem				= new SnapshotElems.Text();
+			var leftTextElem				= new SnapshotElems.Text(setting);
 
 			leftTextElem.text				= dirText;
 			leftTextElem.fontSize			= setting.FontSize;
@@ -464,7 +464,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		{
 			var rightTextSize				= CalculateTextSize(dirText, setting);
 
-			var rightTextElem				= new SnapshotElems.Text();
+			var rightTextElem				= new SnapshotElems.Text(setting);
 
 			rightTextElem.text				= dirText;
 			rightTextElem.fontSize			= setting.FontSize;

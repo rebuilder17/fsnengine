@@ -167,7 +167,7 @@ public sealed partial class FSNSnapshotSequence
 			// 시작 Snapshot 만들기
 
 			FSNSnapshot startSnapshot			= new FSNSnapshot();
-			startSnapshot.NonstopToForward			= true;
+			startSnapshot.NonstopToForward		= true;
 			startSnapshot.InGameSetting			= builderState.settings;
 
 			Segment startSegment				= new Segment();

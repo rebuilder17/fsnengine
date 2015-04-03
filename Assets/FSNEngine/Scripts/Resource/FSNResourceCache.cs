@@ -85,13 +85,19 @@ public static class FSNResourceCache
 
 		if (oldDepot != null)
 		{
+			HashSet<string> removeList	 = new HashSet<string>();
+
 			foreach(var resname in oldDepot.m_resourceDict.Keys)
 			{
 				if (!s_tempDepot.m_resourceDict.ContainsKey(resname))	// 새로 로딩된 리소스 중에 없는 것은 해제한다.
 				{
-					oldDepot.m_resourceDict.Remove(resname);
+					//oldDepot.m_resourceDict.Remove(resname);
+					removeList.Add(resname);
 				}
 			}
+
+			foreach (var resname in removeList)
+				oldDepot.m_resourceDict.Remove(resname);
 		}
 
 		s_tempDepot	= null;		// 임시 저장소 해제

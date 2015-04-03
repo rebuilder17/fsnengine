@@ -132,6 +132,8 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 
 	protected override LayerObjects.Text_NewUI MakeNewLayerObject(SnapshotElems.Text elem, IInGameSetting setting)
 	{
+		setting	= elem.cachedSetting;			// 캐싱된 세팅을 사용한다.
+
 		GameObject newObj		= new GameObject("Text_NewUI");
 		var lobj				= new LayerObjects.Text_NewUI(this, newObj, setting);
 		newObj.transform.SetParent(ObjectRoot, false);

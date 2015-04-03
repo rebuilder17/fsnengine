@@ -26,6 +26,12 @@ namespace SnapshotElems
 		/// </summary>
 		public FSNInGameSetting.FlowDirection optionDir	= FSNInGameSetting.FlowDirection.None;
 
+		/// <summary>
+		/// 인게임 세팅 캐시. 역방향 진행 시 텍스트의 설정이 원래의 텍스트 생성 당시와는 달라지는 경우가 생기는 것에 대한 해결책.
+		/// </summary>
+		public IInGameSetting cachedSetting;
+
+
 		public override void CopyDataTo(Text to)
 		{
 			base.CopyDataTo(to);
@@ -34,7 +40,12 @@ namespace SnapshotElems
 
 			to.type		= type;
 			to.optionDir	= optionDir;
+
+			to.cachedSetting = cachedSetting;
 		}
+
+		public Text() { }
+		public Text(IInGameSetting setting) { cachedSetting = setting; }
 	}
 
 	/// <summary>

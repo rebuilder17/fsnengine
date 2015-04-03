@@ -48,6 +48,14 @@ public interface IFSNPauseHandler : IEventSystemHandler
 	void OnEnginePause(bool pause);
 }
 
+/// <summary>
+/// 스크립트 로드 완료 이벤트
+/// </summary>
+public interface IFSNScriptLoadHandler : IEventSystemHandler
+{
+	void OnScriptLoadComplete();
+}
+
 
 
 
@@ -77,6 +85,10 @@ public sealed class FSNControlSystem : MonoBehaviour
 
 	bool							m_enginePause;			// 엔진 일시정지
 
+	// NOTE : 현재 ExecuteEvents 가 원하는 방식대로 동작하지 않아서, 여기에 미리 핸들러들을 지정해둘 수 있게 함.
+	// 나중에 이 부분이 해결되면 그에 맞게 수정할 것
+	HashSet<GameObject>				m_swipeHandlers;
+
 
 
 	/// <summary>
@@ -85,6 +97,8 @@ public sealed class FSNControlSystem : MonoBehaviour
 	public void Initialize()
 	{
 		m_seqEngine		= GetComponent<FSNSequenceEngine>();
+
+		m_swipeHandlers	= new HashSet<GameObject>();
 	}
 
 	void Update()
@@ -92,7 +106,53 @@ public sealed class FSNControlSystem : MonoBehaviour
 		if (!m_swipping && !m_swipeCompleted && m_swipeRatio > 0)	// swipe중이 아니고 swipe를 완료하지도 않은 경우, 원래 위치로 튕겨져 돌아가는 효과
 		{
 			m_swipeRatio	*= 0.5f;
+			if (m_swipeRatio < 0.01f) m_swipeRatio = 0;
 			m_seqEngine.PartialSwipe(m_swipeDirection, m_swipeRatio * c_partialSwipeLimit);
+		}
+	}
+
+
+	/// <summary>
+	/// swipe 핸들러 추가
+	/// </summary>
+	/// <param name="handler"></param>
+	public void AddSwipeHandler(GameObject handler)
+	{
+		m_swipeHandlers.Add(handler);
+	}
+
+	/// <summary>
+	/// Swipe 핸들러 제거
+	/// </summary>
+	/// <param name="handler"></param>
+	public void RemoveSwipeHandler(GameObject handler)
+	{
+		m_swipeHandlers.Remove(handler);
+	}
+
+	/// <summary>
+	/// Swipe 이벤트 실행
+	/// </summary>
+	/// <param name="function"></param>
+	public void ExecuteSwipeEvent(ExecuteEvents.EventFunction<IFSNSwipeHandler> function)
+	{
+		foreach (var handler in m_swipeHandlers)
+		{
+			ExecuteEvents.ExecuteHierarchy<IFSNSwipeHandler>(handler, null, function);
+		}
+	}
+
+	/// <summary>
+	/// 스크립트 로드 이벤트 실행
+	/// </summary>
+	/// <param name="function"></param>
+	public void ExecuteScriptLoadEvent(ExecuteEvents.EventFunction<IFSNScriptLoadHandler> function)
+	{
+		// NOTE : 현재는 swipe handler 와 통합해서 사용중임. 나중에 분리해야할 때 분리할 것
+
+		foreach (var handler in m_swipeHandlers)
+		{
+			ExecuteEvents.ExecuteHierarchy<IFSNScriptLoadHandler>(handler, null, function);
 		}
 	}
 
@@ -144,7 +204,7 @@ public sealed class FSNControlSystem : MonoBehaviour
 
 					if (!m_swipeEventSent || m_swipeEventSentWasWrongDir)		// 아직 이벤트를 보낸 적이 없거나 잘못된 방향으로 이벤트를 보냈을 경우
 					{
-						ExecuteEvents.ExecuteHierarchy<IFSNSwipeHandler>(engine.gameObject, null, (obj, param) =>
+						ExecuteSwipeEvent((obj, param) =>
 							{
 								obj.OnTryingSwipe(direction);					// 옳은 방향으로 swipe 이벤트
 							});
@@ -159,7 +219,7 @@ public sealed class FSNControlSystem : MonoBehaviour
 					m_swipeRatio	= 0;
 					m_swipeCompleted = true;
 
-					ExecuteEvents.ExecuteHierarchy<IFSNSwipeHandler>(engine.gameObject, null,
+					ExecuteSwipeEvent(
 						(obj, param) =>
 						{
 							obj.OnTryingSwipe(direction);						// swipe완료 이벤트
@@ -171,9 +231,9 @@ public sealed class FSNControlSystem : MonoBehaviour
 
 				if (!m_swipeEventSent || !m_swipeEventSentWasWrongDir)			// 아직 이벤트를 보낸 적이 없거나 올바른 방향으로 이벤트를 보냈을 경우
 				{
-					ExecuteEvents.ExecuteHierarchy<IFSNSwipeHandler>(engine.gameObject, null, (obj, param) =>
+					ExecuteSwipeEvent((obj, param) =>
 						{
-							obj.OnTryingSwipe(direction);						// 잘못된 방향으로 swipe 이벤트
+							obj.OnTryingSwipeToWrongDirection(direction);		// 잘못된 방향으로 swipe 이벤트
 						});
 
 					m_swipeEventSent			= true;
@@ -198,7 +258,7 @@ public sealed class FSNControlSystem : MonoBehaviour
 		{
 			if (m_swipeEventSentWasWrongDir)
 			{
-				ExecuteEvents.ExecuteHierarchy<IFSNSwipeHandler>(FSNEngine.Instance.gameObject, null,
+				ExecuteSwipeEvent(
 					(obj, param) =>
 					{
 						obj.OnReleaseSwipeToWrongDirection(m_swipeDirection);
@@ -206,7 +266,7 @@ public sealed class FSNControlSystem : MonoBehaviour
 			}
 			else
 			{
-				ExecuteEvents.ExecuteHierarchy<IFSNSwipeHandler>(FSNEngine.Instance.gameObject, null,
+				ExecuteSwipeEvent(
 					(obj, param) =>
 					{
 						obj.OnReleaseSwipe(m_swipeDirection);
@@ -226,6 +286,22 @@ public sealed class FSNControlSystem : MonoBehaviour
 		get { return !m_seqEngine.CanSwipe; }
 	}
 
+	/// <summary>
+	/// Swipe 가능한 방향들
+	/// </summary>
+	public bool [] SwipeVaildDirections
+	{
+		get
+		{
+			bool [] valid	= new bool[4];
+			for (int i = 0; i < 4; i++)
+			{
+				valid[i]	= m_seqEngine.SwipeDirectionAvailable((FSNInGameSetting.FlowDirection)i);
+			}
+			return valid;
+		}
+	}
+
 	//==============================================================================
 
 	/// <summary>
@@ -240,6 +316,8 @@ public sealed class FSNControlSystem : MonoBehaviour
 		}
 
 		m_enginePause = pause;
+
+		// TODO : 이벤트 쏘기
 	}
 
 	/// <summary>
@@ -248,5 +326,16 @@ public sealed class FSNControlSystem : MonoBehaviour
 	public void ResumeEngine()
 	{
 		PauseEngine(false);
+	}
+
+	/// <summary>
+	/// 스크립트 로딩 완료
+	/// </summary>
+	public void ScriptLoadComplete()
+	{
+		ExecuteScriptLoadEvent((obj, param) =>
+			{
+				obj.OnScriptLoadComplete();
+			});
 	}
 }
