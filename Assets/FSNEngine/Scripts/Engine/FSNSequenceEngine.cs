@@ -219,7 +219,9 @@ public class FSNSequenceEngine : MonoBehaviour
 			}
 
 			m_lastSwipeWasBackward	= isBackward;							// swipe 방향성 보관해두기 (연결된 snapshot 처리에 사용)
+			transTime				+= nextshot.AfterSwipeDelay;			// swipe 시간에 스냅샷에 지정된 딜레이 시간까지 더하기
 			m_swipeAvailableTime	= Time.time + transTime;				// 현재 시간 + 트랜지션에 걸리는 시간 뒤에 swipe가 가능해짐
+			//Debug.Log("delay time : " + transTime);
 
 			m_snapshotTraveler.TravelTo(direction);							// 해당 방향으로 넘기기
 			CurrentSession.SnapshotIndex	= m_snapshotTraveler.CurrentIndex;	// Session 정보 업데이트 (스크립트는 변하지 않았으므로 snapshot index만 바꿔주면 된다)

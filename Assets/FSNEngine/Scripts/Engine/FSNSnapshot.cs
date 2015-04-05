@@ -491,6 +491,11 @@ public class FSNSnapshot
 	/// </summary>
 	public IInGameSetting InGameSetting { get; set; }
 
+	/// <summary>
+	/// Swipe 완료 후 딜레이 시간. transition 딜레이에 더해지는 식으로 적용된다.
+	/// </summary>
+	public float AfterSwipeDelay { get; set; }
+
 
 	//========================================================================================
 

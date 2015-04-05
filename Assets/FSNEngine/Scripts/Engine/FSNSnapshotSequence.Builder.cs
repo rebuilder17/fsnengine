@@ -209,6 +209,8 @@ public sealed partial class FSNSnapshotSequence
 
 			List<Segments.Control>	jumpSegs	= new List<Segments.Control>();	// 점프(goto, SwipeOption 등) 세그먼트가 등장했을 경우 여기에 보관된다
 			List<Segment.CallFuncInfo> funcCalls= new List<Segment.CallFuncInfo>();	// 함수 콜이 있을 경우 여기에 먼저 누적하고 period때 한번에 처리한다
+
+			float snapshotDelay	= 0f;											// 스냅샷에 적용할 지연 시간 (/기다리기 커맨드)
 			//
 
 
@@ -325,6 +327,10 @@ public sealed partial class FSNSnapshotSequence
 								funcCalls.Add(callinfo);
 							}
 							break;
+
+						case Segments.Control.ControlType.Delay:				// 딜레이
+							snapshotDelay	= controlSeg.GetDelay();			// 지연 시간을 미리 지정해둔다
+							break;
 					}
 				}
 				break;
@@ -367,6 +373,11 @@ public sealed partial class FSNSnapshotSequence
 					funcCalls.Clear();
 
 					snapshotSeq.Add(sseg);										// 현재 스냅샷을 시퀀스에 추가
+					//
+
+					sseg.snapshot.AfterSwipeDelay	= snapshotDelay;			// 현재 지정된 딜레이를 적용.
+					snapshotDelay					= 0f;
+					//
 
 
 					// Condition 링크 임시 보관소 - 나중에 한번에 특정 방향으로 몰아넣는다

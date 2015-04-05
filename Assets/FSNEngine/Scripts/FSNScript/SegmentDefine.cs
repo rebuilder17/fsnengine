@@ -610,6 +610,11 @@ namespace Segments
 			public string			m_jumpLabel;
 		}
 
+		private class DelayData : IControlData
+		{
+			public float			m_delay	= 0;
+		}
+
 		//------------------------------------------------------------
 
 		/// <summary>
@@ -620,6 +625,8 @@ namespace Segments
 			Clear,					// 내용 모두 지우기
 
 			Oneway,					// 반대 방향으로 진행하지 못하게 하는 플래그
+
+			Delay,					// 스냅샷 딜레이
 
 			Goto,					// 라벨로 점프
 			ReverseGoto,			// 역방향 진행시 점프 (역방향 오버라이드)
@@ -770,6 +777,18 @@ namespace Segments
 			msgname		= entry.m_messageName;
 			param		= entry.m_parameters;
 			return true;
+		}
+
+		public void SetDelay(float delay)
+		{
+			var data			= CheckOptionData<DelayData>(ControlType.Delay);
+			data.m_delay		= delay;
+		}
+
+		public float GetDelay()
+		{
+			var data			= CheckOptionData<DelayData>(ControlType.Delay);
+			return data.m_delay;
 		}
 	}
 }

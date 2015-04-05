@@ -17,6 +17,7 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Clear,			"clear",		"지우기");
 		FSNScriptSequence.Parser.AddCommand(TextClear,		"textclear",	"글자지우기");
 		FSNScriptSequence.Parser.AddCommand(Load,			"load",			"불러오기");
+		FSNScriptSequence.Parser.AddCommand(Delay,			"delay",		"기다리기");
 
 		FSNScriptSequence.Parser.AddCommand(PushSetting,	"pushsetting",	"설정쌓기");
 		FSNScriptSequence.Parser.AddCommand(PopSetting,		"popsetting",	"설정버리기");
@@ -169,6 +170,22 @@ public static class FSNBuiltInScriptCommands
 			usePrevPeriod			= true
 		};
 		protocol.PushSegment(blockSegInfo);
+	}
+
+	static void Delay(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newseg					= new Segments.Control();
+
+		newseg.controlType			= Segments.Control.ControlType.Delay;
+		newseg.SetDelay(float.Parse(protocol.parameters[0]));
+
+		var newSegInfo				= new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+		{
+			newSeg					= newseg,
+			usePrevPeriod			= false,
+			selfPeriod				= true
+		};
+		protocol.PushSegment(newSegInfo);
 	}
 
 	//------------------------------------------------------------------------------------
