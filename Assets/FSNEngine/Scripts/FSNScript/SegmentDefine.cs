@@ -578,6 +578,7 @@ namespace Segments
 		private class SwipeOptionData : IControlData
 		{
 			public string [] m_dirLabelDict = new string[4];
+			public bool isNonTextOptions	= false;
 		}
 
 		/// <summary>
@@ -688,6 +689,24 @@ namespace Segments
 		{
 			var data	= CheckOptionData<SwipeOptionData>(ControlType.SwipeOption);
 			return data.m_dirLabelDict[(int)dir];
+		}
+
+		/// <summary>
+		/// 글 없는 선택지로 지정
+		/// </summary>
+		public void SetNonTextOptionFlag()
+		{
+			var data	= CheckOptionData<SwipeOptionData>(ControlType.SwipeOption);
+			data.isNonTextOptions	= true;
+		}
+
+		/// <summary>
+		/// 글 없는 선택지인지
+		/// </summary>
+		public bool IsNonTextOption()
+		{
+			var data	= CheckOptionData<SwipeOptionData>(ControlType.SwipeOption);
+			return data.isNonTextOptions;
 		}
 		//
 

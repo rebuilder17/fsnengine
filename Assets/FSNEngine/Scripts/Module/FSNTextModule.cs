@@ -573,7 +573,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 				if (elemAge == killAge)													// 없어지는 타이밍
 				{
 					// NOTE : 현재 구조상의 문제로 인해 분기점 이후 바로 없어지는 오브젝트의 FinalState를 여러개 둘 수 없음.
-					// 따라서 분기점 이후에도 1번은 오브젝트를 살려놓은 뒤 안보이게만 하고 다음번에 없애는 식으로.
+					// 따라서 분기점 이후에도 한번은 오브젝트를 살려놓은 뒤 안보이게만 하고 다음번에 없애는 식으로.
 
 					Vector2 halfScreen				= FSNEngine.Instance.ScreenDimension / 2f;
 					Vector3 transVec				= Vector2.Scale(dirVec, halfScreen);

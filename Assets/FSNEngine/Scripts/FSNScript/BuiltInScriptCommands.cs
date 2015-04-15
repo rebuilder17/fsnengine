@@ -29,6 +29,7 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Option_up,		"up",			"위");
 		FSNScriptSequence.Parser.AddCommand(Option_down,	"down",			"아래");
 		FSNScriptSequence.Parser.AddCommand(Option_end,		"showoption",	"선택지표시");
+		FSNScriptSequence.Parser.AddCommand(Option_end_nontext,		"shownontextoption",	"글없는선택지표시");
 
 		FSNScriptSequence.Parser.AddCommand(Image_start,	"showimage",	"이미지생성");
 		FSNScriptSequence.Parser.AddCommand(Image_end,		"removeimage",	"이미지제거");
@@ -264,10 +265,102 @@ public static class FSNBuiltInScriptCommands
 		{
 			var options	= new string[4][];
 			protocol.SetStateVar(c_key_optionData, options);					// 선택지 방향 -> 라벨 배열
+
+			var text	= protocol.parameters.Length > 0? protocol.parameters[0] : "";	// 텍스트를 지정하지 않았을 시 빈 문자열로
 			protocol.SetStateVar(c_key_optionTitle, protocol.parameters[0]);	// 선택지 타이틀 지정
 		}
 	}
 
+	/// <summary>
+	/// 글 없는 선택지 표시
+	/// </summary>
+	/// <param name="protocol"></param>
+	static void Option_end_nontext(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var optionData	= protocol.GetStateVar(c_key_optionData) as string[][];
+		if (optionData == null)
+		{
+			Debug.LogError("You can't make options without starting an option sequence.");
+		}
+		else
+		{
+			/*
+			var newOptionTextSeg		= new Segments.Text();
+			newOptionTextSeg.text		= protocol.GetStateVar(c_key_optionTitle) as string;
+			newOptionTextSeg.textType	= Segments.Text.TextType.Options;
+
+			// 선택지 선택 후 해당 선택지를 잠깐 보여주기 위해서,
+			// 가상 Label을 추가한 뒤 LastOption 텍스트 출력, 이후 원래 Label로 점프하는 추가 시퀀스를 만든다.
+
+			newOptionTextSeg.optionTexts	= new string[4];
+			var optionTransitionLabels	= new string[4];	// 트랜지션용 임시 라벨 목록
+			for(int i = 0; i < 4; i++)
+			{
+				var option	= optionData[i];
+				if(option != null)
+				{
+					optionTransitionLabels[i]		= option[0] + "__transition";
+					newOptionTextSeg.optionTexts[i]	= option[1];
+				}
+			}
+
+			// 선택지 텍스트 세그먼트 푸시
+			var newOptionTextSegInfo = new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newOptionTextSeg,
+				selfPeriod		= false,
+				usePrevPeriod	= true,
+			};
+			protocol.PushSegment(newOptionTextSegInfo);
+			 */
+
+			// 지정된 레이블로 점프하는 선택지 점프 세그먼트
+			var userChoiceSeg			= new Segments.Control();
+			userChoiceSeg.controlType	= Segments.Control.ControlType.SwipeOption;
+			for(int i = 0; i < 4; i++)
+			{
+				var option = optionData[i];
+				if (option != null)
+				{
+					userChoiceSeg.SetSwipeOptionData((FSNInGameSetting.FlowDirection)i, optionData[i][0]);
+				}
+			}
+			userChoiceSeg.SetNonTextOptionFlag();			// 글 없는 선택지로 지정
+
+			var userOptionControlSegInfo = new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= userChoiceSeg,
+				selfPeriod		= false,
+				usePrevPeriod	= false,
+			};
+			protocol.PushSegment(userOptionControlSegInfo);
+
+			// period 세그먼트 (선택지 표시를 위해서)
+			var periodSeg			= new Segments.Period();
+			periodSeg.isChaining	= false;
+			var periodSegInfo		= new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg				= periodSeg
+			};
+			protocol.PushSegment(periodSegInfo);
+
+			// 처리 블록 세그먼트
+			var blockSeg			= new Segments.Control();
+			blockSeg.controlType	= Segments.Control.ControlType.Block;
+			var blockControlSegInfo	= new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg				= blockSeg,
+				selfPeriod			= false,
+				usePrevPeriod		= false,
+			};
+			protocol.PushSegment(blockControlSegInfo);
+		}
+	}
+
+	/// <summary>
+	/// 일반 선택지 표시
+	/// </summary>
+	/// <param name="protocol"></param>
 	static void Option_end(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
 	{
 		var optionData	= protocol.GetStateVar(c_key_optionData) as string[][];
@@ -426,7 +519,8 @@ public static class FSNBuiltInScriptCommands
 		else
 		{
 			// 0번째 인덱스는 점프할 레이블, 1번째 인덱스는 텍스트
-			data[(int)dir]	= new string[2] { protocol.parameters[0], protocol.parameters[1] };
+			string text	= protocol.parameters.Length > 1? protocol.parameters[1] : "";	// 텍스트가 지정되지 않았을 때는 빈 문자열로 대체
+			data[(int)dir]	= new string[2] { protocol.parameters[0], text };
 		}
 	}
 

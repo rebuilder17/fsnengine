@@ -368,6 +368,10 @@ public sealed partial class FSNSnapshotSequence
 						//bs.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(bs.settings.CurrentFlowDirection);
 						//bs.SetSettingDirty();
 					}
+					else
+					{
+						linkToLast = true;	// FIX : linkToLast는 맨 첫번째 스냅샷에만 해당하는 파라미터임. 두번째는 꺼준다
+					}
 
 					sseg.FunctionCalls	= funcCalls.ToArray();					// 쌓인 함수콜 리스트를 배열로 변환하여 세팅
 					funcCalls.Clear();
@@ -392,6 +396,7 @@ public sealed partial class FSNSnapshotSequence
 
 						if (jumpSeg.controlType == Segments.Control.ControlType.SwipeOption)		// *** 선택지
 						{
+							bool isNonTextOption	= jumpSeg.IsNonTextOption();
 							for (int i = 0; i < 4; i++)												// 모든 방향마다 처리
 							{
 								var dir			= (FSNInGameSetting.FlowDirection)i;
@@ -419,7 +424,7 @@ public sealed partial class FSNSnapshotSequence
 										clonnedState.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(dir);
 
 										var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index, false);	// 새 분기 해석하기. 이전 스냅샷에 바로 붙이지 않는다.
-										LinkSnapshotAsOption(sseg, newSeg, dir);					// 선택지로 연결하기
+										LinkSnapshotAsOption(sseg, newSeg, dir, isNonTextOption);	// 선택지로 연결하기
 									}
 									else
 									{																// * HARD 라벨로 점프
@@ -623,7 +628,7 @@ public sealed partial class FSNSnapshotSequence
 		/// <param name="prev"></param>
 		/// <param name="next"></param>
 		/// <param name="dir"></param>
-		static void LinkSnapshotAsOption(Segment prev, Segment next, FSNInGameSetting.FlowDirection dir)
+		static void LinkSnapshotAsOption(Segment prev, Segment next, FSNInGameSetting.FlowDirection dir, bool isNonTextOption)
 		{
 			var backDir			= FSNInGameSetting.GetOppositeFlowDirection(dir);
 
@@ -632,10 +637,13 @@ public sealed partial class FSNSnapshotSequence
 			prev.SetDirectFlow(dir, next);
 			next.SetDirectFlow(backDir, prev);
 
-			// FIX : 선택지 분기는 period 세그먼트의 isChaining을 체크하는 부분이 위쪽 UserChoice를 체크하는 조건문에 걸려 실행되지 못함.
-			// 선택지 바로 다음에는 LastOption 텍스트를 표시하는 snapshot이 무조건 나온다고 가정하고, 여기서 강제로 chaining을 해준다.
-			next.snapshot.NonstopToForward		= true;
-			next.snapshot.NonstopToBackward	= true;
+			if (!isNonTextOption)	// 텍스트가 있는 일반 선택지일 때만
+			{
+				// FIX : 선택지 분기는 period 세그먼트의 isChaining을 체크하는 부분이 위쪽 UserChoice를 체크하는 조건문에 걸려 실행되지 못함.
+				// 선택지 바로 다음에는 LastOption 텍스트를 표시하는 snapshot이 무조건 나온다고 가정하고, 여기서 강제로 chaining을 해준다.
+				next.snapshot.NonstopToForward	= true;
+				next.snapshot.NonstopToBackward	= true;
+			}
 		}
 
 		/// <summary>
