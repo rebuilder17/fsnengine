@@ -4,15 +4,12 @@ using System.Collections.Generic;
 
 public class SnapshotEngineTest : MonoBehaviour
 {
-	FSNSequenceEngine m_seqEngine;
-
 	void Awake()
 	{
 	}
 
 	void Start()
 	{
-		m_seqEngine	= GetComponent<FSNSequenceEngine>();
 		FSNEngine.Instance.RunScript("testscript");
 	}
 
