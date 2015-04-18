@@ -267,7 +267,7 @@ public static class FSNBuiltInScriptCommands
 			protocol.SetStateVar(c_key_optionData, options);					// 선택지 방향 -> 라벨 배열
 
 			var text	= protocol.parameters.Length > 0? protocol.parameters[0] : "";	// 텍스트를 지정하지 않았을 시 빈 문자열로
-			protocol.SetStateVar(c_key_optionTitle, text);						// 선택지 타이틀 지정
+			protocol.SetStateVar(c_key_optionTitle, protocol.parameters[0]);	// 선택지 타이틀 지정
 		}
 	}
 

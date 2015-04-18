@@ -152,15 +152,7 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 				}
 				else if(controlSeg.controlType == Segments.Control.ControlType.Clear)	// Clear 명령에 반응
 				{
-					foreach (var rawelem in newLayer.Elements)							// finalstate가 세팅되지 않은 오브젝트에 한해서 디폴트 세팅
-					{
-						var elem	= rawelem as ElemT;
-						AutoSetFinalState(elem);
-					}
-
-					newLayer = new FSNSnapshot.Layer();									// 완전히 새로운 레이어로 교체
-
-					// TODO : 힘들게 복제한 레이어를 버리는 구조임. 최적화 여지가 있음.
+					// 
 				}
 			}
 			else
@@ -264,20 +256,6 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		}
 	}
 
-	/// <summary>
-	/// Final state가 세팅되지 않은 오브젝트에 한해서 FinalState를 적절하게 세팅해준다
-	/// </summary>
-	/// <param name="elem"></param>
-	private void AutoSetFinalState(ElemT elem)
-	{
-		if(!elem.finalStateSet)					// Final State가 하나도 세팅되지 않은 경우, 기본값부터 세팅
-		{
-			elem.CopyDataTo(elem.FinalState);	// (마지막 설정값 그대로 알파만 0)
-			elem.FinalState.Alpha	= 0;
-			elem.finalStateSet		= true;
-		}
-	}
-
 	//========================================================================
 
 	/// <summary>
@@ -337,13 +315,12 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		}
 
 		var elem	= layer.GetElement(uid) as ElemT;
-		//if(!elem.finalStateSet)										// Final State가 하나도 세팅되지 않은 경우, 기본값부터 세팅
-		//{
-		//	elem.CopyDataTo(elem.FinalState);						// (마지막 설정값 그대로 알파만 0)
-		//	elem.FinalState.Alpha	= 0;
-		//	elem.finalStateSet		= true;
-		//}
-		AutoSetFinalState(elem);									// Final State가 하나도 세팅되지 않은 경우, 기본값부터 세팅
+		if(!elem.finalStateSet)										// Final State가 하나도 세팅되지 않은 경우, 기본값부터 세팅
+		{
+			elem.CopyDataTo(elem.FinalState);						// (마지막 설정값 그대로 알파만 0)
+			elem.FinalState.Alpha	= 0;
+			elem.finalStateSet		= true;
+		}
 
 		SetElemBySegProperties(elem, segment);						// 마지막 설정값들 세팅
 		elem.motionState			= SnapshotElems.ObjectBase<ElemT>.State.MotionKey;
