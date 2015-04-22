@@ -396,7 +396,7 @@ public class FSNScriptSequence
 			var strstream				= new System.IO.StringReader(scriptData);
 			sequence.OriginalScriptPath	= "(string)";
 			sequence.ScriptHashKey		= GenerateHashKeyFromScript(scriptData);	// 해시키 생성해두기 (세이브 파일과 스크립트 파일 버전 체크용)
-			Debug.Log("ScriptHashKey : " + sequence.ScriptHashKey);
+			//Debug.Log("ScriptHashKey : " + sequence.ScriptHashKey);
 
 			// 스크립트 해석 상태값들
 			CommandGenerateProtocol protocol	= new CommandGenerateProtocol();

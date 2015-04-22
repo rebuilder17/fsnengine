@@ -156,14 +156,17 @@ public sealed class FSNEngine : MonoBehaviour
 
 		// 보조 컴포넌트 초기화
 
-		m_unityCallSvr		= GetComponent<FSNDefaultUnityCallServer>();
+		m_unityCallSvr		= gameObject.AddComponent<FSNDefaultUnityCallServer>();
 		gameObject.AddComponent<FSNFundamentalScriptFunctions>();
 
-		m_seqEngine			= GetComponent<FSNSequenceEngine>();
+		m_seqEngine			= gameObject.AddComponent<FSNSequenceEngine>();
 		m_seqEngine.Initialize();
 
-		m_ctrlSystem		= GetComponent<FSNControlSystem>();
+		m_ctrlSystem		= gameObject.AddComponent<FSNControlSystem>();
 		m_ctrlSystem.Initialize();
+
+		// 초기화 완료 콜백
+		CallAfterInitEvents();
 
 		// 디버그 모듈 초기화
 		FSNDebug.Install();
@@ -183,6 +186,17 @@ public sealed class FSNEngine : MonoBehaviour
 		foreach(FSNModule module in m_moduleRefDict.Values)
 		{
 			module.Initialize();
+		}
+	}
+
+	/// <summary>
+	/// 초기화 종료 후 이벤트 호출
+	/// </summary>
+	void CallAfterInitEvents()
+	{
+		foreach (FSNModule module in m_moduleRefDict.Values)
+		{
+			module.OnAfterEngineInit();
 		}
 	}
 

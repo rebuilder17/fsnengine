@@ -21,5 +21,10 @@ public abstract class FSNModule : MonoBehaviour
 	/// 초기화
 	/// </summary>
 	public abstract void Initialize();
+
+	/// <summary>
+	/// 모든 엔진 초기화 종료 후 호출됨
+	/// </summary>
+	public virtual void OnAfterEngineInit() { }
 }
 

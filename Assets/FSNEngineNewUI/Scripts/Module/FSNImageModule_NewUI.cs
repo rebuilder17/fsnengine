@@ -66,6 +66,7 @@ public class FSNImageModule_NewUI : FSNImageModule<LayerObjects.Image_NewUI>
 	protected override LayerObjects.Image_NewUI MakeNewLayerObject(SnapshotElems.Image elem, IInGameSetting setting)
 	{
 		GameObject newObj	= new GameObject("Image_NewUI");
+		newObj.layer		= gameObject.layer;
 		var lobj			= new LayerObjects.Image_NewUI(this, newObj, setting);
 		newObj.transform.SetParent(ObjectRoot, false);
 

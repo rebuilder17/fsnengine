@@ -174,7 +174,7 @@ public class FSNSession
 
 			// 값 테이블
 			var valuetable	= new JSONObject(JSONObject.Type.OBJECT);
-			json.AddField(c_field_flagTable, valuetable);
+			json.AddField(c_field_valueTable, valuetable);
 			foreach(var pair in session.m_valueTable)
 			{
 				valuetable.AddField(pair.Key, pair.Value);

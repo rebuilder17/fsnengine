@@ -135,6 +135,7 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		setting	= elem.cachedSetting;			// 캐싱된 세팅을 사용한다.
 
 		GameObject newObj		= new GameObject("Text_NewUI");
+		newObj.layer			= gameObject.layer;
 		var lobj				= new LayerObjects.Text_NewUI(this, newObj, setting);
 		newObj.transform.SetParent(ObjectRoot, false);
 
