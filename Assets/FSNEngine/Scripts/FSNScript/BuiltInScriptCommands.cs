@@ -10,8 +10,8 @@ public static class FSNBuiltInScriptCommands
 {
 	public static void Install()
 	{
-		FSNScriptSequence.Parser.AddCommand(Goto,			"goto",			"이동");
-		FSNScriptSequence.Parser.AddCommand(ReverseGoto,	"reversegoto",	"역방향");
+		FSNScriptSequence.Parser.AddCommand(Goto,			"goto",			"이동", "점프");
+		FSNScriptSequence.Parser.AddCommand(ReverseGoto,	"reversegoto",	"역방향", "역방향점프");
 		FSNScriptSequence.Parser.AddCommand(End,			"end",			"끝");
 		FSNScriptSequence.Parser.AddCommand(Oneway,			"oneway",		"역방향금지");
 		FSNScriptSequence.Parser.AddCommand(Clear,			"clear",		"지우기");
