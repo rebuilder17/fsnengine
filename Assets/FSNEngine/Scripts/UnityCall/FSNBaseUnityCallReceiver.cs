@@ -68,12 +68,6 @@ public class FSNBaseUnityCallReceiver : MonoBehaviour
 	{
 		if (m_methodRegister != null)
 		{
-			Debug.Log(this.GetType().ToString());
-			//var methods			= this.GetType().GetMethods(System.Reflection.BindingFlags.Default
-			//												| System.Reflection.BindingFlags.FlattenHierarchy
-			//												| System.Reflection.BindingFlags.Static
-			//												| System.Reflection.BindingFlags.Public
-			//												| System.Reflection.BindingFlags.NonPublic);
 			var methods			= this.GetType().GetMethods();
 
 			foreach (var method in methods)

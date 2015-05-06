@@ -25,8 +25,8 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 	/// <returns></returns>
 	static bool GetFlagOrLiteral(string param)
 	{
-		if (engine.SessionFlagIsDeclared(param))
-			return engine.GetSessionFlag(param);
+		if (engine.ScriptFlagIsDeclared(param))
+			return engine.GetScriptFlag(param);
 		else
 			return FSNUtils.StringToValue<bool>(param);
 	}
@@ -38,8 +38,8 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 	/// <returns></returns>
 	static float GetValueOrLiteral(string param)
 	{
-		if (engine.SessionValueIsDeclared(param))
-			return engine.GetSessionValue(param);
+		if (engine.ScriptValueIsDeclared(param))
+			return engine.GetScriptValue(param);
 		else
 			return FSNUtils.StringToValue<float>(param);
 	}
@@ -52,7 +52,7 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 	{
 		int count	= param.Length;
 		for (int i = 0; i < count; i++)
-			engine.SetSessionFlag(param[i], true);
+			engine.SetScriptFlag(param[i], true);
 	}
 
 	[UnityCallVoidMethod]
@@ -60,7 +60,7 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 	{
 		int count	= param.Length;
 		for (int i = 0; i < count; i++)
-			engine.SetSessionFlag(param[i], false);
+			engine.SetScriptFlag(param[i], false);
 	}
 
 	[UnityCallVoidMethod]
@@ -76,7 +76,7 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 			}
 			else
 			{							// 짝수번째는 변수값. 바로 이전에 얻은 변수 이름으로 세팅한다
-				engine.SetSessionFlag(varname, FSNUtils.StringToValue<bool>(param[i]));
+				engine.SetScriptFlag(varname, FSNUtils.StringToValue<bool>(param[i]));
 				varname	= null;
 			}
 		}
@@ -95,7 +95,7 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 			}
 			else
 			{							// 짝수번째는 변수값. 바로 이전에 얻은 변수 이름으로 세팅한다
-				engine.SetSessionValue(varname, FSNUtils.StringToValue<float>(param[i]));
+				engine.SetScriptValue(varname, FSNUtils.StringToValue<float>(param[i]));
 				varname	= null;
 			}
 		}
@@ -104,13 +104,13 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 	[UnityCallBoolMethod]
 	public static bool __fsnengine_IfFlagIsTrue(params string [] param)
 	{
-		return engine.GetSessionFlag(param[0]);
+		return engine.GetScriptFlag(param[0]);
 	}
 
 	[UnityCallBoolMethod]
 	public static bool __fsnengine_IfFlagIsFalse(params string [] param)
 	{
-		return !engine.GetSessionFlag(param[0]);
+		return !engine.GetScriptFlag(param[0]);
 	}
 
 	[UnityCallBoolMethod]
@@ -131,42 +131,15 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 		return GetValueOrLiteral(param[0]) != GetValueOrLiteral(param[1]);
 	}
 
+	[UnityCallBoolMethod]
 	public static bool __fsnengine_CheckValueIsGreaterThan(params string [] param)
 	{
 		return GetValueOrLiteral(param[0]) > GetValueOrLiteral(param[1]);
 	}
 
+	[UnityCallBoolMethod]
 	public static bool __fsnengine_CheckValueIsLesserThan(params string [] param)
 	{
 		return GetValueOrLiteral(param[0]) < GetValueOrLiteral(param[1]);
-	}
-
-
-
-	//
-	[UnityCallVoidMethod]
-	public static void TestCall(params string [] param)
-	{
-		Debug.Log("AAAAAAAAAAAAA");
-		foreach (var str in param)
-		{
-			Debug.Log(str);
-		}
-	}
-
-	[UnityCallVoidMethod]
-	public void TestCall2(params string [] param)
-	{
-		Debug.Log("TestCall2 called! " + gameObject.name);
-	}
-
-	//static int testcounter = 0;
-
-	[UnityCallBoolMethod]
-	public bool TestBoolCheck(params string [] param)
-	{
-		//testcounter = (testcounter + 1) % 4;
-		//return testcounter < 2;
-		return false;
 	}
 }

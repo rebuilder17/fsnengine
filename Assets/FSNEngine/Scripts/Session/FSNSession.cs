@@ -110,13 +110,15 @@ public class FSNSession
 	{
 		var newsession		= new FSNSession();
 
-		var fs				= File.OpenText(Application.persistentDataPath + "/" + filepath);
-		JSONObject json		= null;
-		using(fs)										// 파일을 읽고 json으로 파싱
-		{
-			string text		= fs.ReadToEnd();
-			json			= JSONObject.Create(text);
-		}
+		//var fs				= File.OpenText(Application.persistentDataPath + "/" + filepath);
+		//JSONObject json		= null;
+		//using(fs)										// 파일을 읽고 json으로 파싱
+		//{
+		//	string text		= fs.ReadToEnd();
+		//	json			= JSONObject.Create(text);
+		//}
+		var rawdata			= FSNUtils.LoadTextData(filepath);
+		JSONObject json		= JSONObject.Create(rawdata);
 
 		if (json != null)
 		{
@@ -154,8 +156,8 @@ public class FSNSession
 	/// <param name="filepath"></param>
 	public static void Save(FSNSession session, string filepath)
 	{
-		var fs				= File.Open(Application.persistentDataPath + "/" + filepath, FileMode.Create);
-		using(fs)
+		//var fs				= File.Open(Application.persistentDataPath + "/" + filepath, FileMode.Create);
+		//using(fs)
 		{
 			var json		= new JSONObject(JSONObject.Type.OBJECT);
 
@@ -182,11 +184,12 @@ public class FSNSession
 
 
 			// 실제로 파일에 기록
-			var writer		= new StreamWriter(fs);
-			using(writer)
-			{
-				writer.Write(json.Print());
-			}
+			//var writer		= new StreamWriter(fs);
+			//using(writer)
+			//{
+			//	writer.Write(json.Print());
+			//}
+			FSNUtils.SaveTextData(filepath, json.Print());
 		}
 	}
 }

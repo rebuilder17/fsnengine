@@ -130,6 +130,9 @@ public sealed class FSNEngine : MonoBehaviour
 
 		m_inGameSetting		= new FSNInGameSetting(true);
 
+		// Persistent Data 불러오기
+		FSNPersistentData.Load();
+
 
 		// 모듈 초기화
 
@@ -174,8 +177,16 @@ public sealed class FSNEngine : MonoBehaviour
 
 	void OnDestroy()
 	{
+		// Persistent Data 저장 (forced)
+		FSNPersistentData.Save(true);
+
 		// 디버그 모듈 해제
 		FSNDebug.Uninstall();
+	}
+
+	void Update()
+	{
+		FSNPersistentData.Save();	// Persistent Data 변경점 세이브. (변화가 있을 때만 실제로 save한다)
 	}
 
 	/// <summary>
@@ -319,33 +330,53 @@ public sealed class FSNEngine : MonoBehaviour
 	}
 
 
-	public bool GetSessionFlag(string name)
+	public bool GetScriptFlag(string name)
 	{
-		return m_seqEngine.CurrentSession.GetFlagValue(name);
+		return FSNPersistentData.IsPersistentVarName(name)?
+			FSNPersistentData.GetScriptFlag(name) :
+			m_seqEngine.CurrentSession.GetFlagValue(name);
 	}
 
-	public void SetSessionFlag(string name, bool value)
+	public void SetScriptFlag(string name, bool value)
 	{
-		m_seqEngine.CurrentSession.SetFlagValue(name, value);
+		if(FSNPersistentData.IsPersistentVarName(name))
+		{
+			FSNPersistentData.SetScriptFlag(name, value);
+		}
+		else
+		{
+			m_seqEngine.CurrentSession.SetFlagValue(name, value);
+		}
 	}
 
-	public float GetSessionValue(string name)
+	public float GetScriptValue(string name)
 	{
-		return m_seqEngine.CurrentSession.GetNumberValue(name);
+		return FSNPersistentData.IsPersistentVarName(name)?
+			FSNPersistentData.GetScriptValue(name) :
+			m_seqEngine.CurrentSession.GetNumberValue(name);
 	}
 
-	public void SetSessionValue(string name, float value)
+	public void SetScriptValue(string name, float value)
 	{
-		m_seqEngine.CurrentSession.SetNumberValue(name, value);
+		if (FSNPersistentData.IsPersistentVarName(name))
+		{
+			FSNPersistentData.SetScriptValue(name, value);
+		}
+		else
+		{
+			m_seqEngine.CurrentSession.SetNumberValue(name, value);
+		}
 	}
 
-	public bool SessionFlagIsDeclared(string name)
+	public bool ScriptFlagIsDeclared(string name)
 	{
-		return m_seqEngine.CurrentSession.FlagIsDeclared(name);
+		// note : persistent 변수값들은 변수가 있는지 여부를 체크하지 않는다. 무조건 true
+		return FSNPersistentData.IsPersistentVarName(name) || m_seqEngine.CurrentSession.FlagIsDeclared(name);
 	}
 
-	public bool SessionValueIsDeclared(string name)
+	public bool ScriptValueIsDeclared(string name)
 	{
-		return m_seqEngine.CurrentSession.ValueIsDeclared(name);
+		// note : persistent 변수값들은 변수가 있는지 여부를 체크하지 않는다. 무조건 true
+		return FSNPersistentData.IsPersistentVarName(name) || m_seqEngine.CurrentSession.ValueIsDeclared(name);
 	}
 }

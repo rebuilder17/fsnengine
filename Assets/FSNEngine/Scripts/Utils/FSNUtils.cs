@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 
 /// <summary>
@@ -202,5 +203,50 @@ public static class FSNUtils
 	private static uint BitExtract(uint input, uint mask, byte shift)
 	{
 		return (input & (mask << shift)) >> shift;
+	}
+
+
+	/// <summary>
+	/// persistent 경로에 해당 이름의 파일이 존재하는지
+	/// </summary>
+	/// <param name="filename"></param>
+	/// <returns></returns>
+	public static bool CheckTextFileExists(string filename)
+	{
+		return File.Exists(Application.persistentDataPath + "/" + filename);
+	}
+
+	/// <summary>
+	/// persistent 경로의 특정 파일에 문자열 저장
+	/// </summary>
+	/// <param name="filename"></param>
+	/// <param name="data"></param>
+	public static void SaveTextData(string filename, string data)
+	{
+		var fs = File.Open(Application.persistentDataPath + "/" + filename, FileMode.Create);
+		using(fs)
+		{
+			var writer = new StreamWriter(fs);
+			using(writer)
+			{
+				writer.Write(data);
+			}
+		}
+	}
+
+	/// <summary>
+	/// persistent 경로의 특정 파일에서 문자열 로드하기
+	/// </summary>
+	/// <param name="filename"></param>
+	/// <returns></returns>
+	public static string LoadTextData(string filename)
+	{
+		var fs = File.OpenText(Application.persistentDataPath + "/" + filename);
+		string text;
+		using(fs)										// 파일을 읽고 json으로 파싱
+		{
+			text = fs.ReadToEnd();
+		}
+		return text;
 	}
 }
