@@ -36,10 +36,8 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 
 	// Members
 
-	///// <summary>
-	///// 이름 => 오브젝트 UID 딕셔너리
-	///// </summary>
-	//Dictionary<string, int>	m_lookupDict	= new Dictionary<string, int>();
+
+
 
 	static bool AddToLookupDict(string name, ElemT elem, FSNSnapshot.Layer layer)
 	{
@@ -47,7 +45,6 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		if(nameDict == null)
 		{
 			nameDict	= new Dictionary<string,int>();
-			//layer.CustomData	= nameDict;
 			layer.SetCustomData(c_customDataName, nameDict);
 		}
 
@@ -66,7 +63,6 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		if(nameDict == null)
 		{
 			nameDict	= new Dictionary<string,int>();
-			//layer.CustomData	= nameDict;
 			layer.SetCustomData(c_customDataName, nameDict);
 		}
 
@@ -85,7 +81,6 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		if(nameDict == null)
 		{
 			nameDict	= new Dictionary<string,int>();
-			//layer.CustomData	= nameDict;
 			layer.SetCustomData(c_customDataName, nameDict);
 		}
 
@@ -337,12 +332,7 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		}
 
 		var elem	= layer.GetElement(uid) as ElemT;
-		//if(!elem.finalStateSet)										// Final State가 하나도 세팅되지 않은 경우, 기본값부터 세팅
-		//{
-		//	elem.CopyDataTo(elem.FinalState);						// (마지막 설정값 그대로 알파만 0)
-		//	elem.FinalState.Alpha	= 0;
-		//	elem.finalStateSet		= true;
-		//}
+
 		AutoSetFinalState(elem);									// Final State가 하나도 세팅되지 않은 경우, 기본값부터 세팅
 
 		SetElemBySegProperties(elem, segment);						// 마지막 설정값들 세팅

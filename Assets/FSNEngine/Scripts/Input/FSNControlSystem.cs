@@ -56,6 +56,14 @@ public interface IFSNScriptLoadHandler : IEventSystemHandler
 	void OnScriptLoadComplete();
 }
 
+/// <summary>
+/// 게임 중 메뉴 토글 이벤트 (한 손가락으로 터치 후 swipe하지 않고 떼기)
+/// </summary>
+public interface IFSNMenuToggleHandler : IEventSystemHandler
+{
+	void OnToggleMenu();
+}
+
 
 
 
@@ -75,6 +83,7 @@ public sealed class FSNControlSystem : MonoBehaviour
 
 	bool							m_swipping	= false;	// swipe중인지
 	bool							m_swipeCompleted;		// swipe로 페이지가 넘어갔는지 여부. 넘어갔다면 clear될 때까지는 swipe를 무시한다
+	bool							m_swippedAnyway;		// 터치하고 나서 어쨌든 움직이긴 움직였는지
 	FSNInGameSetting.FlowDirection	m_swipeDirection;		// 최근에 (혹은 현재) 민 방향
 	float							m_swipeRatio;			// 전체에서 얼마만큼 밀었는지 (비율)
 
@@ -156,6 +165,20 @@ public sealed class FSNControlSystem : MonoBehaviour
 		}
 	}
 
+	/// <summary>
+	/// 토글 메뉴 호출 이벤트 실행
+	/// </summary>
+	/// <param name="function"></param>
+	public void ExecuteMenuToggleEvent(ExecuteEvents.EventFunction<IFSNMenuToggleHandler> function)
+	{
+		// NOTE : 현재는 swipe handler 와 통합해서 사용중임. 나중에 분리해야할 때 분리할 것
+
+		foreach (var handler in m_swipeHandlers)
+		{
+			ExecuteEvents.ExecuteHierarchy<IFSNMenuToggleHandler>(handler, null, function);
+		}
+	}
+
 
 	// 이벤트 콜
 
@@ -171,6 +194,7 @@ public sealed class FSNControlSystem : MonoBehaviour
 		m_swipping			= true;
 		m_swipeEventSent	= false;
 		m_swipeEventSentWasWrongDir = false;
+		m_swippedAnyway		= false;
 	}
 
 	/// <summary>
@@ -183,6 +207,8 @@ public sealed class FSNControlSystem : MonoBehaviour
 
 		if(!m_swipeCompleted && m_seqEngine.CanSwipe)							// swipe 가능한 상태
 		{
+			m_swippedAnyway	= true;												// 어쨌든 swipe를 하긴 했음. release 하더라도 메뉴 토글은 콜하지 않도록
+
 			var engine		= FSNEngine.Instance;
 
 			m_swipeDirection= direction;										// 민 방향을 보관해둔다
@@ -274,6 +300,16 @@ public sealed class FSNControlSystem : MonoBehaviour
 			}
 
 			m_swipeEventSent	= false;
+		}
+
+		if (m_swippedAnyway)						// 터치 후에 움직이지 않고 바로 뗀 경우, 메뉴 토글 호출
+		{
+			ExecuteMenuToggleEvent(
+				(obj, param) =>
+				{
+					obj.OnToggleMenu();
+				});
+			m_swippedAnyway = false;
 		}
 		
 	}

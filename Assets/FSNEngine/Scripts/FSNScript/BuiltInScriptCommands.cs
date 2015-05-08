@@ -284,36 +284,6 @@ public static class FSNBuiltInScriptCommands
 		}
 		else
 		{
-			/*
-			var newOptionTextSeg		= new Segments.Text();
-			newOptionTextSeg.text		= protocol.GetStateVar(c_key_optionTitle) as string;
-			newOptionTextSeg.textType	= Segments.Text.TextType.Options;
-
-			// 선택지 선택 후 해당 선택지를 잠깐 보여주기 위해서,
-			// 가상 Label을 추가한 뒤 LastOption 텍스트 출력, 이후 원래 Label로 점프하는 추가 시퀀스를 만든다.
-
-			newOptionTextSeg.optionTexts	= new string[4];
-			var optionTransitionLabels	= new string[4];	// 트랜지션용 임시 라벨 목록
-			for(int i = 0; i < 4; i++)
-			{
-				var option	= optionData[i];
-				if(option != null)
-				{
-					optionTransitionLabels[i]		= option[0] + "__transition";
-					newOptionTextSeg.optionTexts[i]	= option[1];
-				}
-			}
-
-			// 선택지 텍스트 세그먼트 푸시
-			var newOptionTextSegInfo = new FSNScriptSequence.Parser.GeneratedSegmentInfo()
-			{
-				newSeg			= newOptionTextSeg,
-				selfPeriod		= false,
-				usePrevPeriod	= true,
-			};
-			protocol.PushSegment(newOptionTextSegInfo);
-			 */
-
 			// 지정된 레이블로 점프하는 선택지 점프 세그먼트
 			var userChoiceSeg			= new Segments.Control();
 			userChoiceSeg.controlType	= Segments.Control.ControlType.SwipeOption;
