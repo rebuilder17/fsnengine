@@ -33,19 +33,19 @@ public class FSNQuickSaveSupport : FSNModule
 		
 	}
 
-	void Update()
-	{
-		if (Input.GetKeyDown(KeyCode.F5))
-		{
-			Debug.Log("SAVE");
-			QuickSave();
-		}
-		else if (Input.GetKeyDown(KeyCode.F9))
-		{
-			Debug.Log("Load");
-			QuickLoad();
-		}
-	}
+	//void Update()
+	//{
+	//	if (Input.GetKeyDown(KeyCode.F5))
+	//	{
+	//		Debug.Log("SAVE");
+	//		QuickSave();
+	//	}
+	//	else if (Input.GetKeyDown(KeyCode.F9))
+	//	{
+	//		Debug.Log("Load");
+	//		QuickLoad();
+	//	}
+	//}
 
 	//
 

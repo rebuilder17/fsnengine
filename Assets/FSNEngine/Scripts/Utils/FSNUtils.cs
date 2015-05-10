@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 
 /// <summary>
@@ -248,5 +251,18 @@ public static class FSNUtils
 			text = fs.ReadToEnd();
 		}
 		return text;
+	}
+
+
+	/// <summary>
+	/// 앱 종료, 혹은 Play 종료하기
+	/// </summary>
+	public static void QuitApp()
+	{
+#if UNITY_EDITOR
+		EditorApplication.isPlaying = false;
+#else
+		Application.Quit();
+#endif
 	}
 }

@@ -195,9 +195,15 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 	{
 		FSNSnapshot.Layer newLayer	= curLayer.Clone();
 
+		foreach (var rawelem in newLayer.Elements)								// Final State를 임시로 계속 만들어주기
+		{
+			var elem	= rawelem as SnapshotElems.Text;
+			elem.CopyDataTo(elem.FinalState);
+			elem.FinalState.Alpha = 0;
+		}
+
 		foreach(var callParam in callParams)
 		{
-			//Debug.Log("TextModule : " + callParam.segment.type.ToString());
 			if(callParam.segment.type == FSNScriptSequence.Segment.Type.Text)	// ** 텍스트 세그먼트 처리 **
 			{
 				var textSeg	= callParam.segment as Segments.Text;				// 타입 변환
@@ -292,7 +298,6 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		if(setting.ScreenCenterText)												// * 가운데 텍스트일 경우,
 		{
-			//PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 기존 텍스트를 일괄적으로 해당 방향으로 밀기
 			layer.AddElement(newTextElem);											// 텍스트 엘리멘트 추가
 
 			var posToCenter		= newTextElem.Position;								
@@ -335,7 +340,6 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			default:
 				throw new System.Exception("HUH???");
 		}
-		//ApplySideTextMargin(ref fadePosOffset, setting, setting.CurrentFlowDirection);	// 여백 적용
 
 		// 새 텍스트 엘레먼트 세팅 : 선택지 질문 텍스트
 
@@ -486,10 +490,6 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 			layer.AddElement(rightTextElem);								// 텍스트 엘리멘트 추가
 		}
-
-
-
-		//PushTextsToDirection(layer, setting.CurrentFlowDirection, newTextSize);	// 텍스트 일괄적으로 해당 방향으로 밀기
 	}
 
 	private void AddLastOptionText(FSNSnapshot.Layer layer, Segments.Text textSeg, IInGameSetting setting)

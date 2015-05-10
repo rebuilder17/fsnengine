@@ -7,7 +7,7 @@ using System.Collections;
 /// 오버레이 UI를 관리하는 컴포넌트
 /// </summary>
 [RequireComponent(typeof(Canvas))]
-public class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptLoadHandler
+public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptLoadHandler, IFSNMenuToggleHandler
 {
 	// Constants
 
@@ -45,6 +45,9 @@ public class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptLoadHandl
 	[SerializeField]
 	float			m_swipeInvalidIndicatorTime	= 2f;	// swipe 불가능 표시의 최대 라이프타임
 
+	[SerializeField]
+	FSNBaseOverlayDialog[]	m_dialogs;					// OverlayUI에서 관리할 다이얼로그들
+
 	// NOTE
 	// swipe 가능 표시는 inactive 상태로 두다가 가능해질 경우 active로 전환한다.
 	// swipe 불가능 표시는 inactive 상태로 항상 두고, 해당 오브젝트를 사유가 발생할 때마다 매번 복제한다.
@@ -64,9 +67,18 @@ public class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptLoadHandl
 	Coroutine		m_currentIdleUICoRoutine;
 	bool			m_idleChecking;						// Idle 체크 코루틴이 작동중인지
 
+	DialogStack		m_dialogStack;						// 다이얼로그 스택
+
+
+
+	// static
+	public static FSNOverlayUI Instance { get; private set; }
+
 
 	void Awake()
 	{
+		Instance = this;
+
 		m_idle					= true;
 		m_idleUIVisible			= false;
 		m_swipeIndicatorVisible	= false;
@@ -77,16 +89,31 @@ public class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptLoadHandl
 		m_indicatorSwipeRight.SetActive(false);
 
 		FSNEngine.Instance.ControlSystem.AddSwipeHandler(gameObject);	// 핸들러 등록. 임시방편에 가깝다....
+
+		// 다이얼로그 스택 초기화
+
+		m_dialogStack			= new DialogStack();
+		int dialogCount			= m_dialogs.Length;
+		for(int i = 0; i < dialogCount; i++)							// 다이얼로그들 스택에 미리 등록
+		{
+			m_dialogs[i].RegisterDialogProtocol(m_dialogStack);
+		}
 	}
 
 	void OnDestroy()
 	{
 		FSNEngine.Instance.ControlSystem.RemoveSwipeHandler(gameObject);
+		Instance = null;
 	}
 
 	void Update()
 	{
-		if (m_idle)																					// ** Idle 상태인 경우 -> UI 표시 상태로 전환해야함
+		var dialogOpened	= !m_dialogStack.IsEmpty;
+		FSNEngine.Instance.ControlSystem.PauseEngine(dialogOpened);									// 다이얼로그가 열려있는지 여부에 따라 엔진 일시정지 설정
+
+		// 다이얼로그가 하나라도 열려있다면 idle 상태로 치지 않는다
+
+		if (m_idle && !dialogOpened)																// ** Idle 상태인 경우 -> UI 표시 상태로 전환해야함
 		{
 			if (!m_idleUIVisible && m_nextIdleVisibleTime <= Time.time)								// idle UI가 아직 표시되지 않았고, 표시 시간에 도달한 경우
 			{
@@ -281,5 +308,54 @@ public class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptLoadHandl
 		m_swipeIndicatorVisible	= false;
 
 		StartCoroutine(CheckIdle());	// 조건이 완전히 성립할 때까지 계속 Idle 체크
+	}
+
+	/// <summary>
+	/// 토글 메뉴
+	/// </summary>
+	public void OnToggleMenu()
+	{
+		var menu	= GetDialog<FSNOverlayToggleMenu>();
+		if (!menu.IsOpened)
+		{
+			if (m_dialogStack.IsEmpty)				// 다이얼로그가 하나도 없을 때만 연다
+				OpenDialog<FSNOverlayToggleMenu>();
+		}
+		else
+		{
+			CloseDialog<FSNOverlayToggleMenu>();
+		}
+	}
+
+	//==============================================================
+
+	// 다이얼로그 관련
+
+	/// <summary>
+	/// 다이얼로그 객체 얻어오기
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <returns></returns>
+	public T GetDialog<T>() where T : FSNBaseOverlayDialog
+	{
+		return m_dialogStack.GetDialog<T>();
+	}
+
+	/// <summary>
+	/// 다이얼로그 열기
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public void OpenDialog<T>() where T : FSNBaseOverlayDialog
+	{
+		m_dialogStack.Open<T>();
+	}
+
+	/// <summary>
+	/// 다이얼로그 닫기
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public void CloseDialog<T>() where T : FSNBaseOverlayDialog
+	{
+		m_dialogStack.Close<T>();
 	}
 }

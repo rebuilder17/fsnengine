@@ -27,6 +27,12 @@ public class FSNRunScriptOnLaunch : FSNModule
 
 	public override void OnAfterEngineInit()
 	{
+		StartCoroutine(LateStart());
+	}
+
+	IEnumerator LateStart()
+	{
+		yield return null;									// 한 프레임 늦게 시작한다
 		FSNEngine.Instance.RunScript(m_scriptPath);
 	}
 }

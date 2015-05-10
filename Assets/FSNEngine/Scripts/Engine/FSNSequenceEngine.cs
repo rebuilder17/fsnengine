@@ -274,9 +274,10 @@ public class FSNSequenceEngine : MonoBehaviour
 			foreach(var module in m_layerModules.Values)					// 현재 로드된 모든 LayerModule 에 맞는 레이어를 찾아 각각 처리한다
 			{
 				int layerID		= module.LayerID;
-				var newLayer	= curshot.GetLayer(layerID);
+				var newLayer	= curshot.GetLayer(layerID) ?? FSNSnapshot.Layer.Empty;
 
-				if (newLayer != null && !newLayer.IsEmpty)
+				// FIX : 빈 레이어도 강제로 트랜지션을 걸어준다.
+				//if (newLayer != null && !newLayer.IsEmpty)
 				{
 					float curtt	= module.StartTransition(newLayer, curshot.InGameSetting, 0, false);	// 트랜지션
 

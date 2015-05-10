@@ -55,6 +55,7 @@ public class FSNGameObjectModule : FSNBaseObjectModule<Segments.GObject, Snapsho
 	{
 		GameObject prefab	= elem.prefab;
 		GameObject newObj	= Instantiate<GameObject>(prefab);
+		//newObj.layer		= gameObject.layer;
 		var lobj			= new LayerObjects.GObject(this, newObj, setting);
 		newObj.transform.SetParent(ObjectRoot, false);
 

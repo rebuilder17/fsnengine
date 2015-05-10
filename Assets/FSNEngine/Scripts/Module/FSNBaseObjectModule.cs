@@ -105,6 +105,16 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 			newLayer.SetCustomData(c_customDataName, new Dictionary<string, int>(curLayer.GetCustomData(c_customDataName) as Dictionary<string, int>));
 		}
 
+		foreach(var rawelem in newLayer.Elements)					// Final State가 세팅되지 않은 객체에 한해서만 Final State를 임시로 계속 만들어주기
+		{
+			var elem	= rawelem as ElemT;
+			if(!elem.finalStateSet)
+			{
+				elem.CopyDataTo(elem.FinalState);
+				elem.FinalState.Alpha = 0;
+			}
+		}
+
 		foreach(var callParam in callParams)
 		{
 			if(callParam.segment.type == FSNScriptSequence.Segment.Type.Object)
@@ -422,12 +432,7 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 		}
 
 		var elem	= layer.GetElement(uid) as ElemT;
-		if(!elem.finalStateSet)										// Final State가 하나도 세팅되지 않은 경우, 기본값부터 세팅
-		{
-			elem.CopyDataTo(elem.FinalState);						// (마지막 설정값 그대로 알파만 0)
-			elem.FinalState.Alpha	= 0;
-			elem.finalStateSet		= true;
-		}
+		AutoSetFinalState(elem);									// Final State가 하나도 세팅되지 않은 경우, 기본값부터 세팅
 		SetElemBySegProperties(elem.FinalState as ElemT, segment);	// 마지막 설정값들 세팅
 
 		OnSetElementFinal(segment, layer, elem);					// 추가 동작

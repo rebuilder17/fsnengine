@@ -118,6 +118,16 @@ public sealed class FSNControlSystem : MonoBehaviour
 			if (m_swipeRatio < 0.01f) m_swipeRatio = 0;
 			m_seqEngine.PartialSwipe(m_swipeDirection, m_swipeRatio * c_partialSwipeLimit);
 		}
+
+		if(Input.GetKeyUp(KeyCode.Escape))							// ESC (Andoid 백버튼) - 토글 메뉴 대응
+		{
+			ExecuteMenuToggleEvent(
+				(obj, param) =>
+				{
+					obj.OnToggleMenu();
+				});
+			m_swippedAnyway = true;	// FIX : 중복 이벤트 실행을 막기 위해. 좀 지저분한 방법이라서 보완이 필요할지도.
+		}
 	}
 
 
@@ -158,7 +168,7 @@ public sealed class FSNControlSystem : MonoBehaviour
 	public void ExecuteScriptLoadEvent(ExecuteEvents.EventFunction<IFSNScriptLoadHandler> function)
 	{
 		// NOTE : 현재는 swipe handler 와 통합해서 사용중임. 나중에 분리해야할 때 분리할 것
-
+		
 		foreach (var handler in m_swipeHandlers)
 		{
 			ExecuteEvents.ExecuteHierarchy<IFSNScriptLoadHandler>(handler, null, function);
@@ -194,7 +204,7 @@ public sealed class FSNControlSystem : MonoBehaviour
 		m_swipping			= true;
 		m_swipeEventSent	= false;
 		m_swipeEventSentWasWrongDir = false;
-		m_swippedAnyway		= false;
+		m_swippedAnyway		= !m_seqEngine.CanSwipe;	// 터치 시작시 Swipe가 블록된 상태에서는 메뉴를 부를 수 없음
 	}
 
 	/// <summary>
@@ -205,10 +215,10 @@ public sealed class FSNControlSystem : MonoBehaviour
 		if (m_enginePause)		// 엔진 일시정지시에는 이벤트 처리를 받지 않는다.
 			return;
 
+		m_swippedAnyway		= true;												// 어쨌든 swipe를 하긴 했음. release 하더라도 메뉴 토글은 콜하지 않도록
+
 		if(!m_swipeCompleted && m_seqEngine.CanSwipe)							// swipe 가능한 상태
 		{
-			m_swippedAnyway	= true;												// 어쨌든 swipe를 하긴 했음. release 하더라도 메뉴 토글은 콜하지 않도록
-
 			var engine		= FSNEngine.Instance;
 
 			m_swipeDirection= direction;										// 민 방향을 보관해둔다
@@ -302,14 +312,15 @@ public sealed class FSNControlSystem : MonoBehaviour
 			m_swipeEventSent	= false;
 		}
 
-		if (m_swippedAnyway)						// 터치 후에 움직이지 않고 바로 뗀 경우, 메뉴 토글 호출
+		if (m_seqEngine.CanSwipe && !m_swippedAnyway)	// 터치 후에 움직이지 않고 바로 뗀 경우, 메뉴 토글 호출 (단 Swipe가 막히지 않은 상태에서만)
 		{
 			ExecuteMenuToggleEvent(
 				(obj, param) =>
 				{
 					obj.OnToggleMenu();
 				});
-			m_swippedAnyway = false;
+
+			m_swippedAnyway = true;						// 중복 이벤트 실행을 막기 위해...
 		}
 		
 	}
@@ -346,6 +357,9 @@ public sealed class FSNControlSystem : MonoBehaviour
 	/// <param name="pause"></param>
 	public void PauseEngine(bool pause = true)
 	{
+		if (m_enginePause == pause)	// 상태가 실제로 변하지 않는 경우엔 리턴
+			return;
+
 		if(pause)					// 일시정지를 거는 경우, swipe 상태를 해제한다.
 		{
 			ClearSwipe();
