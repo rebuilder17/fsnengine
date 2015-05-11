@@ -20,8 +20,6 @@ public class FSNSaveListUIItem : MonoBehaviour
 	string			m_savefilePath;				// 세이브 파일 경로
 	FSNSession.SaveInfo	m_saveinfo;				// 세이브 정보
 
-	//static Regex	s_regex_numbersOnly	= new Regex(@"\d+");	// 숫자만 걸러내는 regex
-
 
 
 	/// <summary>
@@ -61,7 +59,7 @@ public class FSNSaveListUIItem : MonoBehaviour
 
 	void Awake()
 	{
-		m_toggle	= GetComponent<Toggle>();
+		m_toggle		= GetComponent<Toggle>();
 	}
 
 	/// <summary>
@@ -72,13 +70,9 @@ public class FSNSaveListUIItem : MonoBehaviour
 	{
 		m_savefilePath	= path;
 		m_saveinfo		= FSNSession.GetSaveFileInfo(path);
-
-		// 파일명에서 숫자만 추출
-		//var filename	= Path.GetFileNameWithoutExtension(path);
-		//var filenum		= int.Parse(s_regex_numbersOnly.Match(path).Value);
-
-		var title		= string.IsNullOrEmpty(m_saveinfo.title)? m_saveinfo.title : "(제목없음)";
-		var text		= string.Format("{0}\n{1}", m_saveinfo.title, m_saveinfo.saveDateTime);
+		
+		var title		= !string.IsNullOrEmpty(m_saveinfo.title)? m_saveinfo.title : "(제목 없음)";
+		var text		= string.Format("{0}\n{1}", title, m_saveinfo.saveDateTime);
 		m_text.text		= text;
 	}
 }

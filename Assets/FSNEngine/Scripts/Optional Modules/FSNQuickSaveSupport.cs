@@ -32,21 +32,6 @@ public class FSNQuickSaveSupport : FSNModule
 	{
 		
 	}
-
-	//void Update()
-	//{
-	//	if (Input.GetKeyDown(KeyCode.F5))
-	//	{
-	//		Debug.Log("SAVE");
-	//		QuickSave();
-	//	}
-	//	else if (Input.GetKeyDown(KeyCode.F9))
-	//	{
-	//		Debug.Log("Load");
-	//		QuickLoad();
-	//	}
-	//}
-
 	//
 
 	/// <summary>
@@ -54,7 +39,7 @@ public class FSNQuickSaveSupport : FSNModule
 	/// </summary>
 	public void QuickSave()
 	{
-		FSNEngine.Instance.SaveSession(m_quickSaveFileName);
+		FSNEngine.Instance.SaveSession(m_quickSaveFileName, "빠른 저장");
 	}
 
 	/// <summary>

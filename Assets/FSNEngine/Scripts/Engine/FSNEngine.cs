@@ -291,10 +291,10 @@ public sealed class FSNEngine : MonoBehaviour
 	/// 세션 (세이브 파일) 저장
 	/// </summary>
 	/// <param name="filepath"></param>
-	public void SaveSession(string filepath)
+	public void SaveSession(string filepath, string memo = "")
 	{
 		m_seqEngine.SaveToCurrentSession();
-		FSNSession.Save(m_seqEngine.CurrentSession, filepath);
+		FSNSession.Save(m_seqEngine.CurrentSession, filepath, memo);
 	}
 
 

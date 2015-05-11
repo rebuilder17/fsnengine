@@ -19,7 +19,8 @@ public class FSNSession
 
 	// Constants
 
-	public const string			c_saveFileExt	= ".sav";
+	public const string			c_saveFilePrefix	= "savefile";
+	public const string			c_saveFileExt		= ".sav";
 
 
 	// Members
@@ -228,12 +229,16 @@ public class FSNSession
 		var count				= allFiles.Length;
 		List<string> savfiles	= new List<string>();
 
-		for(int i = 0; i < count; i++)													// .sav 파일만 가져옴
+		var rootURI				= new System.Uri(Application.persistentDataPath + "/");
+
+		for(int i = 0; i < count; i++)													// 모든 파일 경로에 대해서
 		{
 			var filename		= allFiles[i];
-			if (filename.EndsWith(c_saveFileExt))
+			if (filename.EndsWith(c_saveFileExt))										// .sav 파일만 가져옴
 			{
-				savfiles.Add(filename);
+				var absoluteURI	= new System.Uri(filename);
+				var relativeURI	= rootURI.MakeRelativeUri(absoluteURI);					// 상대경로로 변환
+				savfiles.Add(relativeURI.ToString());
 			}
 		}
 

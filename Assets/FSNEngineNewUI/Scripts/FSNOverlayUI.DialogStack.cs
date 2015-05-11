@@ -84,13 +84,15 @@ public partial class FSNOverlayUI
 				else
 				{															// 닫는 경우가 아니므로, 입력 불가능한 상태로 만들어준다
 					curdialog.Interactable = false;
+					curdialog.ToBack();										// 뒤로 보내기 애니메이션
 				}
 			}
 
 			dialogp.Reset();												// 열기 전에 리셋
 			if(dialogp.Open())												// 다이얼로그 열기
 			{
-				dialogp.ZOrder	= m_stack.Count;							// Z 순서 정하기
+				//dialogp.ZOrder	= m_stack.Count;							// Z 순서 정하기
+				dialogp.DialogRef.transform.SetAsLastSibling();				// 순서 맨 아래로 당기기 (= Z 순서상 제일 위)
 				m_stack.Push(dialogp);										// 스택에 추가
 			}
 			else
@@ -140,6 +142,7 @@ public partial class FSNOverlayUI
 			{
 				var prevdialog	= m_stack.Peek();
 				prevdialog.Interactable	= true;
+				prevdialog.ToForth();							// 앞으로 보내기 애니메이션
 			}
 		}
 	}

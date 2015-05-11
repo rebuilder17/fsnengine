@@ -73,6 +73,8 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 
 		ProtocolBoolDelegate Open { get; }
 		ProtocolBoolDelegate Close { get; }
+		System.Action ToBack { get; }
+		System.Action ToForth { get; }
 
 		/// <summary>
 		/// 입력 가능한 상태인지
@@ -101,6 +103,8 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 		public System.Action		Reset { get; set; }
 		public ProtocolBoolDelegate Open { get; set; }
 		public ProtocolBoolDelegate Close { get; set; }
+		public System.Action ToBack { get; set; }
+		public System.Action ToForth { get; set; }
 
 		public System.Action CallOpenCB
 		{
@@ -141,6 +145,8 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 		prot.Reset		= Reset;
 		prot.Open		= Open_real;
 		prot.Close		= Close_real;
+		prot.ToBack		= ToBack;
+		prot.ToForth	= ToForth;
 
 		return prot;
 	}
@@ -162,7 +168,7 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 	/// <summary>
 	/// 트랜지션 종류
 	/// </summary>
-	enum TransitionType { Open, Close, };
+	enum TransitionType { Open, Close, Back, Forth, };
 
 	/// <summary>
 	/// 트랜지션 코루틴 델리게이트
@@ -176,11 +182,18 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 	Dictionary<TransitionType, TransitionCoroutine> m_transitionCoDict;
 	
 	private System.Action			m_transCompleteCB;		// 트랜지션 완료시 콜백
+	Coroutine						m_curCoroutine;
 
 	/// <summary>
 	/// 현재 전환중인지 여부
 	/// </summary>
 	public bool IsTransitioning { get; private set; }
+
+	/// <summary>
+	/// 트랜지션 상태를 덮어쓸 수 있는지 여부
+	/// </summary>
+	public bool TransitionOverriadable { get; private set; }
+
 
 
 	void InitTransitions()
@@ -189,6 +202,8 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 		{
 			{TransitionType.Open,	TransCo_Open},
 			{TransitionType.Close,	TransCo_Close},
+			{TransitionType.Back,	TransCo_Back},
+			{TransitionType.Forth,	TransCo_Forth},
 		};
 	}
 
@@ -199,10 +214,19 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 	bool StartTransition(TransitionType type, System.Action endCB)
 	{
 		if (IsTransitioning)						// 트랜지션 중일 때는 호출 불가능
-			return false;
+		{
+			if (TransitionOverriadable)				// 단 오버라이드를 허용할 때는 코루틴을 멈춘다
+			{
+				StopCoroutine(m_curCoroutine);
+			}
+			else
+			{										// 오버라이드도 불가능할 때는 리턴
+				return false;
+			}
+		}
 
 		m_transCompleteCB	= endCB;				// 콜백 지정하기
-		StartCoroutine(m_transitionCoDict[type]());	// 코루틴 시작
+		m_curCoroutine = StartCoroutine(m_transitionCoDict[type]());	// 코루틴 시작
 
 		return true;
 	}
@@ -216,6 +240,7 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 	IEnumerator TransCo_Open()
 	{
 		IsTransitioning	= true;							// 트랜지션 시작
+		TransitionOverriadable	= false;
 		float startTime	= Time.realtimeSinceStartup;
 
 		while(true)
@@ -246,6 +271,7 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 	IEnumerator TransCo_Close()
 	{
 		IsTransitioning	= true;							// 트랜지션 시작
+		TransitionOverriadable	= false;
 		float startTime	= Time.realtimeSinceStartup;
 
 		while (true)
@@ -266,6 +292,66 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 
 		IsTransitioning	= false;						// 트랜지션 끝
 		m_transCompleteCB();							// 트랜지션 완료 콜백 호출
+	}
+
+	/// <summary>
+	/// 뒤로 가는 트랜지션
+	/// </summary>
+	/// <returns></returns>
+	IEnumerator TransCo_Back()
+	{
+		IsTransitioning			= true;					// 트랜지션 시작
+		TransitionOverriadable	= true;
+		float startTime			= Time.realtimeSinceStartup;
+		float startAlpha		= m_canvasGroup.alpha;
+
+		while (true)
+		{
+			float elapsedTime	= Time.realtimeSinceStartup - startTime;
+			if (elapsedTime > c_transitionTime)			// 트랜지션 시간이 지날 때까지 반복
+				break;
+
+			float t				= elapsedTime / c_transitionTime;
+			m_canvasGroup.alpha	= Mathf.Lerp(startAlpha, 0.1f, t);
+
+			yield return null;
+		}
+
+		// 루프 종료 후에는 최종 설정값 한번 더 적용
+		m_canvasGroup.alpha		= 0.1f;
+
+		IsTransitioning	= false;						// 트랜지션 끝
+		//m_transCompleteCB();							// 트랜지션 완료 콜백 호출
+	}
+
+	/// <summary>
+	/// 앞으로 오는 트랜지션
+	/// </summary>
+	/// <returns></returns>
+	IEnumerator TransCo_Forth()
+	{
+		IsTransitioning			= true;					// 트랜지션 시작
+		TransitionOverriadable	= true;
+		float startTime			= Time.realtimeSinceStartup;
+		float startAlpha		= m_canvasGroup.alpha;
+
+		while (true)
+		{
+			float elapsedTime	= Time.realtimeSinceStartup - startTime;
+			if (elapsedTime > c_transitionTime)			// 트랜지션 시간이 지날 때까지 반복
+				break;
+
+			float t				= elapsedTime / c_transitionTime;
+			m_canvasGroup.alpha	= Mathf.Lerp(startAlpha, 1, t);
+
+			yield return null;
+		}
+
+		// 루프 종료 후에는 최종 설정값 한번 더 적용
+		m_canvasGroup.alpha		= 1;
+
+		IsTransitioning	= false;						// 트랜지션 끝
+		//m_transCompleteCB();							// 트랜지션 완료 콜백 호출
 	}
 
 
@@ -329,7 +415,7 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 	/// <returns></returns>
 	bool Close_real()
 	{
-		if (!IsOpened || IsTransitioning)			// 닫혀있는 경우거나 Transition중인 경우엔 리턴
+		if (!IsOpened || IsTransitioning && !TransitionOverriadable)	// 닫혀있는 경우거나 Transition중인 경우엔 리턴
 			return false;
 
 		m_canvasGroup.interactable = false;			// 입력 받지 못하게
@@ -343,6 +429,16 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 			});
 
 		return true;
+	}
+
+	void ToBack()
+	{
+		StartTransition(TransitionType.Back, null);
+	}
+
+	void ToForth()
+	{
+		StartTransition(TransitionType.Forth, null);
 	}
 
 	/// <summary>

@@ -34,6 +34,11 @@ public class FSNOverlayToggleMenu : FSNBaseOverlayDialog
 		FSNOverlayUI.Instance.OpenDialog<FSNOverlaySaveDialog>();
 	}
 
+	public void OnBtn_Load()
+	{
+		FSNOverlayUI.Instance.OpenDialog<FSNOverlayLoadDialog>();
+	}
+
 	public void OnBtn_Close()
 	{
 		CloseSelf();
