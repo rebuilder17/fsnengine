@@ -79,7 +79,7 @@ public partial class FSNOverlayUI
 				
 				if(curdialog.DialogRef.shouldCloseWhenOtherDialogPops)		// 현재 열린 다이얼로그가 다른 다이얼로그가 열리면 닫혀야 하는 것일 경우
 				{
-					Close(dialogType);										// 먼저 닫아준다
+					Close(curdialog.DialogRef.GetType());					// 먼저 닫아준다
 				}
 				else
 				{															// 닫는 경우가 아니므로, 입력 불가능한 상태로 만들어준다
@@ -113,14 +113,14 @@ public partial class FSNOverlayUI
 		/// </summary>
 		public void Close(System.Type dialogType)
 		{
-			if (IsEmpty)													// 다이얼로그가 열려있는 것이 하나도 없다면 당연히 무시해야함
+			if (IsEmpty)														// 다이얼로그가 열려있는 것이 하나도 없다면 당연히 무시해야함
 			{
 				Debug.LogWarning("There's no dialog opened.");
 				return;
 			}
 
 			var curdialog	= m_stack.Peek();
-			if (curdialog != m_nameToProtocol[dialogType])					// 스택 최상층에 있는 다이얼로그가 아니면 닫을 수 없음
+			if (curdialog != m_nameToProtocol[dialogType])						// 스택 최상층에 있는 다이얼로그가 아니면 닫을 수 없음
 			{
 				Debug.LogWarningFormat("Cannot close dialog {0} which is not at the top of the stack.", dialogType.Name);
 				return;

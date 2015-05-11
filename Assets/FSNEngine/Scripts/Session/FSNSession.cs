@@ -8,6 +8,20 @@ using System.IO;
 /// </summary>
 public class FSNSession
 {
+	/// <summary>
+	/// 세이브 파일 정보
+	/// </summary>
+	public struct SaveInfo
+	{
+		public string	saveDateTime;
+		public string	title;
+	}
+
+	// Constants
+
+	public const string			c_saveFileExt	= ".sav";
+
+
 	// Members
 
 	/// <summary>
@@ -95,6 +109,8 @@ public class FSNSession
 	const string			c_field_scriptName		= "ScriptName";
 	const string			c_field_scriptHash		= "ScriptHash";
 	const string			c_field_snapshotIndex	= "SnapshotIndex";
+	const string			c_field_saveDateTime	= "SaveDateTime";
+	const string			c_field_saveTitle		= "SaveTitle";
 
 	const string			c_field_flagTable		= "FlagTable";
 	const string			c_field_valueTable		= "ValueTable";
@@ -110,13 +126,6 @@ public class FSNSession
 	{
 		var newsession		= new FSNSession();
 
-		//var fs				= File.OpenText(Application.persistentDataPath + "/" + filepath);
-		//JSONObject json		= null;
-		//using(fs)										// 파일을 읽고 json으로 파싱
-		//{
-		//	string text		= fs.ReadToEnd();
-		//	json			= JSONObject.Create(text);
-		//}
 		var rawdata			= FSNUtils.LoadTextData(filepath);
 		JSONObject json		= JSONObject.Create(rawdata);
 
@@ -154,10 +163,8 @@ public class FSNSession
 	/// </summary>
 	/// <param name="session"></param>
 	/// <param name="filepath"></param>
-	public static void Save(FSNSession session, string filepath)
+	public static void Save(FSNSession session, string filepath, string saveTitle = "")
 	{
-		//var fs				= File.Open(Application.persistentDataPath + "/" + filepath, FileMode.Create);
-		//using(fs)
 		{
 			var json		= new JSONObject(JSONObject.Type.OBJECT);
 
@@ -165,6 +172,10 @@ public class FSNSession
 			json.AddField(c_field_scriptName, session.ScriptName);
 			json.AddField(c_field_scriptHash, session.ScriptHashKey);
 			json.AddField(c_field_snapshotIndex, session.SnapshotIndex);
+
+			// 세이브 정보
+			json.AddField(c_field_saveDateTime, FSNUtils.GenerateCurrentDateAndTimeString());
+			json.AddField(c_field_saveTitle, saveTitle);
 
 			// 플래그 테이블
 			var flagtable	= new JSONObject(JSONObject.Type.OBJECT);
@@ -182,14 +193,50 @@ public class FSNSession
 				valuetable.AddField(pair.Key, pair.Value);
 			}
 
-
-			// 실제로 파일에 기록
-			//var writer		= new StreamWriter(fs);
-			//using(writer)
-			//{
-			//	writer.Write(json.Print());
-			//}
 			FSNUtils.SaveTextData(filepath, json.Print());
 		}
+	}
+
+	/// <summary>
+	/// 세이브 파일 정보 가져오기
+	/// </summary>
+	/// <param name="filepath"></param>
+	/// <returns></returns>
+	public static SaveInfo GetSaveFileInfo(string filepath)
+	{
+		var info				= new SaveInfo();
+
+		var rawdata				= FSNUtils.LoadTextData(filepath);
+		JSONObject json			= JSONObject.Create(rawdata);
+
+		if (json != null)
+		{
+			info.saveDateTime	= json[c_field_saveDateTime].str;
+			info.title			= json[c_field_saveTitle].str;
+		}
+
+		return info;
+	}
+
+	/// <summary>
+	/// 세이브 경로 안의 세이브 파일 모두 읽어온다
+	/// </summary>
+	/// <returns></returns>
+	public static string[] GetSaveFileList()
+	{
+		var allFiles			= Directory.GetFiles(Application.persistentDataPath);	// persistent 경로 안의 모든 파일 목록을 불러온다
+		var count				= allFiles.Length;
+		List<string> savfiles	= new List<string>();
+
+		for(int i = 0; i < count; i++)													// .sav 파일만 가져옴
+		{
+			var filename		= allFiles[i];
+			if (filename.EndsWith(c_saveFileExt))
+			{
+				savfiles.Add(filename);
+			}
+		}
+
+		return savfiles.ToArray();
 	}
 }

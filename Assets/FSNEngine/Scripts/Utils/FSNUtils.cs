@@ -265,4 +265,10 @@ public static class FSNUtils
 		Application.Quit();
 #endif
 	}
+
+	public static string GenerateCurrentDateAndTimeString()
+	{
+		var dateTime	= System.DateTime.Now;
+		return dateTime.ToString();
+	}
 }
