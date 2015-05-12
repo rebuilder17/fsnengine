@@ -135,6 +135,22 @@ public sealed partial class FSNSnapshotSequence
 
 				ClearCall();
 			}
+
+			/// <summary>
+			/// 분기 혹은 점프 후, 이전 레이어 상태를 읽어서 오브젝트가 있는 Module들을 내부적으로 활성화해준다.
+			/// 객체가 있는데도 모듈 콜이 누락되는 경우를 막기 위함
+			/// </summary>
+			public void CatchupPreviousLayerState(FSNSnapshot prevSnapshot)
+			{
+				var layerIDs	= prevSnapshot.AllLayerIDs;
+				int count		= layerIDs.Length;
+				for (int i = 0; i < count; i++)
+				{
+					var module	= FSNEngine.Instance.GetModuleByLayerID(layerIDs[i]) as IFSNProcessModule;
+					if(module != null && !m_moduleCallTable.ContainsKey(module))
+						m_moduleCallTable[module]	= new List<FSNProcessModuleCallParam>();
+				}
+			}
 		}
 
 		//=======================================================================
@@ -213,6 +229,11 @@ public sealed partial class FSNSnapshotSequence
 			float snapshotDelay	= 0f;											// 스냅샷에 적용할 지연 시간 (/기다리기 커맨드)
 			//
 
+			// 처음 시작할 때는 무조건 모든 객체들을 Hard-Clone한다 (분기점에서 Initial/Final 스테이트 독립을 하기 위해)
+
+			moduleCalls.CatchupPreviousLayerState(prevCallSeg.snapshot);		// 기존의 유효한 Layer들을 활성화 (안그러면 모듈 콜을 누락해버림)
+			moduleCalls.AddAllModuleCall(new Segments.HardClone(), bs.settings);	
+
 
 			// 스크립트 Sequence가 끝나거나 특정 명령을 만날 때까지 반복
 
@@ -260,7 +281,6 @@ public sealed partial class FSNSnapshotSequence
 				//////////////////////////////////////////////////////////////
 				case FSNScriptSequence.Segment.Type.Text:						// ** 텍스트
 				{
-					//Debug.Log("Text! " + (curSeg as Segments.Text).textType.ToString());
 					var module			= FSNEngine.Instance.GetModule(FSNEngine.ModuleType.Text) as IFSNProcessModule;
 
 					moduleCalls.AddCall(module, curSeg, bs.FrozenSetting);		// 해당 명령 저장

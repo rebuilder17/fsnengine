@@ -445,7 +445,9 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 		// *** 다음에 사라지는 오브젝트들
 		IterateOnlyInThisUIDs((int uId) =>
 		{
-			var currentElem	= m_curLayerRef.GetElement(uId);
+			var currentElem	= toLayer.GetRemovedElementOrNull(uId)				// (정방향) 다음 레이어에 지워지는 해당 오브젝트에 관한 정보가 있다면 얻어오고
+								?? m_curLayerRef.GetElement(uId);				// 아니면 현재 레이어의 해당 오브젝트를 얻는다
+
 			var finalElem	= (!backward)?	currentElem.GenericFinalState		// 정방향일 경우 마지막 스테이트로 움직인 뒤 소멸,
 										:	currentElem.GenericInitialState;	// 역방향일 경우 최초 스테이트로 움직인 뒤 소멸해야한다.
 
@@ -480,14 +482,15 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 		// *** 다음에 사라지는 오브젝트들
 		IterateOnlyInThisUIDs((int uId) =>
 		{
-			var currentElem	= m_curLayerRef.GetElement(uId);
-			var finalElem	= (!backward)?	currentElem.GenericFinalState		// 정방향일 경우 마지막 스테이트로 움직인 뒤 소멸,
-										:	currentElem.GenericInitialState;	// 역방향일 경우 최초 스테이트로 움직인 뒤 소멸해야한다.
+			var currentElem	= m_curLayerRef.GetElement(uId);					// 다음 레이어에 없어질 현재 레이어 객체
+
+			var refelem		= toLayer.GetRemovedElementOrNull(uId)				// (정방향) 다음 레이어에 지워지는 해당 오브젝트에 관한 정보가 있다면 이것을 사용
+								?? currentElem;									// 아니면 현재 레이어의 해당 오브젝트를 사용하여 finalState를 구한다
+			var finalElem	= (!backward)?	refelem.GenericFinalState			// 정방향일 경우 마지막 스테이트로 움직인 뒤 소멸,
+										:	refelem.GenericInitialState;		// 역방향일 경우 최초 스테이트로 움직인 뒤 소멸해야한다.
 			float trTime	= finalElem.TransitionTime * nextSetting.TransitionSpeedRatio; // 전환속도 비율 적용
 
 			m_objectDict[uId].DoTransition(finalElem as ElmT, startRatioForOlds, trTime, true);
-
-			//m_objectDict.Remove(uId);											// 딕셔너리에서 해당 오브젝트 제거
 
 			if(longestDuration < trTime) longestDuration = trTime;				// 제일 긴 트랜지션 시간 추적하기
 		});
@@ -495,12 +498,16 @@ public abstract class FSNLayerModule<ElmT, ObjT> : FSNModule, IFSNLayerModule
 		// *** 다음에 처음 등장하는 오브젝트들
 		IterateOnlyInOtherUIDs((int uId) =>
 		{
-			var currentElem	= toLayer.GetElement(uId) as ElmT;
-			var initialElem	= backward? currentElem.GenericFinalState : currentElem.GenericInitialState;	// 역방향이면 finalState, 정방향이면 InitialState 로 초기세팅한다
+			var currentElem	= toLayer.GetElement(uId);							// 다음 레이어의 해당 객체
+
+			var refelem		= m_curLayerRef.GetRemovedElementOrNull(uId)		// (역방향) 현재 레이어에 지워진 오브젝트의 정보가 있다면 그것을 사용,
+								?? currentElem;									// 아니면 다음 레이어의 오브젝트를 참조해서 InitialState를 구한다
+			var initialElem	= backward?	refelem.GenericFinalState
+									:	refelem.GenericInitialState;			// 역방향이면 finalState, 정방향이면 InitialState 로 초기세팅한다
 			float trTime	= initialElem.TransitionTime * nextSetting.TransitionSpeedRatio;// 현재 상태로 transition하지만 시간값은 최초 상태값에 지정된 걸 사용한다.
 
 			var newobj		= AddNewLayerObject(initialElem as ElmT, nextSetting);
-			newobj.DoTransition(currentElem, 0, trTime, false);
+			newobj.DoTransition(currentElem as ElmT, 0, trTime, false);
 
 			if(longestDuration < trTime) longestDuration = trTime;				// 제일 긴 트랜지션 시간 추적하기
 		});

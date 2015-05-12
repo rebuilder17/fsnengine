@@ -54,6 +54,11 @@ public class FSNSnapshot
 		/// 복제로 연결된 엘레먼트가 총 몇 개 있는지
 		/// </summary>
 		int ChainedParentCount { get; }
+
+		/// <summary>
+		/// Initial/Final State도 복제해서 원본에 종속되지 않게 한다
+		/// </summary>
+		void MakeItHardClone();
 	}
 
 	/// <summary>
@@ -163,6 +168,22 @@ public class FSNSnapshot
 		}
 
 		/// <summary>
+		/// Initial/Final State도 복제하여 레퍼런스가 아닌 자기 자신만의 상태로 만든다.
+		/// </summary>
+		public void MakeItHardClone()
+		{
+			InitialState				= InitialState.Clone();
+			InitialState.ClonedFrom		= null;
+			InitialState.InitialState	= null;
+			InitialState.FinalState		= null;
+
+			FinalState					= FinalState.Clone();
+			FinalState.ClonedFrom		= null;
+			FinalState.InitialState		= null;
+			FinalState.InitialState		= null;
+		}
+
+		/// <summary>
 		/// 이 Element를 복제한 Element를 만든다.
 		/// 동일한 UniqueID를 지니게 되며, 현재 스냅샷 - 다음 스냅샷으로 계승되는 Element를 만들어내기 위해 필요
 		/// </summary>
@@ -180,8 +201,7 @@ public class FSNSnapshot
 			newElem.UniqueID	= UniqueID;			// UniqueID 복제
 			if(cloneInitialFinalState)				// 플래그가 있을 경우, Initial/Final State도 복제
 			{
-				InitialState	= InitialState.Clone();
-				FinalState		= FinalState.Clone();
+				MakeItHardClone();
 			}
 			newElem.ClonedFrom	= this as SelfT;	// 이 오브젝트가 오리지널
 
@@ -262,7 +282,8 @@ public class FSNSnapshot
 
 		// Members
 		
-		private Dictionary<int, IElement>	m_elements;		// 레이어에 포함된 Element
+		private Dictionary<int, IElement>	m_elements;			// 레이어에 포함된 Element
+		private Dictionary<int, IElement>	m_removedElements;	// 이 레이어에서 삭제된 Element들 (이 레이어에서만 유지.)
 
 		///// <summary>
 		///// 추가 데이터
@@ -330,6 +351,7 @@ public class FSNSnapshot
 		public Layer()
 		{
 			m_elements	= new Dictionary<int, IElement>();
+			m_removedElements	= new Dictionary<int, IElement>();
 		}
 
 		/// <summary>
@@ -350,6 +372,7 @@ public class FSNSnapshot
 		/// <param name="uId"></param>
 		public void RemoveElement(int uId)
 		{
+			m_removedElements[uId]	= m_elements[uId];	// 삭제 리스트에 보관한다
 			m_elements.Remove(uId);
 		}
 
@@ -361,6 +384,18 @@ public class FSNSnapshot
 		public IElement GetElement(int uId)
 		{
 			return m_elements[uId];
+		}
+
+		/// <summary>
+		/// 삭제되어 잠시 보관중인 Element가 있으면 리턴, 없으면 null
+		/// </summary>
+		/// <param name="uId"></param>
+		/// <returns></returns>
+		public IElement GetRemovedElementOrNull(int uId)
+		{
+			IElement elem;
+			m_removedElements.TryGetValue(uId, out elem);
+			return elem;
 		}
 
 		/// <summary>
@@ -416,6 +451,17 @@ public class FSNSnapshot
 			}
 
 			return newLayer;
+		}
+
+		/// <summary>
+		/// 레이어의 모든 객체들을 Hard-clone으로 만듦 (Initial/Final State 독립)
+		/// </summary>
+		public void MakeAllElemsHardClone()
+		{
+			foreach(IElement elem in m_elements.Values)
+			{
+				elem.MakeItHardClone();
+			}
 		}
 
 		/// <summary>
@@ -525,6 +571,26 @@ public class FSNSnapshot
 			foreach(PreDefinedLayers predef in PreDefinedLayerIDs)
 			{
 				ids.Remove((int)predef);
+			}
+
+			return FSNUtils.MakeArray<int>(ids);
+		}
+	}
+
+	/// <summary>
+	/// 현재 존재하는 모든 레이어 ID 구하기
+	/// </summary>
+	public int[] AllLayerIDs
+	{
+		get
+		{
+			HashSet<int> ids = new HashSet<int>();
+			foreach(var pair in m_layerList)
+			{
+				if(!pair.Value.IsEmpty)					// 빈 레이어가 아닌 것들만 모듈 ID 추가
+				{
+					ids.Add(pair.Key);
+				}
 			}
 
 			return FSNUtils.MakeArray<int>(ids);

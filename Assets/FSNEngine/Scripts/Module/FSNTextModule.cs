@@ -189,18 +189,21 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		}
 	}
 
+	/// <summary>
+	/// 현재 설정값을 복사하여 임시로 Final State를 세팅해준다
+	/// </summary>
+	/// <param name="elem"></param>
+	private static void CopyCurrentToFinal(SnapshotElems.Text elem)
+	{
+		elem.CopyDataTo(elem.FinalState);
+		elem.FinalState.Alpha	= 0;		// 알파만 0으로
+	}
+
 	//=================================================================
 
 	public override FSNSnapshot.Layer GenerateNextLayerImage(FSNSnapshot.Layer curLayer, params FSNProcessModuleCallParam[] callParams)
 	{
 		FSNSnapshot.Layer newLayer	= curLayer.Clone();
-
-		foreach (var rawelem in newLayer.Elements)								// Final State를 임시로 계속 만들어주기
-		{
-			var elem	= rawelem as SnapshotElems.Text;
-			elem.CopyDataTo(elem.FinalState);
-			elem.FinalState.Alpha = 0;
-		}
 
 		foreach(var callParam in callParams)
 		{
@@ -233,6 +236,10 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 				&& (callParam.segment as Segments.Control).controlType == Segments.Control.ControlType.Clear)	// Clear 명령에 반응
 			{
 				ClearTextsToDirection(newLayer, callParam.setting.CurrentFlowDirection);
+			}
+			else if(callParam.segment.type == FSNScriptSequence.Segment.Type.HardClone)	// 레이어 Hard-Clone
+			{
+				newLayer.MakeAllElemsHardClone();
 			}
 		}
 
@@ -303,6 +310,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			var posToCenter		= newTextElem.Position;								
 			TextPositionToCenter(ref posToCenter, newTextSize, setting.CurrentFlowDirection, setting);// 텍스트 중앙으로 움직이기
 			newTextElem.Position	= posToCenter;
+			CopyCurrentToFinal(newTextElem);										// 임시 FinalState
 		}
 		else
 		{																			// * 일반 텍스트
@@ -357,6 +365,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 		questionTextElem.InitialState.Alpha	= 0;
 		questionTextElem.FinalState.Alpha	= 0;
+		CopyCurrentToFinal(questionTextElem);							// 임시 FinalState
 
 		// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
 		var qtextPos							= new Vector3(-newTextSize.x / 2f, newTextSize.y / 2f);
@@ -391,6 +400,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 			upTextElem.InitialState.Alpha	= 0;
 			upTextElem.FinalState.Alpha		= 0;
+			CopyCurrentToFinal(upTextElem);								// 임시 FinalState
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
 			var tpos							= new Vector3(upTextSize.x / 2f, -screenDim.y / 2f + upTextSize.y);
@@ -421,6 +431,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 			downTextElem.InitialState.Alpha	= 0;
 			downTextElem.FinalState.Alpha	= 0;
+			CopyCurrentToFinal(downTextElem);							// 임시 FinalState
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
 			var tpos							= new Vector3(downTextSize.x / 2f, screenDim.y / 2f);
@@ -451,6 +462,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 			leftTextElem.InitialState.Alpha	= 0;
 			leftTextElem.FinalState.Alpha	= 0;
+			CopyCurrentToFinal(leftTextElem);							// 임시 FinalState
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
 			var tpos							= new Vector3(screenDim.x / 2f - leftTextSize.x, -leftTextSize.y * 3f);
@@ -481,6 +493,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 
 			rightTextElem.InitialState.Alpha= 0;
 			rightTextElem.FinalState.Alpha	= 0;
+			CopyCurrentToFinal(rightTextElem);								// 임시 FinalState
 
 			// 새 텍스트 엘레먼트 - 위치 세팅 (시작 위치만. 끝 위치는 프로세스 끝에 결정된다)
 			var tpos							= new Vector3(-screenDim.x / 2f, rightTextSize.y * 3f);
@@ -520,6 +533,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			
 			optionText.Position	= posToCenter;
 			optionText.type		= SnapshotElems.Text.Type.LastOption;						// LastOption 타입으로 변경
+			CopyCurrentToFinal(optionText);													// 임시 FinalState
 
 			PushTextsToDirection(layer, setting.CurrentFlowDirection, Vector2.zero);		// 기존 텍스트 일괄적으로 해당 방향으로 밀기 (내부 조건체크에 따라 LastOption은 이 타이밍에는 제외된다)
 		}
@@ -557,11 +571,11 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 				{
 					textElem.Alpha		= (float)(c_textLife - elemAge) / (float)c_textLife;
 					textElem.Position	= textElem.Position + transVec;
+					CopyCurrentToFinal(textElem);										// 임시 FinalState
 				}
 				else
 				{																		// 텍스트가 죽어야하는 경우
 					textElem.FinalState.Position	= textElem.Position + transVec;
-					//layer.RemoveElement(uId);
 					UIDtoRemove.Add(uId);
 				}
 			}

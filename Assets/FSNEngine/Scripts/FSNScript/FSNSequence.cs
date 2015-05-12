@@ -29,22 +29,14 @@ public class FSNScriptSequence
 			Setting,		// 세팅 변경 등
 
 			Control,		// 엔진 컨트롤
+
+			HardClone,		// (엔진 내부 용도) 현재 Layer를 Hard-Clone한다
 		}
 
 		/// <summary>
 		/// segment 타입
 		/// </summary>
 		public abstract Type type { get; }
-
-		///// <summary>
-		///// 정확한 명령어 이름 (스크립트 상에서)
-		///// </summary>
-		//public string name			{ protected set; get; }
-
-		///// <summary>
-		///// 열기/닫기 세그먼트일 경우, 페어가 되는 다른 세그먼트
-		///// </summary>
-		//public Segment pairSegment	{ protected set; get; }
 
 		/// <summary>
 		/// 스크립트에서 해당하는 줄 번호 (디버깅 편의용)
@@ -591,6 +583,7 @@ public class FSNScriptSequence
 					{
 						if (newSegInfo.usePrevPeriod && periodSeg != null)	// * 선행 period를 먼저 처리해야하는 상황
 						{
+							periodSeg.scriptLineNumber		= linenumber;	// 줄번호 기록?
 							sequence.m_segments.Add(periodSeg);
 							periodSeg	= null;
 						}
@@ -613,6 +606,7 @@ public class FSNScriptSequence
 
 			if(periodSeg != null)											// 끝날 때까지 처리되지 않은 period가 있다면 여기서 추가해준다
 			{
+				periodSeg.scriptLineNumber		= linenumber;				// 줄번호 기록?
 				sequence.m_segments.Add(periodSeg);
 				periodSeg = null;
 			}
@@ -658,207 +652,4 @@ public class FSNScriptSequence
 	}
 
 	//--------------------------------------------------------------------------------------------
-
-	#region TEST CODE
-
-	public static FSNScriptSequence GenerateTestSequence()
-	{
-		var sequence		= new FSNScriptSequence();
-		sequence.m_segments	= new List<Segment>();//임시, 나중에는 필요없어질것
-		Segments.Text	tempTextSeg;
-		Segments.Period	periodSeg	= new Segments.Period();
-
-		tempTextSeg			= new Segments.Text();
-		tempTextSeg.text	= "테스트 01";
-		sequence.m_segments.Add(tempTextSeg);
-
-		sequence.m_segments.Add(periodSeg);
-
-		//var settingSeg1		= new Segments.Setting();
-		//settingSeg1.settingMethod				= Segments.Setting.SettingMethod.Push;
-		//settingSeg1["CurrentFlowDirection"]		= FSNInGameSetting.FlowDirection.Right;
-		//settingSeg1["BackwardFlowDirection"]	= FSNInGameSetting.FlowDirection.Left;
-		//settingSeg1["FontSize"]					= 32f;
-		//sequence.m_segments.Add(settingSeg1);
-
-		//tempTextSeg			= new Segments.Text();
-		//tempTextSeg.text	= "테스트 02";
-		//sequence.m_segments.Add(tempTextSeg);
-
-		//sequence.m_segments.Add(periodSeg);
-
-		//var settingSeg2		= new Segments.Setting();
-		//settingSeg2.settingMethod				= Segments.Setting.SettingMethod.Pop;
-		//sequence.m_segments.Add(settingSeg2);
-
-		//tempTextSeg			= new Segments.Text();
-		//tempTextSeg.text	= "테스트 03";
-		//sequence.m_segments.Add(tempTextSeg);
-
-		//sequence.m_segments.Add(periodSeg);
-
-		//var clearTextSeg		= new Segments.Text();
-		//clearTextSeg.textType	= Segments.Text.TextType.Clear;
-		//sequence.m_segments.Add(clearTextSeg);
-
-		//tempTextSeg			= new Segments.Text();
-		//tempTextSeg.text	= "테스트 04";
-		//sequence.m_segments.Add(tempTextSeg);
-
-		//sequence.m_segments.Add(periodSeg);
-
-		var optionSeg		= new Segments.Text();
-		optionSeg.textType	= Segments.Text.TextType.Options;
-		optionSeg.text		= "선택지?";
-		optionSeg.optionTexts	= new string[4];
-		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Up]	= "위";
-		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Down]	= "아래";
-		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Left]	= "왼쪽";
-		optionSeg.optionTexts[(int)FSNInGameSetting.FlowDirection.Right]= "오른쪽";
-		sequence.m_segments.Add(optionSeg);
-
-		var userChoiceSeg			= new Segments.Control();
-		userChoiceSeg.controlType	= Segments.Control.ControlType.SwipeOption;
-		userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Up,		"label_up");
-		userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Down,	"label_down");
-		userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Left,	"label_left");
-		//userChoiceSeg.SetSwipeOptionData(FSNInGameSetting.FlowDirection.Right,	"label_right");
-		sequence.m_segments.Add(userChoiceSeg);
-
-		sequence.m_segments.Add(periodSeg);
-
-		var blockSeg			= new Segments.Control();
-		blockSeg.controlType	= Segments.Control.ControlType.Block;
-		sequence.m_segments.Add(blockSeg);	// 현재 흐름에서는 선택지를 끝으로 더이상 진행할 곳이 없으므로, block으로 막는다
-
-
-		// 선택지 : 위
-		var label_up			= new Segments.Label();
-		label_up.labelName		= "label_up";
-		sequence.m_segments.Add(label_up);
-		sequence.RegisterLabelSegment();
-
-		var lastOptionText		= new Segments.Text();
-		lastOptionText.textType = Segments.Text.TextType.LastOption;
-		sequence.m_segments.Add(lastOptionText);
-
-		var chainPeriodSeg		= new Segments.Period();	// 뒤로 바로 넘어가지는 period
-		chainPeriodSeg.isChaining	= true;
-		sequence.m_segments.Add(chainPeriodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "up - 테스트 01";
-		sequence.m_segments.Add(tempTextSeg);
-
-		// 주 : 현재 Jump 를 처리하는 순서 때문에 period가 적용되고 완성된 Snapshot에서 적용된다.
-		// 즉 GOTO를 제대로 쓰기 위해서는 period 보다 앞쪽에 배치해야함.
-		var gotoSeg				= new Segments.Control();
-		gotoSeg.controlType		= Segments.Control.ControlType.Goto;
-		gotoSeg.SetGotoData("label_jumptest");
-		sequence.m_segments.Add(gotoSeg);
-
-		sequence.m_segments.Add(periodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "up - 테스트 02";
-		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		var label_jumptest		= new Segments.Label();
-		label_jumptest.labelName= "label_jumptest";
-		sequence.m_segments.Add(label_jumptest);
-		sequence.RegisterLabelSegment();
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "up - 테스트 03 (label_jumptest)";
-		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		sequence.m_segments.Add(blockSeg);// BLOCK
-
-		// 선택지 : 왼쪽
-		var label_left			= new Segments.Label();
-		label_left.labelName	= "label_left";
-		sequence.m_segments.Add(label_left);
-		sequence.RegisterLabelSegment();
-
-		sequence.m_segments.Add(lastOptionText);
-		sequence.m_segments.Add(chainPeriodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "left - 테스트 01";
-		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "left - 테스트 02";
-		sequence.m_segments.Add(tempTextSeg);
-
-		var reverseGotoSeg		= new Segments.Control();
-		reverseGotoSeg.controlType	= Segments.Control.ControlType.ReverseGoto;
-		reverseGotoSeg.SetReverseGotoData("label_reverse");
-		sequence.m_segments.Add(reverseGotoSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "left - 테스트 03";
-		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		sequence.m_segments.Add(blockSeg);// BLOCK
-
-		// ReverseGoto 테스트용
-		var label_reverse		= new Segments.Label();
-		label_reverse.labelName	= "label_reverse";
-		sequence.m_segments.Add(label_reverse);
-		sequence.RegisterLabelSegment();
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "you can't go back!";
-		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "go ahead and you'll be fine.";
-		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		sequence.m_segments.Add(blockSeg);// BLOCK
-
-		// 선택지 : 아래쪽, 역방향 오버라이드가 제대로 되는지 테스트하기 위함.
-		var label_down			= new Segments.Label();
-		label_down.labelName	= "label_down";
-		sequence.m_segments.Add(label_down);
-		sequence.RegisterLabelSegment();
-
-		sequence.m_segments.Add(lastOptionText);
-		sequence.m_segments.Add(chainPeriodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "down - 테스트 01";
-		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "down - 테스트 02, oneway";
-		sequence.m_segments.Add(tempTextSeg);
-
-		var onewaySeg			= new Segments.Control();	// ONEWAY
-		onewaySeg.controlType	= Segments.Control.ControlType.Oneway;
-		sequence.m_segments.Add(onewaySeg);
-
-		sequence.m_segments.Add(periodSeg);
-
-		tempTextSeg				= new Segments.Text();
-		tempTextSeg.text		= "down - 테스트 03";
-		sequence.m_segments.Add(tempTextSeg);
-		sequence.m_segments.Add(periodSeg);
-
-		sequence.m_segments.Add(blockSeg);// BLOCK
-
-
-		return sequence;
-	}
-
-	#endregion
 }

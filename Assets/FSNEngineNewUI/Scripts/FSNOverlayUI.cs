@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 
@@ -319,7 +320,10 @@ public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptL
 		if (!menu.IsOpened)
 		{
 			if (m_dialogStack.IsEmpty)				// 다이얼로그가 하나도 없을 때만 연다
+			{
 				OpenDialog<FSNOverlayToggleMenu>();
+			}
+				
 		}
 		else
 		{

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -124,9 +125,16 @@ public sealed class FSNTouchSwipeHandler : MonoBehaviour
 	/// <returns></returns>
 	static bool isActiveTouch(Touch touch)
 	{
-		var phase = touch.phase;
+		var phase		= touch.phase;
+		bool phaseOK	= phase != TouchPhase.Canceled && phase != TouchPhase.Ended;
 
-		return phase != TouchPhase.Canceled && phase != TouchPhase.Ended;
+		if (!phaseOK)							// 터치중인 것이 아니라면 false 리턴
+			return false;
+
+		var eventSys	= EventSystem.current;
+		bool uihitOK	= eventSys.IsPointerOverGameObject() || eventSys.IsPointerOverGameObject(touch.fingerId);
+
+		return !uihitOK;						// UI 를 터치중인 것이 아니어야만 true
 	}
 
 

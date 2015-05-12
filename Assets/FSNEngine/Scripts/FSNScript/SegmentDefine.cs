@@ -810,6 +810,18 @@ namespace Segments
 			return data.m_delay;
 		}
 	}
+
+
+	/// <summary>
+	/// 엔진 내부용. Hard-Clone 지정
+	/// </summary>
+	public class HardClone : FSNScriptSequence.Segment
+	{
+		public override Type type
+		{
+			get { return Type.HardClone; }
+		}
+	}
 }
 
 
