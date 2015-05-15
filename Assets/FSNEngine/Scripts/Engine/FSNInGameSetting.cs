@@ -74,6 +74,16 @@ public interface IInGameSetting
 	/// 전환 속도 비율
 	/// </summary>
 	float TransitionSpeedRatio { get; }
+
+	/// <summary>
+	/// 텍스트 전환 속도
+	/// </summary>
+	float TextTransitionTime { get; }
+
+	/// <summary>
+	/// 세이브/로드 금지 (직접 호출은 가능, 메뉴에서만 접근 불가)
+	/// </summary>
+	bool PreventSaveAndLoadMenu { get; }
 }
 
 /// <summary>
@@ -222,6 +232,8 @@ public abstract class BaseInGameSetting : IInGameSetting
 	public virtual float ParagraphSpacing { get; set; }
 
 	public virtual float TransitionSpeedRatio { get; set; }
+	public virtual float TextTransitionTime { get; set; }
+	public virtual bool PreventSaveAndLoadMenu { get; set; }
 }
 
 
@@ -262,18 +274,20 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 	readonly static Dictionary<string, string> s_propNameAlias	= new Dictionary<string,string>()
 	{
 		{"현재진행방향",			"CurrentFlowDirection"},	
-		{"무게감",					"SwipeWeight"},				
+		{"무게감",				"SwipeWeight"},				
 		{"글자크기",				"FontSize"},				
 		{"문장을화면가운데로",		"ScreenCenterText"},		
 		{"문장쌓기",				"StackTexts"},				
-		{"글위쪽여백",				"TextMarginTop"},
+		{"글위쪽여백",			"TextMarginTop"},
 		{"글아래쪽여백",			"TextMarginBottom"},
-		{"글왼쪽여백",				"TextMarginLeft"},
+		{"글왼쪽여백",			"TextMarginLeft"},
 		{"글오른쪽여백",			"TextMarginRight"},
 		{"문장정렬",				"TextAlign"},
-		{"줄간격",					"TextLineSpacing"},
+		{"줄간격",				"TextLineSpacing"},
 		{"문단간격",				"ParagraphSpacing"},
 		{"속도비율",				"TransitionSpeedRatio"},
+		{"글자속도",				"TextTransitionSpeed"},
+		{"저장메뉴금지",			"PreventSaveAndLoadMenu"},
 	};
 
 	/// <summary>
@@ -315,6 +329,9 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 			TextLineSpacing			= 1.2f;
 
 			TransitionSpeedRatio	= 1f;
+			TextTransitionTime		= 1f;
+
+			PreventSaveAndLoadMenu	= false;
 		}
 	}
 
@@ -682,6 +699,17 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		{
 			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
 			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+
+		public float TextTransitionTime
+		{
+			get { return GetProperty<float>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<float>(MethodBase.GetCurrentMethod().Name, value); }
+		}
+		public bool PreventSaveAndLoadMenu
+		{
+			get { return GetProperty<bool>(MethodBase.GetCurrentMethod().Name); }
+			set { SetProperty<bool>(MethodBase.GetCurrentMethod().Name, value); }
 		}
 	}
 }

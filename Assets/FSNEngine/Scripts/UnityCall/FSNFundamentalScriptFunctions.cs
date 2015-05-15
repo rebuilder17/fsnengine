@@ -142,4 +142,18 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 	{
 		return GetValueOrLiteral(param[0]) < GetValueOrLiteral(param[1]);
 	}
+
+	//=============================================================================
+
+	[UnityCallVoidMethod]
+	public static void __fsnengine_ShowSaveDialog(params string [] param)
+	{
+
+	}
+
+	[UnityCallVoidMethod]
+	public static void __fsnengine_ShowLoadDialog(params string [] param)
+	{
+
+	}
 }

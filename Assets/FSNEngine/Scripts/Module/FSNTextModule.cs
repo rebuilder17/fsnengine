@@ -261,7 +261,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		newTextElem.fontSize		= setting.FontSize;
 		newTextElem.Color			= Color.white;//TODO
 		newTextElem.Alpha			= 1;
-		newTextElem.TransitionTime	= 1;//TODO
+		newTextElem.TransitionTime	= setting.TextTransitionTime;//TODO
 		newTextElem.MakeItUnique();
 
 		newTextElem.InitialState.Alpha	= 0;
@@ -359,7 +359,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 		questionTextElem.fontSize		= setting.FontSize;
 		questionTextElem.Color			= Color.white;//TODO
 		questionTextElem.Alpha			= 1;
-		questionTextElem.TransitionTime	= 1;//TODO
+		questionTextElem.TransitionTime	= setting.TextTransitionTime;//TODO
 		questionTextElem.type			= SnapshotElems.Text.Type.OptionTexts;
 		questionTextElem.MakeItUnique();
 
@@ -393,7 +393,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			upTextElem.fontSize				= setting.FontSize;
 			upTextElem.Color				= Color.white;//TODO
 			upTextElem.Alpha				= 1;
-			upTextElem.TransitionTime		= 1;//TODO
+			upTextElem.TransitionTime		= setting.TextTransitionTime;//TODO
 			upTextElem.type					= SnapshotElems.Text.Type.OptionTexts;
 			upTextElem.optionDir			= (FSNInGameSetting.FlowDirection)dirIndex;
 			upTextElem.MakeItUnique();
@@ -424,7 +424,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			downTextElem.fontSize			= setting.FontSize;
 			downTextElem.Color				= Color.white;//TODO
 			downTextElem.Alpha				= 1;
-			downTextElem.TransitionTime		= 1;//TODO
+			downTextElem.TransitionTime		= setting.TextTransitionTime;//TODO
 			downTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
 			downTextElem.optionDir			= (FSNInGameSetting.FlowDirection)dirIndex;
 			downTextElem.MakeItUnique();
@@ -455,7 +455,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			leftTextElem.fontSize			= setting.FontSize;
 			leftTextElem.Color				= Color.white;//TODO
 			leftTextElem.Alpha				= 1;
-			leftTextElem.TransitionTime		= 1;//TODO
+			leftTextElem.TransitionTime		= setting.TextTransitionTime;//TODO
 			leftTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
 			leftTextElem.optionDir			= (FSNInGameSetting.FlowDirection)dirIndex;
 			leftTextElem.MakeItUnique();
@@ -486,7 +486,7 @@ public abstract class FSNTextModule<ObjT> : FSNProcessModule<Segments.Text, Snap
 			rightTextElem.fontSize			= setting.FontSize;
 			rightTextElem.Color				= Color.white;//TODO
 			rightTextElem.Alpha				= 1;
-			rightTextElem.TransitionTime	= 1;//TODO
+			rightTextElem.TransitionTime	= setting.TextTransitionTime;//TODO
 			rightTextElem.type				= SnapshotElems.Text.Type.OptionTexts;
 			rightTextElem.optionDir			= (FSNInGameSetting.FlowDirection)dirIndex;
 			rightTextElem.MakeItUnique();

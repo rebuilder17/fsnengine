@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
@@ -6,6 +7,28 @@ using System.Collections;
 /// </summary>
 public class FSNOverlayToggleMenu : FSNBaseOverlayDialog
 {
+	// Properties
+
+	[SerializeField]
+	Button []		m_saveLoadRelatedButtons;	// 세이브 관련 버튼
+
+
+
+
+	protected override void Reset()
+	{
+		// 버튼의 활성화 상태를 조절
+
+		var setting			= FSNEngine.Instance.InGameSetting;
+
+		bool saveEnabled	= !setting.PreventSaveAndLoadMenu;
+		foreach(var btn in m_saveLoadRelatedButtons)
+		{
+			btn.interactable= saveEnabled;
+		}
+	}
+
+
 	// 버튼 콜백
 
 	public void OnBtn_QuickSave()

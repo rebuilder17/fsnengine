@@ -14,6 +14,7 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(ReverseGoto,	"reversegoto",	"역방향", "역방향점프");
 		FSNScriptSequence.Parser.AddCommand(End,			"end",			"끝");
 		FSNScriptSequence.Parser.AddCommand(Oneway,			"oneway",		"역방향금지");
+		FSNScriptSequence.Parser.AddCommand(ForceBack,		"forceback",	"되돌아가기");
 		FSNScriptSequence.Parser.AddCommand(Clear,			"clear",		"지우기");
 		FSNScriptSequence.Parser.AddCommand(TextClear,		"textclear",	"글자지우기");
 		FSNScriptSequence.Parser.AddCommand(Load,			"load",			"불러오기");
@@ -56,6 +57,8 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagFalse,		"flagoff",		"플래그끄기", "플래그내리기");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlags,			"setflag",		"플래그설정");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetValues,		"setvalues",	"변수값설정");
+		FSNScriptSequence.Parser.AddCommand(UnityCall_ShowSaveDialog,	"savedialog",	"저장하기");
+		FSNScriptSequence.Parser.AddCommand(UnityCall_ShowLoadDialog,	"loaddialog",	"불러오기");
 
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_UnityCall,			"jumpif_call",			"함수가참이면");
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_FlagIsTrue,			"jumpif_flagon",		"플래그가참이면", "플래그가켜졌으면", "플래그가섰으면");
@@ -133,6 +136,19 @@ public static class FSNBuiltInScriptCommands
 		newSegInfo.newSeg			= newseg;
 		newSegInfo.usePrevPeriod	= false;
 		newSegInfo.selfPeriod		= false;
+		protocol.PushSegment(newSegInfo);
+	}
+
+	static void ForceBack(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newseg					= new Segments.Control();
+
+		newseg.controlType			= Segments.Control.ControlType.ForceBack;
+
+		var newSegInfo				= new FSNScriptSequence.Parser.GeneratedSegmentInfo();
+		newSegInfo.newSeg			= newseg;
+		newSegInfo.usePrevPeriod	= false;//??
+		newSegInfo.selfPeriod		= true;//??
 		protocol.PushSegment(newSegInfo);
 	}
 
@@ -879,6 +895,36 @@ public static class FSNBuiltInScriptCommands
 		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
 
 		newCallSeg.SetUnityCallData("__fsnengine_SetValues", protocol.parameters);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void UnityCall_ShowLoadDialog(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
+
+		newCallSeg.SetUnityCallData("__fsnengine_ShowLoadDialog", protocol.parameters);
+
+		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
+			{
+				newSeg			= newCallSeg,
+				usePrevPeriod	= false,
+				selfPeriod		= false
+			});
+	}
+
+	static void UnityCall_ShowSaveDialog(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+	{
+		var newCallSeg			= new Segments.Control();
+		newCallSeg.controlType	= Segments.Control.ControlType.UnityCall;
+
+		newCallSeg.SetUnityCallData("__fsnengine_ShowSaveDialog", protocol.parameters);
 
 		protocol.PushSegment(new FSNScriptSequence.Parser.GeneratedSegmentInfo()
 			{

@@ -90,14 +90,14 @@ public sealed class FSNControlSystem : MonoBehaviour
 	bool							m_swipeEventSent;		// swipe 이벤트를 보냈는지
 	bool							m_swipeEventSentWasWrongDir;	// 잘못된 방향으로 이벤트를 보낸 것이었는지
 
-	//float							m_caughtSwipeRatio;		// swipe ratio가 0이 되지 않았을 때 다시 swipe를 시작할 경우 추가해줄 값
-
 	bool							m_enginePause;			// 엔진 일시정지
 
 	// NOTE : 현재 ExecuteEvents 가 원하는 방식대로 동작하지 않아서, 여기에 미리 핸들러들을 지정해둘 수 있게 함.
 	// 나중에 이 부분이 해결되면 그에 맞게 수정할 것
 	HashSet<GameObject>				m_swipeHandlers;
 
+
+	public bool enginePaused { get { return m_enginePause; } }
 
 
 	/// <summary>

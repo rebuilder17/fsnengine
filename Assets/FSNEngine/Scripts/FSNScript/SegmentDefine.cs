@@ -626,6 +626,7 @@ namespace Segments
 			Clear,					// 내용 모두 지우기
 
 			Oneway,					// 반대 방향으로 진행하지 못하게 하는 플래그
+			ForceBack,				// 도달하자마자 반대방향으로 되돌아가기
 
 			Delay,					// 스냅샷 딜레이
 

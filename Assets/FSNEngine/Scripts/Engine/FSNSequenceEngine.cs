@@ -91,7 +91,8 @@ public class FSNSequenceEngine : MonoBehaviour
 
 	void Update()
 	{
-		if(m_snapshotTraveler != null && CanSwipe)					// 로드된 snapshot이 있고, swipe 가능할 시 (= idle 상황)
+		if(m_snapshotTraveler != null && CanSwipe
+			&& !FSNEngine.Instance.ControlSystem.enginePaused)		// 로드된 snapshot이 있고, swipe 가능할 시 (= idle 상황), pause도 아닐 경우
 		{
 			var curSnapshot	= m_snapshotTraveler.Current;
 
@@ -99,10 +100,13 @@ public class FSNSequenceEngine : MonoBehaviour
 			if(curSnapshot.NonstopToForward && !m_lastSwipeWasBackward)
 			{
 				var nextFlowDir	= m_snapshotTraveler.Next.InGameSetting.CurrentFlowDirection;
-				//FullSwipe(curSnapshot.InGameSetting.CurrentFlowDirection, 0f);
 				FullSwipe(nextFlowDir, 0f);
 			}
 			else if(curSnapshot.NonstopToBackward && m_lastSwipeWasBackward)
+			{
+				FullSwipe(curSnapshot.InGameSetting.BackwardFlowDirection, 0f);
+			}
+			else if(curSnapshot.ForceBackward)						// 강제로 역방향으로 돌리는 경우
 			{
 				FullSwipe(curSnapshot.InGameSetting.BackwardFlowDirection, 0f);
 			}
@@ -221,8 +225,7 @@ public class FSNSequenceEngine : MonoBehaviour
 			m_lastSwipeWasBackward	= isBackward;							// swipe 방향성 보관해두기 (연결된 snapshot 처리에 사용)
 			transTime				+= nextshot.AfterSwipeDelay;			// swipe 시간에 스냅샷에 지정된 딜레이 시간까지 더하기
 			m_swipeAvailableTime	= Time.time + transTime;				// 현재 시간 + 트랜지션에 걸리는 시간 뒤에 swipe가 가능해짐
-			//Debug.Log("delay time : " + transTime);
-
+			
 			m_snapshotTraveler.TravelTo(direction);							// 해당 방향으로 넘기기
 			CurrentSession.SnapshotIndex	= m_snapshotTraveler.CurrentIndex;	// Session 정보 업데이트 (스크립트는 변하지 않았으므로 snapshot index만 바꿔주면 된다)
 		}

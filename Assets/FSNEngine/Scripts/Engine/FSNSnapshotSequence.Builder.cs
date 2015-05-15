@@ -120,17 +120,14 @@ public sealed partial class FSNSnapshotSequence
 			{
 				foreach(var pair in m_moduleCallTable)
 				{
-					//if(pair.Value.Count > 0)							// * 실질적인 call이 있을 때만 실행
-					{
-						var module		= pair.Key;
-						var prevLayer	= prevSnapshot.GetLayer(module.LayerID) ?? FSNSnapshot.Layer.Empty;
+					var module		= pair.Key;
+					var prevLayer	= prevSnapshot.GetLayer(module.LayerID) ?? FSNSnapshot.Layer.Empty;
 
-						var callInfo	= pair.Value;
+					var callInfo	= pair.Value;
 
-						var newLayer	= module.GenerateNextLayerImage(prevLayer, callInfo.ToArray());
+					var newLayer	= module.GenerateNextLayerImage(prevLayer, callInfo.ToArray());
 
-						curSnapshot.SetLayer(module.LayerID, newLayer);
-					}
+					curSnapshot.SetLayer(module.LayerID, newLayer);
 				}
 
 				ClearCall();
@@ -243,7 +240,6 @@ public sealed partial class FSNSnapshotSequence
 				var curSeg	= bs.sequence[bs.segIndex];							// 현재 명령어 (Sequence 세그먼트)
 				FSNDebug.currentProcessingScriptLine = curSeg.scriptLineNumber;	// 디버깅 정보 세팅 (줄 번호)
 
-				//Debug.Log("NewSeg : " + curSeg.type.ToString());
 				switch(curSeg.type)												// 명령어 타입 체크 후 분기
 				{
 				//////////////////////////////////////////////////////////////
@@ -335,6 +331,10 @@ public sealed partial class FSNSnapshotSequence
 							sseg.OneWay	= true;
 							break;
 
+						case Segments.Control.ControlType.ForceBack:
+							sseg.snapshot.ForceBackward = true;
+							break;
+
 						case Segments.Control.ControlType.Load:
 							sseg.Type		= FlowType.Load;
 							sseg.Parameter	= controlSeg.GetLoadScriptData();	// 스냅샷 세그먼트의 parameter에 스크립트 파일명 보관
@@ -367,7 +367,6 @@ public sealed partial class FSNSnapshotSequence
 
 					moduleCalls.ProcessCall(lastSeg.snapshot, sshot);			// 지금까지 모인 모듈 콜 집행하기
 
-					//if(lastSeg.Type != FlowType.UserChoice)						// 이전 스냅샷이 선택지가 아니면 바로 연결하기 (선택지일 경우 호출자가 결정하게 함... <- 확실하진 않음)
 					if(linkToLast)												// 이전 스냅샷에 붙여야하는경우
 					{
 						LinkSnapshots(lastSeg, sseg);
@@ -383,10 +382,6 @@ public sealed partial class FSNSnapshotSequence
 							sseg.snapshot.NonstopToForward	= true;
 							bs.prevPeriodWasChain			= true;				// (chaining 상태 기록)
 						}
-
-						//// 다음 snapshot을 위해 현재 진행 방향의 반대방향으로 FlowDirection 정해놓기
-						//bs.settings.BackwardFlowDirection	= FSNInGameSetting.GetOppositeFlowDirection(bs.settings.CurrentFlowDirection);
-						//bs.SetSettingDirty();
 					}
 					else
 					{
@@ -500,10 +495,7 @@ public sealed partial class FSNSnapshotSequence
 								// 생성한 스냅샷을 역방향에 직접 붙여줘야하기 때문.
 								// 좀 Hacky한 방법이라서 변경이 필요할지도.
 
-								//var origFlowType				= sseg.Type;								// 이전 flow type 보관
-								//sseg.Type	= FlowType.UserChoice;											// UserChoice로 변경
 								var newSeg	= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index, false);	// 새 분기 해석한 후 레퍼런스 받기. 링크는 하지 않음
-								//sseg.Type	= origFlowType;													// flow type 원상 복귀
 
 								LinkSnapshotsReverseOverride(sseg, newSeg);	//붙이기
 
@@ -537,10 +529,7 @@ public sealed partial class FSNSnapshotSequence
 									// 생성한 스냅샷을 역방향에 직접 붙여줘야하기 때문.
 									// 좀 Hacky한 방법이라서 변경이 필요할지도.
 
-									//var origFlowType	= sseg.Type;											// 이전 flow type 보관
-									//sseg.Type	= FlowType.UserChoice;											// UserChoice로 변경
 									newSeg		= ProcessSnapshotBuild(clonnedState, snapshotSeq, sseg.Index, false);	// 새 분기 해석한 후 레퍼런스 받기. 링크는 하지 않음
-									//sseg.Type	= origFlowType;													// flow type 원상 복귀
 
 									conditionLinkSegCache[label]	= newSeg;									// 캐싱해두기
 								}
