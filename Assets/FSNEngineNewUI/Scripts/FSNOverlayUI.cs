@@ -8,7 +8,7 @@ using System.Collections;
 /// 오버레이 UI를 관리하는 컴포넌트
 /// </summary>
 [RequireComponent(typeof(Canvas))]
-public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptLoadHandler, IFSNMenuToggleHandler
+public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptLoadHandler, IFSNMenuToggleHandler, IFSNEssentialMenuHandler, IFSNMessageUIShowHandler
 {
 	// Constants
 
@@ -329,6 +329,35 @@ public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptL
 		{
 			CloseDialog<FSNOverlayToggleMenu>();
 		}
+	}
+
+	/// <summary>
+	/// 메뉴 실행
+	/// </summary>
+	/// <param name="menu"></param>
+	public void OnEssentialMenuCall(FSNControlSystem.EssentialMenu menu)
+	{
+		switch(menu)
+		{
+			case FSNControlSystem.EssentialMenu.Load:
+				OpenDialog<FSNOverlayLoadDialog>();
+				break;
+
+			case FSNControlSystem.EssentialMenu.Save:
+				OpenDialog<FSNOverlaySaveDialog>();
+				break;
+		}
+	}
+
+	/// <summary>
+	/// 간단한 메세지박스 (버튼 1개짜리)
+	/// </summary>
+	/// <param name="message"></param>
+	public void OnShowMessageUICall(string message)
+	{
+		var msgdialog	= GetDialog<FSNOverlayMessageDialog>();
+		msgdialog.SetupDialogTexts(message, "확인");
+		OpenDialog<FSNOverlayMessageDialog>();
 	}
 
 	//==============================================================

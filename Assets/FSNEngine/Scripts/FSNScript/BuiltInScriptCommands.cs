@@ -27,8 +27,8 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(Option_start,	"option",		"선택지");
 		FSNScriptSequence.Parser.AddCommand(Option_left,	"left",			"왼쪽");
 		FSNScriptSequence.Parser.AddCommand(Option_right,	"right",		"오른쪽");
-		FSNScriptSequence.Parser.AddCommand(Option_up,		"up",			"위");
-		FSNScriptSequence.Parser.AddCommand(Option_down,	"down",			"아래");
+		FSNScriptSequence.Parser.AddCommand(Option_up,		"up",			"위", "위쪽");
+		FSNScriptSequence.Parser.AddCommand(Option_down,	"down",			"아래", "아래쪽");
 		FSNScriptSequence.Parser.AddCommand(Option_end,		"showoption",	"선택지표시");
 		FSNScriptSequence.Parser.AddCommand(Option_end_nontext,		"shownontextoption",	"글없는선택지표시");
 

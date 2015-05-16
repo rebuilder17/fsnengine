@@ -64,6 +64,16 @@ public interface IFSNMenuToggleHandler : IEventSystemHandler
 	void OnToggleMenu();
 }
 
+public interface IFSNEssentialMenuHandler : IEventSystemHandler
+{
+	void OnEssentialMenuCall(FSNControlSystem.EssentialMenu menu);
+}
+
+public interface IFSNMessageUIShowHandler : IEventSystemHandler
+{
+	void OnShowMessageUICall(string message);
+}
+
 
 
 
@@ -72,6 +82,16 @@ public interface IFSNMenuToggleHandler : IEventSystemHandler
 /// </summary>
 public sealed class FSNControlSystem : MonoBehaviour
 {
+	/// <summary>
+	/// 필수 메뉴
+	/// </summary>
+	public enum EssentialMenu
+	{
+		Save,
+		Load,
+	}
+
+
 	// constants
 
 	const float				c_partialSwipeLimit	= 0.5f;		// partial swipe로 인정되는 최대 비율
@@ -186,6 +206,34 @@ public sealed class FSNControlSystem : MonoBehaviour
 		foreach (var handler in m_swipeHandlers)
 		{
 			ExecuteEvents.ExecuteHierarchy<IFSNMenuToggleHandler>(handler, null, function);
+		}
+	}
+
+	/// <summary>
+	/// 메뉴 실행 이벤트 호출
+	/// </summary>
+	/// <param name="function"></param>
+	public void ExecuteMenuEvent(ExecuteEvents.EventFunction<IFSNEssentialMenuHandler> function)
+	{
+		// NOTE : 현재는 swipe handler 와 통합해서 사용중임. 나중에 분리해야할 때 분리할 것
+
+		foreach (var handler in m_swipeHandlers)
+		{
+			ExecuteEvents.ExecuteHierarchy<IFSNEssentialMenuHandler>(handler, null, function);
+		}
+	}
+
+	/// <summary>
+	/// 메세지박스 이벤트 호출
+	/// </summary>
+	/// <param name="function"></param>
+	public void ExecuteMessageEvent(ExecuteEvents.EventFunction<IFSNMessageUIShowHandler> function)
+	{
+		// NOTE : 현재는 swipe handler 와 통합해서 사용중임. 나중에 분리해야할 때 분리할 것
+
+		foreach (var handler in m_swipeHandlers)
+		{
+			ExecuteEvents.ExecuteHierarchy<IFSNMessageUIShowHandler>(handler, null, function);
 		}
 	}
 
@@ -386,6 +434,26 @@ public sealed class FSNControlSystem : MonoBehaviour
 		ExecuteScriptLoadEvent((obj, param) =>
 			{
 				obj.OnScriptLoadComplete();
+			});
+	}
+
+
+	/// <summary>
+	/// 메뉴 표시
+	/// </summary>
+	public void ShowMenu(EssentialMenu menu)
+	{
+		ExecuteMenuEvent((obj, param) =>
+			{
+				obj.OnEssentialMenuCall(menu);
+			});
+	}
+
+	public void ShowMessage(string message)
+	{
+		ExecuteMessageEvent((obj, param) =>
+			{
+				obj.OnShowMessageUICall(message);
 			});
 	}
 }

@@ -148,12 +148,12 @@ public class FSNFundamentalScriptFunctions : FSNBaseUnityCallReceiver
 	[UnityCallVoidMethod]
 	public static void __fsnengine_ShowSaveDialog(params string [] param)
 	{
-
+		FSNEngine.Instance.ControlSystem.ShowMenu(FSNControlSystem.EssentialMenu.Save);
 	}
 
 	[UnityCallVoidMethod]
 	public static void __fsnengine_ShowLoadDialog(params string [] param)
 	{
-
+		FSNEngine.Instance.ControlSystem.ShowMenu(FSNControlSystem.EssentialMenu.Load);
 	}
 }
