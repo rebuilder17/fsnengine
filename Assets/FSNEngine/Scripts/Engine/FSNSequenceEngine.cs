@@ -8,10 +8,128 @@ using System.Collections.Generic;
 /// </summary>
 public class FSNSequenceEngine : MonoBehaviour
 {
+	/// <summary>
+	/// 진행 속도 조절
+	/// NOTE : 현재는 정해진 배속을 강제로 지정하도록 설계되어있음. 따라서 게임 속도를 오버라이드하는 다른 코드가 게임에 존재할 경우 충돌이 생길 것이므로 주의.
+	/// </summary>
+	public interface FlowSpeedControl
+	{
+		/// <summary>
+		/// 다음 Idle까지만 빠르게
+		/// </summary>
+		void SetFastUntilNextIdle();
+
+		/// <summary>
+		/// 계속 빠르게 스킵
+		/// </summary>
+		void SetFastSkipping();
+
+		/// <summary>
+		/// 정상 속도로 스킵
+		/// </summary>
+		void SetNormalSkipping();
+
+		/// <summary>
+		/// 스킵 상태 해제 (다음 idle때 중지된다)
+		/// </summary>
+		void ClearSkipping();
+	}
+
+	class FlowSpeedControlImpl : FlowSpeedControl
+	{
+		// Constants
+
+		const float			c_timeRatio_normal				= 1.0f;
+		const float			c_timeRatio_skipUntilNextIdle	= 16.0f;
+		const float			c_timeRatio_fastskip			= 8.0f;
+
+
+		// Members
+
+		FSNSequenceEngine	m_seqengine;
+		bool				m_fastUntilNextIdle;			// 다음 idle까지만 빠르게
+		bool				m_keepSkipping;					// 계속 스킵하는지 (자동진행)
+
+
+		public FlowSpeedControlImpl(FSNSequenceEngine seqengine)
+		{
+			m_seqengine	= seqengine;
+		}
+
+		public void update()
+		{
+			if (m_seqengine.CanSwipe)							// 엔진이 idle일 때만 반응
+			{
+				var forward			= m_seqengine.m_snapshotTraveler.SwipeForwardDirection;
+				bool needClearSkip	= false;
+
+				if(!m_keepSkipping && m_fastUntilNextIdle)		// 계속 스킵하는 상태는 아니고 다음 idle까지만 스킵하는 경우인지
+				{
+					needClearSkip		= true;
+				}
+				else if(m_keepSkipping &&
+					(m_seqengine.m_snapshotTraveler.CurrentIsSwipeOption 
+					|| forward == FSNInGameSetting.FlowDirection.None 
+					|| !m_seqengine.SwipeDirectionAvailable(forward)))
+					// 계속 스킵해야하는 상태인데 선택지를 만난 경우, 혹은 더이상 진행할 수 없는 경우
+				{
+					needClearSkip		= true;
+				}
+
+				if (needClearSkip)								// 스킵 상태 해제
+				{
+					m_keepSkipping		= false;
+					m_fastUntilNextIdle	= false;
+					Time.timeScale		= c_timeRatio_normal;
+				}
+				
+				if(m_keepSkipping || m_fastUntilNextIdle)		// 스킵 해제 조건을 처리하고 나서도 어쨌든 현재 스킵해야하는 상황이면...진행
+				{
+					m_seqengine.FullSwipe(forward, 0);
+				}
+			}
+		}
+
+		//==========================================================================
+
+		// 다음 Idle까지만 빠르게
+		public void SetFastUntilNextIdle()
+		{
+			Time.timeScale		= c_timeRatio_skipUntilNextIdle;
+			m_fastUntilNextIdle	= true;
+		}
+
+		/// <summary>
+		/// 계속 빠르게 스킵
+		/// </summary>
+		public void SetFastSkipping()
+		{
+			Time.timeScale		= c_timeRatio_fastskip;
+			m_fastUntilNextIdle	= true;
+			m_keepSkipping		= true;
+		}
+
+		/// <summary>
+		/// 정상 속도로 스킵
+		/// </summary>
+		public void SetNormalSkipping()
+		{
+			m_keepSkipping		= true;
+		}
+
+		/// <summary>
+		/// 스킵 상태 해제 (다음 idle때 중지된다)
+		/// </summary>
+		public void ClearSkipping()
+		{
+			m_keepSkipping		= false;
+		}
+	}
+
+
 	// Constants
 
 	const float			c_maxSwipeToTransitionRatio	= 0.5f;				// 최대로 Swipe했을 때의 Transition 진행율
-	//const float			c_maxSwipeToTransitionRatio	= 0.0f;				// 최대로 Swipe했을 때의 Transition 진행율
 
 
 	// Members
@@ -22,6 +140,8 @@ public class FSNSequenceEngine : MonoBehaviour
 
 	float									m_swipeAvailableTime;		// swipe가 가능해지는 시간. (이 시간이 지나야 가능해짐)
 	bool									m_lastSwipeWasBackward;		// 최근에 한 swipe가 반대방향이었는지.
+
+	FlowSpeedControlImpl					m_flowSpeedControl;			//
 
 
 	/// <summary>
@@ -62,7 +182,7 @@ public class FSNSequenceEngine : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Swipe 가능한지 여부
+	/// Swipe 가능한지 여부 ( = 현재 트랜지션이 모두 끝났는지)
 	/// </summary>
 	public bool CanSwipe
 	{
@@ -71,6 +191,8 @@ public class FSNSequenceEngine : MonoBehaviour
 			return Time.time > m_swipeAvailableTime;
 		}
 	}
+
+	public FlowSpeedControl flowSpeedControl { get { return m_flowSpeedControl; } }
 
 	/// <summary>
 	/// 초기화
@@ -87,6 +209,8 @@ public class FSNSequenceEngine : MonoBehaviour
 				m_layerModules[layerModule.LayerID]	= layerModule;
 			}
 		}
+
+		m_flowSpeedControl	= new FlowSpeedControlImpl(this);		// FlowSpeedControl 초기화
 	}
 
 	void Update()
@@ -111,6 +235,8 @@ public class FSNSequenceEngine : MonoBehaviour
 				FullSwipe(curSnapshot.InGameSetting.BackwardFlowDirection, 0f);
 			}
 		}
+
+		m_flowSpeedControl.update();								// flowspeedcontrol 업데이트
 	}
 
 	/// <summary>

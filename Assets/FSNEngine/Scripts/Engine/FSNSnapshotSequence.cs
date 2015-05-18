@@ -118,14 +118,6 @@ public sealed partial class FSNSnapshotSequence
 		{
 			return Flows[(int)dir].Linked;
 		}
-		///// <summary>
-		///// 연결 설정
-		///// </summary>
-		///// <param name="dir"></param>
-		//public void SetFlow(FSNInGameSetting.FlowDirection dir, FlowInfo flow)
-		//{
-		//	Flows[(int)dir]	= flow;
-		//}
 
 		public void SetDirectFlow(FSNInGameSetting.FlowDirection dir, Segment linked)
 		{
@@ -266,6 +258,14 @@ public sealed partial class FSNSnapshotSequence
 		public int CurrentIndex { get { return m_current.Index; } }
 
 		/// <summary>
+		/// 현재 스냅샷이 선택지 페이지인지
+		/// </summary>
+		public bool CurrentIsSwipeOption
+		{
+			get { return m_current.Type == FlowType.UserChoice; }
+		}
+
+		/// <summary>
 		/// 다음 snapshot 구하기
 		/// </summary>
 		public FSNSnapshot Next
@@ -288,6 +288,18 @@ public sealed partial class FSNSnapshotSequence
 				return GetLinkedSnapshot(m_current.BackDirection);
 			}
 		}
+
+		/// <summary>
+		/// 다음 스냅샷으로 넘어가기 위한 정방향
+		/// </summary>
+		public FSNInGameSetting.FlowDirection SwipeForwardDirection
+		{
+			get
+			{
+				return m_current.FlowDirection;
+			}
+		}
+
 		/// <summary>
 		/// 해당 방향 스냅샷 구하기
 		/// </summary>

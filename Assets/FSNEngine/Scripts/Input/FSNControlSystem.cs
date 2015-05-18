@@ -74,6 +74,11 @@ public interface IFSNMessageUIShowHandler : IEventSystemHandler
 	void OnShowMessageUICall(string message);
 }
 
+public interface IFSNSkipTransitionHandler : IEventSystemHandler
+{
+	void OnSkipCurrentTransition();
+}
+
 
 
 
@@ -237,6 +242,20 @@ public sealed class FSNControlSystem : MonoBehaviour
 		}
 	}
 
+	/// <summary>
+	/// 전환 스킵 이벤트 호출
+	/// </summary>
+	/// <param name="function"></param>
+	public void ExecuteSkipTransitionEvent(ExecuteEvents.EventFunction<IFSNSkipTransitionHandler> function)
+	{
+		// NOTE : 현재는 swipe handler 와 통합해서 사용중임. 나중에 분리해야할 때 분리할 것
+
+		foreach (var handler in m_swipeHandlers)
+		{
+			ExecuteEvents.ExecuteHierarchy<IFSNSkipTransitionHandler>(handler, null, function);
+		}
+	}
+
 
 	// 이벤트 콜
 
@@ -253,6 +272,16 @@ public sealed class FSNControlSystem : MonoBehaviour
 		m_swipeEventSent	= false;
 		m_swipeEventSentWasWrongDir = false;
 		m_swippedAnyway		= !m_seqEngine.CanSwipe;	// 터치 시작시 Swipe가 블록된 상태에서는 메뉴를 부를 수 없음
+
+		if(!m_seqEngine.CanSwipe)						// 현재 swipe가 불가능한 상황 (= 트랜지션중)인 경우에는 트랜지션 스킵 이벤트를 호출
+		{
+			FSNEngine.Instance.FlowSpeedCtrl.SetFastUntilNextIdle();	// 다음 idle까지 빠르게 스킵
+
+			ExecuteSkipTransitionEvent((obj, param) =>
+				{
+					obj.OnSkipCurrentTransition();
+				});
+		}
 	}
 
 	/// <summary>

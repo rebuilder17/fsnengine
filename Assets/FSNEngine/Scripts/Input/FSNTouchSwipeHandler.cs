@@ -179,7 +179,7 @@ public sealed class FSNTouchSwipeHandler : MonoBehaviour
 		bool		m_singleTouchRecStart = false;			// 터치 시작 후 인식 영역을 벗어난 적이 있는지 여부
 		Vector2		m_singleTouchAxisMask = Vector2.zero;	// 특정 축으로 입력 걸러내기
 
-		bool		m_swipeBlocked			= false;
+		//bool		m_swipeBlocked			= false;
 
 		public SingleTouchProcess(FSNTouchSwipeHandler detector)
 			: base(detector)
@@ -189,21 +189,21 @@ public sealed class FSNTouchSwipeHandler : MonoBehaviour
 
 		public override void Begin(Touch[] touches)
 		{
-			m_swipeBlocked	= FSNEngine.Instance.ControlSystem.SwipeBlocked;	// swipe가 블락되었는지 먼저 구한다
+			//m_swipeBlocked	= FSNEngine.Instance.ControlSystem.SwipeBlocked;	// swipe가 블락되었는지 먼저 구한다
 			FSNEngine.Instance.ControlSystem.StartSwipe();
 		}
 
 		public override void End(Touch[] touches)
 		{
 			m_singleTouchRecStart	= false;
-			m_swipeBlocked			= false;
+			//m_swipeBlocked			= false;
 
 			FSNEngine.Instance.ControlSystem.ClearSwipe();
 		}
 
 		public override void Process(Touch[] touches)
 		{
-			if (m_swipeBlocked)								// 첫 터치시 입력이 블락된 상태였다면 어떤 처리도 하지 않는다.
+			if (FSNEngine.Instance.ControlSystem.SwipeBlocked)	// 현재 입력 블록 상태면 어떤 처리도 하지 않는다
 				return;
 
 			int count = touches.Length;

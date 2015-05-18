@@ -11,10 +11,12 @@ public interface IInGameSetting
 {
 	/// <summary>
 	/// 현재 진행 방향
+	/// 주 : "현재 스냅샷"의 이동 방향을 의미. 다음 혹은 이전으로 넘어가기 위한 swipe 방향을 의미하는 것이 아니다.
 	/// </summary>
 	FSNInGameSetting.FlowDirection CurrentFlowDirection { get; }
 	/// <summary>
 	/// 반대 방향 구하기
+	/// 주 : "현재 스냅샷"의 이동 방향을 의미. 다음 혹은 이전으로 넘어가기 위한 swipe 방향을 의미하는 것이 아니다.
 	/// </summary>
 	FSNInGameSetting.FlowDirection BackwardFlowDirection { get; }
 

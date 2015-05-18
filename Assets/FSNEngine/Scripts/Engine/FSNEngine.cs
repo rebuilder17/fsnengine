@@ -94,6 +94,11 @@ public sealed class FSNEngine : MonoBehaviour
 		get { return m_ctrlSystem; }
 	}
 
+	public FSNSequenceEngine.FlowSpeedControl FlowSpeedCtrl
+	{
+		get { return m_seqEngine.flowSpeedControl; }
+	}
+
 	// Statics
 
 	private static FSNEngine	s_instance;

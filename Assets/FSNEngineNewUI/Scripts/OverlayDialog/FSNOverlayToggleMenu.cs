@@ -79,4 +79,16 @@ public class FSNOverlayToggleMenu : FSNBaseOverlayDialog
 		});
 		FSNOverlayUI.Instance.OpenDialog<FSNOverlayMessageDialog>();
 	}
+
+	public void OnBtn_AutoPlay()
+	{
+		CloseSelf();
+		FSNEngine.Instance.FlowSpeedCtrl.SetNormalSkipping();
+	}
+
+	public void OnBtn_FastSkip()
+	{
+		CloseSelf();
+		FSNEngine.Instance.FlowSpeedCtrl.SetFastSkipping();
+	}
 }
