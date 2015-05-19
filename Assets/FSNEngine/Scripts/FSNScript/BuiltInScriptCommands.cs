@@ -941,13 +941,6 @@ public static class FSNBuiltInScriptCommands
 		var newCallSeg			= new Segments.Control();
 		newCallSeg.controlType	= Segments.Control.ControlType.ConditionJump;
 
-		//string funcname			= protocol.parameters[0];									// 함수 이름
-		//int paramCount			= protocol.parameters.Length;
-		//string [] param			= new string[paramCount - 2];
-		//for (int i = 1; i < paramCount - 1; i++)												// 함수 파라미터 (두번째부터 끝에서 두번째까지)
-		//	param[i - 1]		= protocol.parameters[i];
-		//string label			= protocol.parameters[paramCount - 1];						// 맨 마지막은 점프할 레이블
-
 		string funcname;																	// 함수 이름
 		string [] param;																	// 함수 파라미터 (두번째부터 끝에서 두번째까지)
 		string label;																		// 맨 마지막은 점프할 레이블

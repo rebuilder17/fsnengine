@@ -105,12 +105,6 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 			newLayer.SetCustomData(c_customDataName, new Dictionary<string, int>(curLayer.GetCustomData(c_customDataName) as Dictionary<string, int>));
 		}
 
-		//foreach(var rawelem in newLayer.Elements)					// Final State가 세팅되지 않은 객체에 한해서만 Final State를 임시로 계속 만들어주기
-		//{
-		//	var elem	= rawelem as ElemT;
-		//	AutoSetFinalState(elem, false);
-		//}
-
 		foreach(var callParam in callParams)
 		{
 			if(callParam.segment.type == FSNScriptSequence.Segment.Type.Object)

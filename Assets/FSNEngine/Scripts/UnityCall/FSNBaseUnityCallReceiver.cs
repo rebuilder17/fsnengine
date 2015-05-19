@@ -101,8 +101,6 @@ public class FSNBaseUnityCallReceiver : MonoBehaviour
 					}
 					m_methodRegister.RegisterUnityCall(method.Name, del);
 					m_delegateDict[method.Name]	= del;						// 나중에 unregister할 수 있게 보관
-
-					//Debug.LogWarningFormat("Found one! : " + method.Name);
 				}
 				else if (delType == typeof(FSNUnityCallBoolDelegate))		// 델리게이트로 등록 (bool)
 				{

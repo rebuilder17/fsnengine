@@ -305,7 +305,7 @@ public class FSNSequenceEngine : MonoBehaviour
 
 				if(oldLayer.IsEmpty && newLayer.IsEmpty)				// * 둘 다 비어있으면 아무것도 하지 않는다
 					continue;
-				//Debug.Log("Layer processing");
+				
 				bool isBackward	= InGameSetting.BackwardFlowDirection == direction;
 				float trRatio	= ratio * c_maxSwipeToTransitionRatio;
 				module.OldElementOnlyTransition(newLayer, trRatio, isBackward);	// 트랜지션
@@ -405,14 +405,12 @@ public class FSNSequenceEngine : MonoBehaviour
 				int layerID		= module.LayerID;
 				var newLayer	= curshot.GetLayer(layerID) ?? FSNSnapshot.Layer.Empty;
 
-				// FIX : 빈 레이어도 강제로 트랜지션을 걸어준다.
-				//if (newLayer != null && !newLayer.IsEmpty)
-				{
-					float curtt	= module.StartTransition(newLayer, curshot.InGameSetting, 0, false);	// 트랜지션
+				// 로딩 직후의 상황이므로 이전 화면과는 어떤 연관성도 없는 것으로 간주, 빈 레이어도 강제로 트랜지션을 걸어준다.
 
-					if (transTime < curtt)									// 제일 긴 트랜지션 시간 추적
-						transTime = curtt;
-				}
+				float curtt	= module.StartTransition(newLayer, curshot.InGameSetting, 0, false);	// 트랜지션
+
+				if (transTime < curtt)									// 제일 긴 트랜지션 시간 추적
+					transTime = curtt;
 			}
 			m_lastSwipeWasBackward	= false;								// swipe 방향성, 정방향으로 취급하기
 			m_swipeAvailableTime	= Time.time + transTime;				// 현재 시간 + 트랜지션에 걸리는 시간 뒤에 swipe가 가능해짐

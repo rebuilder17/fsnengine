@@ -58,7 +58,6 @@ public class FSNSaveListUI : MonoBehaviour
 
 	void Awake()
 	{
-		//m_allItems	= new List<FSNSaveListUIItem>();
 	}
 
 	public void Clear()

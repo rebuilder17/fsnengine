@@ -8,8 +8,6 @@ public class FSNOverlayLoadDialog : FSNBaseOverlayDialog
 
 	[SerializeField]
 	FSNSaveListUI	m_savelist;					// 세이브 파일 목록
-	//[SerializeField]
-	//InputField		m_memoInput;				// 세이브 파일 메모
 
 
 
@@ -47,16 +45,11 @@ public class FSNOverlayLoadDialog : FSNBaseOverlayDialog
 	void OnItemSelected(FSNSaveListUIItem item)
 	{
 		m_lastSelectedItem	= item;
-
-		if (!item.IsNewSaveItem)						// 새 슬롯이 아닌 경우만
-		{
-			//m_memoInput.text	= item.SaveTitle;	// 현재 아이템에 저장된 메모를 UI로 복사
-		}
 	}
 
 	public void OnBtn_Load()
 	{
-		if (m_lastSelectedItem == null)				// 선택된 게 없으면 리턴
+		if (m_lastSelectedItem == null)			// 선택된 게 없으면 리턴
 			return;
 
 		m_shouldLoad = true;					// 파일 로딩해야함

@@ -19,7 +19,7 @@ public partial class FSNOverlayUI
 	class DialogStack : IDialogProtocolAdd
 	{
 		Dictionary<System.Type, FSNBaseOverlayDialog.Protocol>	m_nameToProtocol;	// 다이얼로그 타입 -> 프로토콜 매칭
-		Stack<FSNBaseOverlayDialog.Protocol>				m_stack;			// 다이얼로그 스택
+		Stack<FSNBaseOverlayDialog.Protocol>					m_stack;			// 다이얼로그 스택
 
 		/// <summary>
 		/// 스택이 비었는지
@@ -91,7 +91,6 @@ public partial class FSNOverlayUI
 			dialogp.Reset();												// 열기 전에 리셋
 			if(dialogp.Open())												// 다이얼로그 열기
 			{
-				//dialogp.ZOrder	= m_stack.Count;							// Z 순서 정하기
 				dialogp.DialogRef.transform.SetAsLastSibling();				// 순서 맨 아래로 당기기 (= Z 순서상 제일 위)
 				m_stack.Push(dialogp);										// 스택에 추가
 			}

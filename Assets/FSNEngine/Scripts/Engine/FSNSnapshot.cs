@@ -197,7 +197,6 @@ public class FSNSnapshot
 			}
 
 			SelfT newElem		= MakeInstance();
-			//SelfT newElem		= new SelfT();
 			newElem.UniqueID	= UniqueID;			// UniqueID 복제
 			if(cloneInitialFinalState)				// 플래그가 있을 경우, Initial/Final State도 복제
 			{
@@ -284,11 +283,6 @@ public class FSNSnapshot
 		
 		private Dictionary<int, IElement>	m_elements;			// 레이어에 포함된 Element
 		private Dictionary<int, IElement>	m_removedElements;	// 이 레이어에서 삭제된 Element들 (이 레이어에서만 유지.)
-
-		///// <summary>
-		///// 추가 데이터
-		///// </summary>
-		//public object CustomData { get; set; }
 
 		private Dictionary<string, object>	m_customDataDict	= null;	// 추가 데이터 딕셔너리
 
@@ -534,9 +528,6 @@ public class FSNSnapshot
 	/// </summary>
 	public bool ForceBackward	= false;
 
-
-	// TODO : 실행 중 세팅값들도 필요한 것들은 Snapshot에 보관되어야함
-
 	/// <summary>
 	/// 현재 스냅샷의 인게임 세팅
 	/// </summary>
@@ -552,7 +543,6 @@ public class FSNSnapshot
 
 	public FSNSnapshot()
 	{
-		//m_layerIDList	= new Dictionary<string, int>();
 		m_layerList		= new Dictionary<int, Layer>();
 
 		InGameSetting	= FSNInGameSetting.DefaultInGameSetting;

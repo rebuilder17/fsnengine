@@ -206,8 +206,6 @@ public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptL
 	void SetIdle()
 	{
 		m_idle						= true;
-		//m_idleUIVisible				= false;
-		//m_swipeIndicatorVisible		= false;
 
 		m_nextIdleVisibleTime		= Time.time + c_idleVisibleDelay;
 		m_nextSwipeIndVisibleTime	= Time.time + c_swipeVisibleDelay;

@@ -665,7 +665,6 @@ public sealed partial class FSNSnapshotSequence
 			var swipeDir		= next.snapshot.InGameSetting.CurrentFlowDirection;		// 다음에 올 시퀀스의 설정값으로 링크 방향을 정한다
 			var backDir			= next.snapshot.InGameSetting.BackwardFlowDirection;
 
-			//prev.FlowDirection	= swipeDir;
 			next.BackDirection	= backDir;
 
 			prev.SetDirectFlow(swipeDir, next);

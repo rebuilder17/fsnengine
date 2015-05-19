@@ -27,7 +27,6 @@ public static class FSNResourceCache
 	// Static Members
 
 	static Dictionary<Category, Depot>	s_depotDict	= new Dictionary<Category, Depot>();
-	//static Dictionary<Category, Depot>	s_tempDepots= null;
 	static Depot						s_tempDepot	= null;
 	static Category						s_tempDepotName;
 
@@ -91,7 +90,6 @@ public static class FSNResourceCache
 			{
 				if (!s_tempDepot.m_resourceDict.ContainsKey(resname))	// 새로 로딩된 리소스 중에 없는 것은 해제한다.
 				{
-					//oldDepot.m_resourceDict.Remove(resname);
 					removeList.Add(resname);
 				}
 			}

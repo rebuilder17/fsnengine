@@ -149,7 +149,6 @@ namespace SnapshotElems
 		public override void LerpBetweenElems(ObjectBase<Sound> elem1, ObjectBase<Sound> elem2, float t)
 		{
 			// 기존 것은 사용하지 않음
-			//base.LerpBetweenElems(elem1, elem2, t);
 			var se1			= elem1 as Sound;
 			var se2			= elem2 as Sound;
 			volume			= Mathf.Lerp(se1.volume, se2.volume, t);

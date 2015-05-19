@@ -388,7 +388,6 @@ public class FSNScriptSequence
 			var strstream				= new System.IO.StringReader(scriptData);
 			sequence.OriginalScriptPath	= "(string)";
 			sequence.ScriptHashKey		= GenerateHashKeyFromScript(scriptData);	// 해시키 생성해두기 (세이브 파일과 스크립트 파일 버전 체크용)
-			//Debug.Log("ScriptHashKey : " + sequence.ScriptHashKey);
 
 			// 스크립트 해석 상태값들
 			CommandGenerateProtocol protocol	= new CommandGenerateProtocol();
@@ -429,9 +428,6 @@ public class FSNScriptSequence
 				}
 				else
 				{
-					//bool usePrevPeriod	= false;							// 출력 계열 명령어일 경우, 추가되기 전에 이전 period는 처리해야함. 해당 상황을 나타내는 플래그.
-					//bool selfPeriod		= false;							// 명령어 스스로 period를 포함하는지
-					//Segment newSeg		= null;								// 이번에 새로 생성한 세그먼트
 					var pretoken		= line.Length > 0? line.Substring(0, 1) : "";
 					switch (pretoken)										// 앞쪽 토큰으로 명령 구분
 					{
@@ -471,8 +467,6 @@ public class FSNScriptSequence
 								}
 								else
 								{
-									//var param		= ParseParameters(paramStr);
-									//newSeg			= genfunc(param, stateDict, out usePrevPeriod, out selfPeriod);
 									protocol.parameters	= ParseParameters(paramStr);
 									genfunc(protocol);
 								}
@@ -490,10 +484,6 @@ public class FSNScriptSequence
 								segInfo.usePrevPeriod	= true;				// Label 전에 period로 다 출력해야함
 								segInfo.selfPeriod		= false;
 								protocol.PushSegment(segInfo);
-
-								//newSeg				= labelSeg;
-								//usePrevPeriod		= true;					// Label 전에 period로 다 출력해야함
-								//selfPeriod			= false;
 							}
 							break;
 
@@ -508,10 +498,6 @@ public class FSNScriptSequence
 								segInfo.usePrevPeriod	= true;				// Label 전에 period로 다 출력해야함
 								segInfo.selfPeriod		= false;
 								protocol.PushSegment(segInfo);
-
-								//newSeg				= labelSeg;
-								//usePrevPeriod		= true;					// Label 전에 period로 다 출력해야함
-								//selfPeriod			= false;
 							}
 							break;
 
@@ -570,10 +556,6 @@ public class FSNScriptSequence
 								segInfo.usePrevPeriod	= true;	// 출력 명령어임
 								segInfo.selfPeriod		= true;	// 스스로 period를 포함함
 								protocol.PushSegment(segInfo);
-
-								//newSeg				= textSeg;
-								//usePrevPeriod		= true;	// 출력 명령어임
-								//selfPeriod			= true;	// 스스로 period를 포함함
 							}
 							break;
 					}
@@ -597,9 +579,6 @@ public class FSNScriptSequence
 						{
 							periodSeg	= new Segments.Period();
 						}
-
-						//usePrevPeriod	= false;
-						//selfPeriod		= false;
 					}
 				}
 			}

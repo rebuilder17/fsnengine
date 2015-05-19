@@ -86,7 +86,6 @@ public class FSNNewUICanvas : MonoBehaviour
 				paralPlane.Raycast(screenRay, out raydist);												// 모든 것이 카메라 로컬 스페이스에 있으므로 안심하고 레이캐스팅
 
 				float distFromScreenSqr	= (screenRay.GetPoint(raydist)).sqrMagnitude;
-				//float distFromScreenSqr	= Mathf.Pow(raydist, 2);
 
 				float planeHalfHeight	= Mathf.Sqrt(distFromScreenSqr - Mathf.Pow(paralPlane.distance, 2));	// 가상 plane의 높이/2 를 구한다
 				float scale				= planeHalfHeight / (screensize.y / 2f);

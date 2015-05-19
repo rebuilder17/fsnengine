@@ -12,7 +12,6 @@ namespace LayerObjects
 		AudioSource		m_asource;
 		float			m_volume	= 1;
 		float			m_panning	= 0;
-		//bool			m_loop		= false;
 
 		protected float Volume
 		{

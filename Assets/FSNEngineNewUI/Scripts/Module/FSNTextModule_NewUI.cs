@@ -81,7 +81,6 @@ namespace LayerObjects
 
 		protected override void UpdateColor(Color color)
 		{
-			//base.UpdateColor(color);
 			m_text.color	= color;
 		}
 	}

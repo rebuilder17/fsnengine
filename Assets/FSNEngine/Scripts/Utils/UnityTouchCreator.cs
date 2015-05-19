@@ -36,7 +36,6 @@ public class UnityTouchCreator
 		foreach (var f in typeof(Touch).GetFields(flag))
 		{
 			fields.Add(f.Name, f);
-			//Debug.Log("name: " + f.Name);
 		}
 	}
 }

@@ -29,7 +29,6 @@ public class FSNKeyboardSwipeHandler : MonoBehaviour
 			bool over	= Time.time >= overTime + timeStart;
 			if(over)
 			{
-				//started	= false;
 				Reset();
 			}
 			return over;
@@ -85,7 +84,6 @@ public class FSNKeyboardSwipeHandler : MonoBehaviour
 				{
 					m_input.Reset();
 					ctrlsys.ClearSwipe();			// 엔진으로 메세지 보내기
-					//Debug.Log("release");
 				}
 				else
 				{									// 키를 떼지 않은 경우
@@ -109,7 +107,6 @@ public class FSNKeyboardSwipeHandler : MonoBehaviour
 						if (m_input.Start(key))
 						{
 							ctrlsys.StartSwipe();			// 엔진으로 메세지 보내기
-							//Debug.Log("press");
 						}
 					}
 				}

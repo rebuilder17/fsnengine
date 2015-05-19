@@ -321,7 +321,6 @@ public class FSNBaseOverlayDialog : MonoBehaviour
 		m_canvasGroup.alpha		= 0.1f;
 
 		IsTransitioning	= false;						// 트랜지션 끝
-		//m_transCompleteCB();							// 트랜지션 완료 콜백 호출
 	}
 
 	/// <summary>

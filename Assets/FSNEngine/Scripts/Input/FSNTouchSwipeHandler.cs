@@ -179,8 +179,6 @@ public sealed class FSNTouchSwipeHandler : MonoBehaviour
 		bool		m_singleTouchRecStart = false;			// 터치 시작 후 인식 영역을 벗어난 적이 있는지 여부
 		Vector2		m_singleTouchAxisMask = Vector2.zero;	// 특정 축으로 입력 걸러내기
 
-		//bool		m_swipeBlocked			= false;
-
 		public SingleTouchProcess(FSNTouchSwipeHandler detector)
 			: base(detector)
 		{
@@ -189,15 +187,13 @@ public sealed class FSNTouchSwipeHandler : MonoBehaviour
 
 		public override void Begin(Touch[] touches)
 		{
-			//m_swipeBlocked	= FSNEngine.Instance.ControlSystem.SwipeBlocked;	// swipe가 블락되었는지 먼저 구한다
 			FSNEngine.Instance.ControlSystem.StartSwipe();
 		}
 
 		public override void End(Touch[] touches)
 		{
 			m_singleTouchRecStart	= false;
-			//m_swipeBlocked			= false;
-
+			
 			FSNEngine.Instance.ControlSystem.ClearSwipe();
 		}
 
@@ -227,7 +223,6 @@ public sealed class FSNTouchSwipeHandler : MonoBehaviour
 						if(touch.phase == TouchPhase.Moved)	// 움직인 경우만 처리한다. 매 프레임 항상 처리해야할수도...?
 						{
 							moveVec.Scale(m_singleTouchAxisMask);	// 특정한 축으로 필터링
-							//Debug.Log("recognized move vector : " + moveVec);
 
 							var dir		= FilteredVectorToDirection(moveVec);
 							var dist	= Mathf.Abs(moveVec.x + moveVec.y);

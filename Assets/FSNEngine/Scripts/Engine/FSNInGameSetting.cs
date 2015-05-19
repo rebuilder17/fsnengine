@@ -299,8 +299,7 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 	/// <returns></returns>
 	public static string ConvertPropertyNameAlias(string aliasname)
 	{
-		string realname		= aliasname;	
-		//string spaceRemoved	= System.Text.RegularExpressions.Regex.Replace(aliasname, "[ \t]", "");	// 공백 모두 제거
+		string realname		= aliasname;
 		string spaceRemoved	= FSNUtils.RemoveAllWhiteSpaces(aliasname);								// 공백 모두 제거
 		
 		return s_propNameAlias.TryGetValue(spaceRemoved, out realname)? realname : aliasname;		// 이름을 검색하지 못했다면 원래 이름을 그대로 반환한다

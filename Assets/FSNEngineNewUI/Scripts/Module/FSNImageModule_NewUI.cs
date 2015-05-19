@@ -50,7 +50,6 @@ namespace LayerObjects
 
 		protected override void UpdateColor(Color color)
 		{
-			//m_realCol	= color;
 			m_image.color	= color;
 		}
 	}
