@@ -155,6 +155,72 @@ public static class FSNUtils
 				}
 				return null;
 			}},
+			{typeof(Segments.Image.PivotPreset), (strval) =>
+			{
+				switch(strval.ToUpper())
+				{
+					case "CENTER":
+					case "중앙":
+					case "가운데":
+						return Segments.Image.PivotPreset.Center;
+
+					case "TOP":
+					case "위쪽":
+					case "위":
+					case "상단":
+					case "상":
+						return Segments.Image.PivotPreset.Top;
+
+					case "TOPRIGHT":
+					case "오른쪽위":
+					case "우상단":
+					case "우상":
+						return Segments.Image.PivotPreset.TopRight;
+
+					case "RIGHT":
+					case "오른쪽":
+					case "우측":
+					case "우":
+						return Segments.Image.PivotPreset.Right;
+
+					case "BOTTOMRIGHT":
+					case "오른쪽아래":
+					case "우하단":
+					case "우하":
+						return Segments.Image.PivotPreset.BottomRight;
+
+					case "BOTTOM":
+					case "아래쪽":
+					case "아래":
+					case "하단":
+					case "하":
+						return Segments.Image.PivotPreset.Bottom;
+
+					case "BOTTOMLEFT":
+					case "왼쪽아래":
+					case "좌하단":
+					case "좌하":
+						return Segments.Image.PivotPreset.BottomLeft;
+
+					case "LEFT":
+					case "왼쪽":
+					case "좌측":
+					case "좌":
+						return Segments.Image.PivotPreset.Left;
+
+					case "TOPLEFT":
+					case "왼쪽위":
+					case "좌상단":
+					case "좌상":
+						return Segments.Image.PivotPreset.TopLeft;
+						
+
+					default:
+						Debug.LogError(strval + " is not treated as a pivot value");
+						break;
+				}
+				return null;
+			}},
 		};
 
 	public static Color ConvertHexCodeToColor(string hexcode)

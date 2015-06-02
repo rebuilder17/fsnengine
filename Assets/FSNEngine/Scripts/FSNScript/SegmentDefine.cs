@@ -366,14 +366,61 @@ namespace Segments
 	/// </summary>
 	public class Image : Object
 	{
+		/// <summary>
+		/// 중심점 enum
+		/// </summary>
+		public enum PivotPreset
+		{
+			Center,	// 정중앙, 기본값
+
+			Top,
+			TopRight,
+			Right,
+			BottomRight,
+			Bottom,
+			BottomLeft,
+			Left,
+			TopLeft,
+		}
+
+		// 변환 Dictionary
+		private static readonly Dictionary<PivotPreset, Vector2> s_pivotToVector = new Dictionary<PivotPreset,Vector2>
+		{
+			{PivotPreset.Center,		new Vector2(0.5f, 0.5f)},
+			{PivotPreset.Top,			new Vector2(0.5f, 1.0f)},
+			{PivotPreset.TopRight,		new Vector2(1.0f, 1.0f)},
+			{PivotPreset.Right,			new Vector2(1.0f, 0.5f)},
+			{PivotPreset.BottomRight,	new Vector2(1.0f, 0.0f)},
+			{PivotPreset.Bottom,		new Vector2(0.5f, 0.0f)},
+			{PivotPreset.BottomLeft,	new Vector2(0.0f, 0.0f)},
+			{PivotPreset.Left,			new Vector2(0.0f, 0.5f)},
+			{PivotPreset.TopLeft,		new Vector2(0.0f, 1.0f)},
+		};
+
+		/// <summary>
+		/// 중점 preset 을 실제 vector값으로
+		/// </summary>
+		/// <param name="preset"></param>
+		/// <returns></returns>
+		public static Vector2 ConvertPivotPresetToVector(PivotPreset preset)
+		{
+			return s_pivotToVector[preset];
+		}
+
 		public const string		c_property_TexturePath	= "Texture";
+		public const string		c_property_Pivot		= "Pivot";	// 중심점
 
 		public string			texturePath;
+		public PivotPreset		pivot;
 		protected override string ConvertAliasPropertyName(string name)
 		{
 			if(name == "파일")
 			{
 				return c_property_TexturePath;
+			}
+			else if(name == "중점")
+			{
+				return c_property_Pivot;
 			}
 			return base.ConvertAliasPropertyName(name);
 		}
@@ -383,6 +430,11 @@ namespace Segments
 			if (name == c_property_TexturePath)
 			{
 				texturePath	= param;
+				return true;
+			}
+			else if (name == c_property_Pivot)
+			{
+				pivot	= FSNUtils.StringToValue<PivotPreset>(param);
 				return true;
 			}
 			return base.SetPropertyImpl(name, param);

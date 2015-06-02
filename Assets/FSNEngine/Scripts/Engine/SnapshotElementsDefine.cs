@@ -104,12 +104,19 @@ namespace SnapshotElems
 	/// </summary>
 	public class Image : ObjectBase<Image>
 	{
+		/// <summary>
+		/// 중점 pivot (캐싱)
+		/// </summary>
+		static readonly Vector2 c_pivot_center = new Vector2(0.5f, 0.5f);
+
 		public Texture2D	texture;
+		public Vector2		pivot	= c_pivot_center;
 
 		public override void CopyDataTo(Image to)
 		{
 			base.CopyDataTo(to);
 			to.texture	= texture;
+			to.pivot	= pivot;
 		}
 	}
 

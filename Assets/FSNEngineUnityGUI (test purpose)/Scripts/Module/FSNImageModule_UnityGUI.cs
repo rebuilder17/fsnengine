@@ -50,6 +50,11 @@ namespace LayerObjects
 		{
 			m_realCol	= color;
 		}
+
+		public override void UpdatePivot(Vector2 pivot)
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 }
 

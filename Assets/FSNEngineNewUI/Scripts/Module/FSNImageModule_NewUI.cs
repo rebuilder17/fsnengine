@@ -24,6 +24,11 @@ namespace LayerObjects
 			m_rectTrans.pivot	= Vector2.one / 2f;
 		}
 
+		public override void UpdatePivot(Vector2 pivot)
+		{
+			m_rectTrans.pivot	= pivot;
+		}
+
 		public override void UpdateTexture(Texture2D texture)
 		{
 			m_image.texture		= texture;
