@@ -63,9 +63,9 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_UnityCall,			"jumpif_call",			"함수가참이면");
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_FlagIsTrue,			"jumpif_flagon",		"플래그가참이면", "플래그가켜졌으면", "플래그가섰으면");
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_FlagIsFalse,			"jumpif_flagoff",		"플래그가거짓이면", "플래그가꺼졌으면", "플래그가안섰으면");
-		FSNScriptSequence.Parser.AddCommand(ConditionJump_CheckFlag,			"jumpif_flagequal",		"플래그가같다면");
-		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueEqual,			"jumpif_valueequal",	"값이같으면");
-		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueNotEqual,		"jumpif_valuenotequal",	"값이다르면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_CheckFlag,			"jumpif_flagequal",		"플래그가같으면", "플래그가같다면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueEqual,			"jumpif_valueequal",	"값이같으면", "값이같다면");
+		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueNotEqual,		"jumpif_valuenotequal",	"값이다르면", "값이다르다면");
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueGreaterThan,	"jumpif_valuegreater",	"왼쪽이크면", "오른쪽이작으면");
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_IfValueLesserThan,	"jumpif_valuelesser",	"왼쪽이작으면", "오른쪽이크면");
 	}

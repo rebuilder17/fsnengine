@@ -88,7 +88,7 @@ public class FSNSession
 	{
 		if(!m_valueTable.ContainsKey(name) && !suppressWarning)
 		{
-			Debug.LogWarningFormat("[FSNSession] flag named {0} has not been declared before. Assuming this is a new delcaration.", name);
+			Debug.LogWarningFormat("[FSNSession] flag named {0} has not been declared before. Assuming this is a new declaration.", name);
 		}
 		m_valueTable[name]	= value;
 	}
