@@ -276,6 +276,7 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 	readonly static Dictionary<string, string> s_propNameAlias	= new Dictionary<string,string>()
 	{
 		{"현재진행방향",			"CurrentFlowDirection"},	
+		{"진행방향",				"CurrentFlowDirection"},	
 		{"무게감",				"SwipeWeight"},				
 		{"글자크기",				"FontSize"},				
 		{"문장을화면가운데로",		"ScreenCenterText"},		
@@ -328,6 +329,7 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 
 			TextAlign				= TextAlignType.Left;
 			TextLineSpacing			= 1.2f;
+			ParagraphSpacing		= 10f;
 
 			TransitionSpeedRatio	= 1f;
 			TextTransitionTime		= 1f;

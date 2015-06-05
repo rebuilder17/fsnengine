@@ -119,10 +119,12 @@ public static class FSNUtils
 				{
 					case "UP":
 					case "위":
+					case "위쪽":
 						return FSNInGameSetting.FlowDirection.Up;
 
 					case "DOWN":
 					case "아래":
+					case "아래쪽":
 						return FSNInGameSetting.FlowDirection.Down;
 
 					case "LEFT":
