@@ -57,8 +57,8 @@ public static class FSNBuiltInScriptCommands
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlagFalse,		"flagoff",		"플래그끄기", "플래그내리기");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetFlags,			"setflag",		"플래그설정");
 		FSNScriptSequence.Parser.AddCommand(UnityCall_SetValues,		"setvalues",	"변수값설정");
-		FSNScriptSequence.Parser.AddCommand(UnityCall_ShowSaveDialog,	"savedialog",	"저장하기");
-		FSNScriptSequence.Parser.AddCommand(UnityCall_ShowLoadDialog,	"loaddialog",	"불러오기");
+		FSNScriptSequence.Parser.AddCommand(UnityCall_ShowSaveDialog,	"savedialog",	"진행저장하기", "세이브");
+		FSNScriptSequence.Parser.AddCommand(UnityCall_ShowLoadDialog,	"loaddialog",	"진행불러오기", "로드");
 
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_UnityCall,			"jumpif_call",			"함수가참이면");
 		FSNScriptSequence.Parser.AddCommand(ConditionJump_FlagIsTrue,			"jumpif_flagon",		"플래그가참이면", "플래그가켜졌으면", "플래그가섰으면");
