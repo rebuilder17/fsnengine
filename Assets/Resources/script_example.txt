@@ -3,6 +3,8 @@
 /이미지생성		테스트이미지, 파일, "testimage", 위치, [-200, 200]
 /이미지시작설정	테스트이미지, 위치, [-300, 300]
 
+a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d a a d 
+asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf
 이미지를 비롯한 오브젝트의 속성값은
 
 스냅샷이 하나씩 넘어갈 때마다

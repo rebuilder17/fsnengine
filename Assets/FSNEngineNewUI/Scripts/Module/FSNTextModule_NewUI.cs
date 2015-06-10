@@ -127,6 +127,7 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		m_textGenSettings.generateOutOfBounds	= true;
 		m_textGenSettings.lineSpacing			= 1;
 		m_textGenSettings.updateBounds			= true;
+		m_textGenSettings.scaleFactor			= 1;
 	}
 
 	protected override LayerObjects.Text_NewUI MakeNewLayerObject(SnapshotElems.Text elem, IInGameSetting setting)
@@ -151,7 +152,6 @@ public class FSNTextModule_NewUI : FSNTextModule<LayerObjects.Text_NewUI>
 		Vector2 size;
 		size.x			= m_textGenerator.GetPreferredWidth(text, m_textGenSettings);
 		size.y			= m_textGenerator.GetPreferredHeight(text, m_textGenSettings);
-
 		return size;
 	}
 }
