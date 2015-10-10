@@ -1,0 +1,204 @@
+{
+	"bpm"		:120,
+	
+	"sections":
+	[
+		{
+			"natural-in"	:"KickIn",
+			"natural-out"	:"LeaveIt",
+			
+			"manual-in"		:"FadeIn",
+			"manual-out"	:"FadeOut",
+			
+			"beat-fillin"	:0,
+			"beat-start"	:4,
+			"beat-end"		:36,
+			
+			"layers":
+			[
+				{
+					"clip"		:"libsequentia/test-sec1-1"
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec1-2",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.25,	"v":0.0},
+								{"t":0.5,	"v":1.0}
+							]
+						}
+					]
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec1-3",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.75,	"v":1.0}
+							]
+						}
+					]
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec1-4",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.5,	"v":0.0},
+								{"t":1.0,	"v":1.0}
+							]
+						}
+					]
+				}
+			]
+		},
+		
+		{
+			"natural-in"	:"KickIn",
+			"natural-out"	:"LeaveIt",
+			
+			"manual-in"		:"FadeIn",
+			"manual-out"	:"FadeOut",
+			
+			"beat-fillin"	:0,
+			"beat-start"	:4,
+			"beat-end"		:36,
+			
+			"layers":
+			[
+				{
+					"clip"		:"libsequentia/test-sec2-1"
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec2-2",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.25,	"v":0.0},
+								{"t":0.5,	"v":1.0}
+							]
+						}
+					]
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec2-3",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.75,	"v":1.0}
+							]
+						}
+					]
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec2-4",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.5,	"v":0.0},
+								{"t":1.0,	"v":1.0}
+							]
+						}
+					]
+				}
+			]
+		},
+		
+		{
+			"natural-in"	:"KickIn",
+			"natural-out"	:"LeaveIt",
+			
+			"manual-in"		:"FadeIn",
+			"manual-out"	:"FadeOut",
+			
+			"beat-fillin"	:0,
+			"beat-start"	:4,
+			"beat-end"		:36,
+			
+			"layers":
+			[
+				{
+					"clip"		:"libsequentia/test-sec1-1"
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec1-2",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.25,	"v":0.0},
+								{"t":0.5,	"v":1.0}
+							]
+						}
+					]
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec1-3",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.75,	"v":1.0}
+							]
+						}
+					]
+				},
+				
+				{
+					"clip"		:"libsequentia/test-sec1-4",
+					"tension":
+					[
+						{
+							"param"	:"Volume",
+							"data":
+							[
+								{"t":0.0,	"v":0.0},
+								{"t":0.5,	"v":0.0},
+								{"t":1.0,	"v":1.0}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}

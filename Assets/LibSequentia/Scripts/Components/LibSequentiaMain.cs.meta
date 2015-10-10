@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e031a99cc026e864783b6f60d32277a5
+timeCreated: 1442381489
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - m_mixer_master: {fileID: 24100000, guid: 86aa7eaaa7401e043a91e0bb6eb05807, type: 2}
+  - m_mixer_deckA: {fileID: 24100000, guid: f85656cc620501a47b2746b5605e1bd3, type: 2}
+  - m_mixer_deckB: {fileID: 24100000, guid: be72b915ce6508146be361c84b6af999, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
