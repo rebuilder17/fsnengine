@@ -75,11 +75,22 @@ namespace SnapshotElems
 		/// </summary>
 		public bool		finalStateSet	= false;
 
+		/// <summary>
+		/// 추가 컴포넌트 이름
+		/// </summary>
+		public string	componentName;
+		/// <summary>
+		/// 추가 컴포넌트 파라미터
+		/// </summary>
+		public string	componentParameter;
+
 
 		public override void CopyDataTo(SelfT to)
 		{
 			base.CopyDataTo(to);
 			to.finalStateSet	= finalStateSet;
+			to.componentName	= componentName;
+			to.componentParameter	= componentParameter;
 		}
 
 		/// <summary>

@@ -12,10 +12,75 @@ namespace LayerObjects
 	public abstract class BaseObjectLayerObject<ImageElem> : FSNLayerObject<ImageElem>
 		where ImageElem : SnapshotElems.ObjectBase<ImageElem>, new()
 	{
+		// Members
+
+		bool		m_componentInit	= false;		// 컴포넌트가 초기화된 적이 있는지
+		string		m_componentParam;				// 컴포넌트에 보낼 별도 파라미터
+
+		public string ComponentParam
+		{
+			get { return m_componentParam; }
+			set
+			{
+				if (m_componentParam != value)		// 값이 다를 때만 실제 업데이트 호출
+				{
+					m_componentParam = value;
+					UpdateComponentParam(value);
+				}
+			}
+		}
+
+
+		/// <summary>
+		/// 실제 컴포넌트 등등을 붙일 안쪽 GameObject
+		/// </summary>
+		protected GameObject innerGO { get; private set; }
+
+
 		public BaseObjectLayerObject(FSNModule parent, GameObject gameObj, IInGameSetting setting)
 			: base(parent, gameObj, setting)
 		{
+			// 내부 게임 오브젝트 생성
+			var inner			= new GameObject();
+			inner.name			= "(Inner)";
+			var tr				= inner.transform;
+			tr.parent			= transform;
+			tr.localPosition	= Vector3.zero;
+			tr.localRotation	= Quaternion.identity;
+			tr.localScale		= Vector3.one;
+			innerGO				= inner;
+		}
 
+		public override void SetStateFully(ImageElem to)
+		{
+			base.SetStateFully(to);
+
+			if (!m_componentInit)	// 컴포넌트가 초기화되지 않았다면 부착해주기
+			{
+				m_componentInit	= true;
+				if (to.componentName != null)
+					AttachComponent(to.componentName);
+			}
+
+			ComponentParam	= to.componentParameter;
+		}
+
+		/// <summary>
+		/// 파라미터 변경시 행동.
+		/// </summary>
+		/// <param name="to"></param>
+		protected virtual void UpdateComponentParam(string to)
+		{
+			Debug.Log("param update : " + to);
+		}
+
+		/// <summary>
+		/// 컴포넌트 부착
+		/// </summary>
+		/// <param name="compname"></param>
+		public virtual void AttachComponent(string compname)
+		{
+			Debug.Log("component add : " + compname);
 		}
 	}
 }
@@ -214,6 +279,14 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 
 				case Segments.Object.c_property_Transition:
 					elem.TransitionTime	= seg.transition;
+					break;
+
+				case Segments.Object.c_property_Component:
+					elem.componentName	= seg.componentName;
+					break;
+
+				case Segments.Object.c_property_CompParam:
+					elem.componentParameter	= seg.componentName;
 					break;
 			}
 		}

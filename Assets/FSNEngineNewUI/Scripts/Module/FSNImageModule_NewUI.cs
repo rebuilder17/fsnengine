@@ -16,7 +16,7 @@ namespace LayerObjects
 		public Image_NewUI(FSNModule parent, GameObject gameObj, IInGameSetting setting)
 			: base(parent, gameObj, setting)
 		{
-			m_image				= gameObj.AddComponent<RawImage>();
+			m_image				= innerGO.AddComponent<RawImage>();	// 안쪽의 오브젝트에 추가하기
 			m_rectTrans			= m_image.rectTransform;
 
 			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 0);

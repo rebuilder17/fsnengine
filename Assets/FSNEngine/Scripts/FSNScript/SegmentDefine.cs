@@ -139,6 +139,8 @@ namespace Segments
 		public const string		c_property_Color	= "Color";
 		public const string		c_property_Alpha	= "Alpha";
 		public const string		c_property_Transition	= "Transition";
+		public const string		c_property_Component	= "Component";
+		public const string		c_property_CompParam	= "CompParam";
 
 		public Vector3			position;
 		public Vector3			scale	= Vector3.one;
@@ -146,6 +148,14 @@ namespace Segments
 		public Color			color;
 		public float			alpha;
 		public float			transition	= 1;
+		/// <summary>
+		/// 이 오브젝트에 특별히 부착할 컴포넌트 네임 (생성 후 바뀌지 않는다)
+		/// </summary>
+		public string			componentName;
+		/// <summary>
+		/// 부착한 컴포넌트에 전달되는 파라미터 (내용이 변경될 때마다 전달한다)
+		/// </summary>
+		public string			componentParameter;
 
 		HashSet<string>	PropertySetList	= new HashSet<string>();
 
@@ -196,6 +206,10 @@ namespace Segments
 					return c_property_Alpha;
 				case "시간":
 					return c_property_Transition;
+				case "컴포넌트":
+					return c_property_Component;
+				case "파라미터":
+					return c_property_CompParam;
 			}
 			return name;	// 변환 실패시 이름 그냥 리턴
 		}
@@ -348,6 +362,24 @@ namespace Segments
 
 				case c_property_Transition:
 					transition	= float.Parse(param);
+					success	= true;
+					break;
+
+				case c_property_Component:
+					if (componentName != null)	// 이미 지정된 상태에서는 컴포넌트 이름을 또 지정할 수는 없다
+					{
+						Debug.LogError("[Segments.Object] Cannot change componentName after applied once");
+						success	= false;
+					}
+					else
+					{
+						componentName	= param.Trim();
+						success	= true;
+					}
+					break;
+
+				case c_property_CompParam:
+					componentParameter	= param.Trim();
 					success	= true;
 					break;
 
