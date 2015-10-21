@@ -6,6 +6,18 @@ using System.Collections.Generic;
 public static class FSNResourceCache
 {
 	/// <summary>
+	/// 커스텀 리소스 로더에 대한 인터페이스
+	/// </summary>
+	public interface CustomLoader
+	{
+		object LoadResource(string path);
+		object UnloadResource(object res);
+	}
+
+	//==========================================================================
+
+
+	/// <summary>
 	/// 리소스 카테고리
 	/// </summary>
 	public enum Category
@@ -29,6 +41,19 @@ public static class FSNResourceCache
 	static Dictionary<Category, Depot>	s_depotDict	= new Dictionary<Category, Depot>();
 	static Depot						s_tempDepot	= null;
 	static Category						s_tempDepotName;
+
+	static Dictionary<System.Type, CustomLoader>	s_loader	= new Dictionary<System.Type, CustomLoader>();
+
+
+	/// <summary>
+	/// 커스텀 리소스 로더 설치하기
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="loader"></param>
+	public static void InstallLoader<T>(CustomLoader loader)
+	{
+		s_loader[typeof(T)]	= loader;
+	}
 
 
 	public static T Load<T>(Category category, string assetname)

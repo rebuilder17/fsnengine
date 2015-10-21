@@ -82,6 +82,11 @@ public class LibSequentiaMain : MonoBehaviour
 		get { return m_audioClipDepot; }
 	}
 
+	public bool isPlaying
+	{
+		get { return m_masterplayer.isPlaying; }
+	}
+
 
 
 	static LibSequentiaMain s_instance;
