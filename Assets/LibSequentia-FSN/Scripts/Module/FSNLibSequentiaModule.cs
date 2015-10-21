@@ -147,6 +147,7 @@ namespace LibSequentia
 			if (split.Length == 2)				// 일반 재생
 			{
 				var curtrack	= split[0].Trim();
+				var curtobj		= FSNResourceCache.Load<LibSequentia.Data.Track>(FSNResourceCache.Category.Script, curtrack);
 				var cutstep		= int.Parse(split[1].Trim());
 
 				if (!lsengine.isPlaying)		// 재생중이 아닐 때는 트랙 새로 올리기
@@ -238,6 +239,32 @@ namespace LibSequentia
 		/// </summary>
 		/// <param name="protocol"></param>
 		static void Ready(FSNScriptSequence.Parser.ICommandGenerateProtocol protocol)
+		{
+
+		}
+	}
+
+	class TrackLoader : FSNResourceCache.ICustomLoader
+	{
+		public object LoadResource(string path)
+		{
+			return LibSequentiaMain.instance.LoadTrack(path);
+		}
+
+		public void UnloadResource(object res)
+		{
+
+		}
+	}
+
+	class TransitionScenarioLoader : FSNResourceCache.ICustomLoader
+	{
+		public object LoadResource(string path)
+		{
+			return LibSequentiaMain.instance.LoadTransitionScenario(path);
+		}
+
+		public void UnloadResource(object res)
 		{
 
 		}

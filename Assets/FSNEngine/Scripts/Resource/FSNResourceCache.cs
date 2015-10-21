@@ -8,10 +8,10 @@ public static class FSNResourceCache
 	/// <summary>
 	/// 커스텀 리소스 로더에 대한 인터페이스
 	/// </summary>
-	public interface CustomLoader
+	public interface ICustomLoader
 	{
 		object LoadResource(string path);
-		object UnloadResource(object res);
+		void UnloadResource(object res);
 	}
 
 	//==========================================================================
@@ -28,12 +28,18 @@ public static class FSNResourceCache
 		UI,					// UI 객체들
 	}
 
+	class ResourceBox
+	{
+		public object		res;
+		public System.Type	type;
+	}
+
 	/// <summary>
 	/// 카테고리 하나에 해당
 	/// </summary>
 	class Depot
 	{
-		public Dictionary<string, Object>	m_resourceDict	= new Dictionary<string, Object>();
+		public Dictionary<string, ResourceBox>	m_resourceDict	= new Dictionary<string, ResourceBox>();
 	}
 
 	// Static Members
@@ -42,7 +48,7 @@ public static class FSNResourceCache
 	static Depot						s_tempDepot	= null;
 	static Category						s_tempDepotName;
 
-	static Dictionary<System.Type, CustomLoader>	s_loader	= new Dictionary<System.Type, CustomLoader>();
+	static Dictionary<System.Type, ICustomLoader>	s_loader	= new Dictionary<System.Type, ICustomLoader>();
 
 
 	/// <summary>
@@ -50,16 +56,16 @@ public static class FSNResourceCache
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="loader"></param>
-	public static void InstallLoader<T>(CustomLoader loader)
+	public static void InstallLoader<T>(ICustomLoader loader)
 	{
 		s_loader[typeof(T)]	= loader;
 	}
 
 
 	public static T Load<T>(Category category, string assetname)
-		where T : Object
+		where T : class
 	{
-		Object retv	= null;
+		ResourceBox retv	= null;
 		Depot depot	= null;
 		if(!s_depotDict.TryGetValue(category, out depot))
 		{
@@ -69,7 +75,18 @@ public static class FSNResourceCache
 
 		if(!depot.m_resourceDict.TryGetValue(assetname, out retv))
 		{
-			retv	= Resources.Load<T>(assetname);
+			retv					= new ResourceBox();
+			retv.type				= typeof(T);
+			ICustomLoader loader	= null;
+			s_loader.TryGetValue(retv.type, out loader);
+			if (loader != null)
+			{
+				retv.res	= loader.LoadResource(assetname);
+			}
+			else
+			{
+				retv.res	= Resources.Load(assetname) as T;
+			}
 			depot.m_resourceDict[assetname]	= retv;
 		}
 
@@ -78,7 +95,7 @@ public static class FSNResourceCache
 			s_tempDepot.m_resourceDict[assetname]	= retv;
 		}
 		
-		return retv as T;
+		return retv.res as T;
 	}
 
 	public static void UnloadCategory(Category category)
@@ -86,8 +103,18 @@ public static class FSNResourceCache
 		Depot depot	= null;
 		if(s_depotDict.TryGetValue(category, out depot))
 		{
+			foreach(var box in depot.m_resourceDict.Values)
+			{
+				if (box.type != null)
+				{
+					var loader	= s_loader[box.type];
+					loader.UnloadResource(box.res);
+				}
+			}
 			depot.m_resourceDict.Clear();
 		}
+
+		Resources.UnloadUnusedAssets();
 	}
 
 	/// <summary>
@@ -124,5 +151,7 @@ public static class FSNResourceCache
 		}
 
 		s_tempDepot	= null;		// 임시 저장소 해제
+
+		Resources.UnloadUnusedAssets();
 	}
 }
