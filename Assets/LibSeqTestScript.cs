@@ -265,7 +265,7 @@ public class LibSeqTestScript : MonoBehaviour
 		// 강제 리셋
 		if(Input.GetKeyDown(KeyCode.R))
 		{
-			LibSequentiaMain.instance.Reset();
+			LibSequentiaMain.instance.ResetModule();
 			m_firstrun	= true;
 			m_stateidx	= -1;
 		}

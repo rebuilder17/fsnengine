@@ -64,7 +64,7 @@ public static class FSNDebug
 	//
 	static void HandleLog(string message, string stacktrace, LogType logtype)
 	{
-		if (logtype == LogType.Log)
+		if (logtype == LogType.Log || logtype == LogType.Warning)
 			return;
 
 		bool showStackTrace = false;

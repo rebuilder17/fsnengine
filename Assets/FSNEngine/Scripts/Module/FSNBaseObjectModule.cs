@@ -286,7 +286,7 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 					break;
 
 				case Segments.Object.c_property_CompParam:
-					elem.componentParameter	= seg.componentName;
+					elem.componentParameter	= seg.componentParameter;
 					break;
 			}
 		}

@@ -1,0 +1,31 @@
+/음악프리로드		"libsequentia/data/track1"
+/음악프리로드		"libsequentia/data/track2"
+/음악시스템사용
+
+LibSequentia 로드!
+
+/음악설정 파라미터, [libsequentia/data/track1, 1], 텐션, 0
+libsequentia/data/track1, 1
+
+/음악설정 파라미터, [libsequentia/data/track1, 2], 텐션, 1
+libsequentia/data/track1, 2
+
+/음악설정 파라미터, [libsequentia/data/track1, 3]
+libsequentia/data/track1, 3
+
+/음악설정 파라미터, [libsequentia/data/track1, 4]
+libsequentia/data/track1, 4
+
+/음악설정 파라미터, [libsequentia/data/track1, 5]
+libsequentia/data/track1, 5
+
+/음악설정 파라미터, [libsequentia/data/track1, 6], 텐션, 1
+libsequentia/data/track1, 6
+
+/음악설정 파라미터, [libsequentia/data/track1, 7], 텐션, 0
+libsequentia/data/track1, 7
+
+/음악설정 파라미터, [libsequentia/data/track1, 8]
+libsequentia/data/track1, 8
+
+/끝

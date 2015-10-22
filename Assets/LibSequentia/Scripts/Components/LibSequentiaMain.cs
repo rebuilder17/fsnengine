@@ -39,7 +39,7 @@ public class LibSequentiaMain : MonoBehaviour
 	MasterPlayer					m_masterplayer;
 	StepControl						m_stepctrl;
 
-	float			m_tension;
+	float			m_tension	= 1;
 
 	/// <summary>
 	/// 긴장도 설정
@@ -273,7 +273,7 @@ public class LibSequentiaMain : MonoBehaviour
 	/// <summary>
 	/// 강제 리셋
 	/// </summary>
-	public void Reset()
+	public void ResetModule()
 	{
 		m_masterplayer.Reset();
 		m_stepctrl.Reset();
