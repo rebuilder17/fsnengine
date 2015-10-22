@@ -21,5 +21,10 @@ public abstract class FSNModule : MonoBehaviour
 	/// 모든 엔진 초기화 종료 후 호출됨
 	/// </summary>
 	public virtual void OnAfterEngineInit() { }
+
+	/// <summary>
+	/// 세이브 파일 로드하기 전에 호출됨. 일반적인 스크립트 로딩시에는 호출되지 않음.
+	/// </summary>
+	public virtual void OnBeforeLoadSession() { }
 }
 

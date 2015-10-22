@@ -288,6 +288,11 @@ public sealed class FSNEngine : MonoBehaviour
 	/// <param name="filepath"></param>
 	public void LoadSession(string filepath)
 	{
+		foreach(var module in m_moduleRefDict.Values)		// 로딩 직전의 이벤트 호출
+		{
+			module.OnBeforeLoadSession();
+		}
+
 		var session	= FSNSession.Load(filepath);
 		m_seqEngine.LoadFromSession(session);
 	}

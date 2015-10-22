@@ -505,7 +505,11 @@ namespace LibSequentia.Engine
 		/// <param name="track"></param>
 		public void StartWithOneTrack(Data.Track track, int startStep, bool reverse = false)
 		{
-			m_cmdQueue.Enqueue(new Command() { type = Command.Type.StartWithOneTrack, param1 = track, param2 = startStep, param3 = reverse });
+			// NOTE : StartWithOneTrack 은 맨 앞쪽 섹션만 시작 가능하므로 이렇게 처리되지 않는 경우는 StartWithTwoTrack 으로 처리한다
+			if (!reverse && startStep <= 1 || reverse && startStep >= (track.sectionCount + 1) * 2 - 1)
+				m_cmdQueue.Enqueue(new Command() { type = Command.Type.StartWithOneTrack, param1 = track, param2 = startStep, param3 = reverse });
+			else
+				m_cmdQueue.Enqueue(new Command() { type = Command.Type.StartWithTwoTrack, param1 = track, param2 = startStep, param3 = null, param4 = -1, param5 = null });
 		}
 
 		void _StartWithOneTrack(Data.Track track, int startStep, bool reverse = false)

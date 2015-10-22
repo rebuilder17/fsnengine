@@ -175,7 +175,7 @@ public class LibSequentiaMain : MonoBehaviour
 			{
 				m_automationMgr.AddAutomationControlToMixer(GetMixerName(deck, section), mdeckarr[section], true);
 
-				var mlayerarr	= mixer_layers[section];
+				var mlayerarr	= mixer_layers[section + (deck * 2)];
 				for (int layer = 0; layer < 4; layer++)
 				{
 					m_automationMgr.AddAutomationControlToMixer(GetMixerName(deck, section, layer), mlayerarr[layer], true);

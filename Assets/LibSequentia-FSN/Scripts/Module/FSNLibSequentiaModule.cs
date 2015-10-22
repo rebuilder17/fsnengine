@@ -183,24 +183,30 @@ namespace LibSequentia
 					step		= int.Parse(split[1].Trim()),
 				};
 
-				if (!lsengine.isPlaying)		// 재생중이 아닐 때는 트랙 새로 올리기
+				if (!m_reverse && cur.step == 0 || m_reverse && cur.step == (cur.curtrack.sectionCount + 1) * 2)
 				{
-					ctrl.StartWithOneTrack(cur.curtrack, cur.step, m_reverse);
-					Debug.Log("Start");
-					UpdateTension(m_tension);			// 파라미터 초기화
-					UpdateSongTransition(m_songTrans);
+					// 정방향일 때 스텝이 0이거나 역방향일 때 (섹션수+1)*2 스텝일 경우엔 재생하지 않고 무시해준다. (각 방향의 끝점으로 갔을 때 재생 중지를 하기 위한 스텝임)
 				}
 				else
-				{								// 재생중일 때는 스텝 변경 메세지 (1트랙짜리)
-					
-					// TODO : 스테이트가 복잡해서 실수를 최대한 막기 위해 불필요한 코드들을 작성함. 나중에 줄여야함.
-					if (m_reverse == false)	// (정방향)
+				{
+					if (!lsengine.isPlaying)		// 재생중이 아닐 때는 트랙 새로 올리기
 					{
-						ctrl.StepMove(cur.step, -1, m_reverse);
+						ctrl.StartWithOneTrack(cur.curtrack, cur.step, m_reverse);
+						UpdateTension(m_tension);			// 파라미터 초기화
+						UpdateSongTransition(m_songTrans);
 					}
 					else
-					{						// (역방향)
-						ctrl.StepMove(cur.step, -1, m_reverse);
+					{								// 재생중일 때는 스텝 변경 메세지 (1트랙짜리)
+
+						// TODO : 스테이트가 복잡해서 실수를 최대한 막기 위해 불필요한 코드들을 작성함. 나중에 줄여야함.
+						if (m_reverse == false)	// (정방향)
+						{
+							ctrl.StepMove(cur.step, -1, m_reverse);
+						}
+						else
+						{						// (역방향)
+							ctrl.StepMove(cur.step, -1, m_reverse);
+						}
 					}
 				}
 
@@ -502,7 +508,15 @@ public class FSNLibSequentiaModule : FSNBaseObjectModule<LibSequentia.ScriptSegm
 
 		m_layerID			= c_layerID;	// 레이어 번호 강제 지정
 
+		acceptClearCommand	= false;		// 전체 클리어 명령에 반응하지 않게 한다. (컨트롤 오브젝트가 사라지면 안됨)
+
 		Debug.Log("FSNLibSequentiaModule installed");
+	}
+
+	public override void OnBeforeLoadSession()
+	{
+		// 모순을 방지하기 위해 세이브파일 로드시에는 LibSequentia엔진을 초기화해버린다
+		LibSequentiaMain.instance.ResetModule();
 	}
 
 	protected override LibSequentia.LayerObject MakeNewLayerObject(LibSequentia.SnapshotElement element, IInGameSetting setting)

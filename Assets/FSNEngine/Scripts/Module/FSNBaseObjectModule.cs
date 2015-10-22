@@ -101,7 +101,11 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 
 	// Members
 
-
+	bool m_acceptClearCommand	= true;
+	/// <summary>
+	/// 전체 clear 명령을 받아들이는지 여부. 기본적으로는 true
+	/// </summary>
+	public bool acceptClearCommand { get { return m_acceptClearCommand; } protected set { m_acceptClearCommand = value; } }
 
 
 	static bool AddToLookupDict(string name, ElemT elem, FSNSnapshot.Layer layer)
@@ -206,7 +210,7 @@ public abstract class FSNBaseObjectModule<SegT, ElemT, ObjT> : FSNProcessModule<
 			else if(callParam.segment.type == FSNScriptSequence.Segment.Type.Control)
 			{
 				var controlSeg	= callParam.segment as Segments.Control;
-				if(controlSeg.controlType == Segments.Control.ControlType.Clear)		// Clear 명령에 반응
+				if (controlSeg.controlType == Segments.Control.ControlType.Clear && acceptClearCommand)	// Clear 명령에 반응
 				{
 					foreach (var rawelem in newLayer.Elements)							// finalstate가 세팅되지 않은 오브젝트에 한해서 디폴트 세팅
 					{
