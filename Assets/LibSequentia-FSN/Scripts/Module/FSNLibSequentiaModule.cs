@@ -338,7 +338,7 @@ namespace LibSequentia
 
 		public override void TransitionWith(SnapshotElement to, float ratio)
 		{
-			base.TransitionWith(to, ratio);
+			//base.TransitionWith(to, ratio);
 			
 			var trTension	= Mathf.Lerp(m_tension, to.Tension, ratio);
 			var trSongTrans	= Mathf.Lerp(m_songTrans, to.SongTransition, ratio);

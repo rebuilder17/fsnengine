@@ -35,6 +35,10 @@ namespace LayerObjects
 		/// 실제 컴포넌트 등등을 붙일 안쪽 GameObject
 		/// </summary>
 		protected GameObject innerGO { get; private set; }
+		/// <summary>
+		/// 추가 컴포넌트
+		/// </summary>
+		protected FSNBaseComponent component { get; private set; }
 
 
 		public BaseObjectLayerObject(FSNModule parent, GameObject gameObj, IInGameSetting setting)
@@ -71,7 +75,14 @@ namespace LayerObjects
 		/// <param name="to"></param>
 		protected virtual void UpdateComponentParam(string to)
 		{
-			Debug.Log("param update : " + to);
+			if (component)
+			{
+				component.OnParameterChange(to);
+			}
+			else
+			{
+				Debug.LogError("No component attached - paramenter : " + to);
+			}
 		}
 
 		/// <summary>
@@ -80,7 +91,19 @@ namespace LayerObjects
 		/// <param name="compname"></param>
 		public virtual void AttachComponent(string compname)
 		{
-			Debug.Log("component add : " + compname);
+			var comptype	= System.Type.GetType(compname, false, false);
+			if (comptype == null)											// 존재하는 타입인지 체크
+			{
+				Debug.LogError("Invalid component type name : " + compname);
+			}
+			else if (!typeof(FSNBaseComponent).IsAssignableFrom(comptype))	// FSNBaseComponent 랑 호환되는지 체크
+			{
+				Debug.LogErrorFormat("type {0} is not compatible with FSNBaseComponent class.", compname);
+			}
+			else
+			{																// 이상 없을 때만 컴포넌트로 추가
+				component	= innerGO.AddComponent(comptype) as FSNBaseComponent;
+			}
 		}
 	}
 }

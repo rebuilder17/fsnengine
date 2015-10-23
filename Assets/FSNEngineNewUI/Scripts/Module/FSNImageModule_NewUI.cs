@@ -38,20 +38,20 @@ namespace LayerObjects
 			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, texture.height);
 		}
 
-		protected override void UpdatePosition(Vector3 position)
-		{
-			m_rectTrans.localPosition	= position;
-		}
+		//protected override void UpdatePosition(Vector3 position)
+		//{
+		//	m_rectTrans.localPosition	= position;
+		//}
 
-		protected override void UpdateScale(Vector3 scale)
-		{
-			m_rectTrans.localScale		= scale;
-		}
+		//protected override void UpdateScale(Vector3 scale)
+		//{
+		//	m_rectTrans.localScale		= scale;
+		//}
 
-		protected override void UpdateRotate(Vector3 rotate)
-		{
-			m_rectTrans.localRotation	= Quaternion.Euler(rotate);
-		}
+		//protected override void UpdateRotate(Vector3 rotate)
+		//{
+		//	m_rectTrans.localRotation	= Quaternion.Euler(rotate);
+		//}
 
 		protected override void UpdateColor(Color color)
 		{
