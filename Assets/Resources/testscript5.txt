@@ -34,10 +34,10 @@ libsequentia/data/track2, 4
 /음악설정 파라미터, [libsequentia/data/track2, 5]
 libsequentia/data/track2, 5
 
-/음악설정 파라미터, [libsequentia/data/track2, 6]
+/음악설정 파라미터, [libsequentia/data/track2, 6], 텐션, 1
 libsequentia/data/track2, 6
 
-/음악설정 파라미터, [libsequentia/data/track2, 7]
+/음악설정 파라미터, [libsequentia/data/track2, 7], 텐션, 0
 libsequentia/data/track2, 7
 
 /이미지설정 테스트, 위치, [300, 0]

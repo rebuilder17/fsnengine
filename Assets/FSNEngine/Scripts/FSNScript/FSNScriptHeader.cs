@@ -6,7 +6,7 @@ using System.Collections.Generic;
 /// <summary>
 /// 스크립트에서 사용하는 헤더
 /// </summary>
-public sealed class FSNScriptHeader
+public sealed partial class FSNScriptHeader
 {
 	/*
 	 * 헤더 문법
@@ -73,6 +73,37 @@ public sealed class FSNScriptHeader
 			var value	= split.Length == 2? split[1].Trim() : null;		// 값이 있을 시엔 공백을 제거하고 넣기, 없으면 null
 
 			m_pairDict[key]	= new Pair { Key = key, Value = value };
+
+			OnNewEntry(key, value);											// 추가 동작 실행
+		}
+
+		/// <summary>
+		/// 엔트리 추가된 후 실행
+		/// </summary>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		protected virtual void OnNewEntry(string key, string value)
+		{
+
+		}
+	}
+
+	/// <summary>
+	/// Category 확장형. 엔트리를 추가할 때마다 매크로에 등록한다.
+	/// </summary>
+	class MacroCategory : Category
+	{
+		MacroImpl	m_macro;
+
+		public MacroCategory(MacroImpl macro)
+		{
+			m_macro	= macro;
+		}
+
+		protected override void OnNewEntry(string key, string value)
+		{
+			//base.OnNewEntry(key, value);
+			m_macro.Register(key, value);
 		}
 	}
 
@@ -85,6 +116,9 @@ public sealed class FSNScriptHeader
 	Category		m_inGameSettings;				// 인게임 세팅 설정
 	Category		m_flagDecl;						// 플래그 선언
 	Category		m_valueDecl;					// 변수 선언
+	MacroCategory	m_macroDecl;					// 매크로 선언
+
+	MacroImpl		m_macroObject;					// 매크로 오브젝트
 
 	Dictionary<string, Category>	m_indexToCategory;	// 카테고리 매칭용
 
@@ -113,6 +147,19 @@ public sealed class FSNScriptHeader
 		get { return m_valueDecl.Entries; }
 	}
 
+	//public Pair[] MacroDeclarations
+	//{
+	//	get { return m_macroDecl.Entries; }
+	//}
+
+	/// <summary>
+	/// 매크로 변환용 오브젝트
+	/// </summary>
+	public Macro Macros
+	{
+		get { return m_macroObject; }
+	}
+
 
 	public FSNScriptHeader()
 	{
@@ -120,17 +167,24 @@ public sealed class FSNScriptHeader
 		m_flagDecl			= new Category();
 		m_valueDecl			= new Category();
 
+		m_macroObject		= new MacroImpl();
+		m_macroDecl			= new MacroCategory(m_macroObject);
+
+
 		// 문자열로 카테고리를 매칭할 수 있게 dictionary 세팅
 		m_indexToCategory	= new Dictionary<string, Category>()
 		{
 			{"InGameSettings",	m_inGameSettings},
-			{"설정",			m_inGameSettings},
+			{"설정",				m_inGameSettings},
 
 			{"FlagDecl",		m_flagDecl},
 			{"플래그선언",		m_flagDecl},
 
 			{"ValueDecl",		m_valueDecl},
 			{"값선언",			m_valueDecl},
+
+			{"Macro",			m_macroDecl},
+			{"매크로",			m_macroDecl},
 		};
 	}
 
@@ -183,6 +237,7 @@ public sealed class FSNScriptHeader
 		m_inGameSettings.BuildPairList();
 		m_flagDecl.BuildPairList();
 		m_valueDecl.BuildPairList();
+		m_macroDecl.BuildPairList();
 	}
 
 	/// <summary>
@@ -197,6 +252,9 @@ public sealed class FSNScriptHeader
 		{
 			Debug.LogErrorFormat("[FSNSequence] Cannot open header asset : {0}", assetPath);
 		}
-		FromString(textfile.text);
+		else
+		{
+			FromString(textfile.text);
+		}
 	}
 }

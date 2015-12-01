@@ -412,6 +412,8 @@ public class FSNScriptSequence
 			int linenumber	= 0;	// 줄 번호
 			while ((line = strstream.ReadLine()) != null)				// 줄 단위로 읽는다.
 			{
+				line		= sequence.Header.Macros.Replace(line);		// 정적 매크로 치환
+
 				linenumber++;
 				FSNDebug.currentProcessingScriptLine	= linenumber;	// 디버깅 정보 설정
 
