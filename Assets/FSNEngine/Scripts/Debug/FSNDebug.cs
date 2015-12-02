@@ -22,6 +22,10 @@ public static class FSNDebug
 	}
 
 
+	// Constants
+	const int           c_maxErrorPopupCount    = 5;	// 에러창 표시 횟수 제한
+
+
 	// Members
 
 	/// <summary>
@@ -44,6 +48,7 @@ public static class FSNDebug
 	public static bool Installed { get; private set; }
 
 
+	static int s_errorDialogCount   = 0;	// 에러 다이얼로그 카운트
 
 	public static void Install()
 	{
@@ -52,7 +57,8 @@ public static class FSNDebug
 		Application.logMessageReceived	+= HandleLog;
 
 		Installed = true;
-	}
+		s_errorDialogCount  = 0;
+    }
 
 	public static void Uninstall()
 	{
@@ -104,7 +110,8 @@ public static class FSNDebug
 		string completemsg	= header + message + (showStackTrace? ("\n" + stacktrace) : "");
 		FSNEngine.Instance.StartCoroutine(LateLog(completemsg));
 #if UNITY_EDITOR
-		EditorUtility.DisplayDialog("FSNEngine", completemsg, "확인");		// 에디터상에서는 팝업으로 따로 알려줌
+		if (s_errorDialogCount++ < c_maxErrorPopupCount)
+			EditorUtility.DisplayDialog("FSNEngine", completemsg, "확인");	// 에디터상에서는 팝업으로 따로 알려줌
 #endif
 	}
 

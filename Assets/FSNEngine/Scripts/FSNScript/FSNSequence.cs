@@ -375,19 +375,83 @@ public class FSNScriptSequence
 		//---------------------------------------------------------------------------------------
 
 		/// <summary>
+		/// 헤더 정보 먼저 처리
+		/// </summary>
+		/// <param name="scriptData"></param>
+		/// <param name="session"></param>
+		static void ProcessHeaders(string scriptData, FSNScriptSequence sequence, FSNSession session)
+		{
+			var strstream	= new System.IO.StringReader(scriptData);
+			string line		= null;
+			int linenumber	= 0;    // 줄 번호
+
+			while ((line = strstream.ReadLine()) != null)               // 줄 단위로 읽는다.
+			{
+				linenumber++;
+				FSNDebug.currentProcessingScriptLine    = linenumber;   // 디버깅 정보 설정
+				
+				if (line.Length > 0 && line.Substring(0,1) == c_token_PreProcessor)		// 프리프로세서 기호에만 반응한다
+				{
+					var commandAndParam = line.Substring(1).Split(c_whiteSpaceArray, 2);            // 명령어 파라미터 구분
+					var command         = commandAndParam[0];
+					var paramStr        = commandAndParam.Length > 1? commandAndParam[1] : "";
+
+					// 아직까지는 header 커맨드밖에 없으므로 간단하게 if로만 체크한다. 더 늘어나면 리팩토링이 필요해질듯...
+					if (command == "헤더" || command == "header")
+					{
+						sequence.Header.FromAsset(paramStr.Trim());
+					}
+					else
+					{
+						Debug.LogErrorFormat("[FSNSequence] line {0} : unknown preprocessor command {1}", linenumber, command);
+					}
+				}
+			}
+
+			// 읽어들인 헤더 정보를 바탕으로 플래그/변수 기본값들 세팅하기 (선언되어있지 않은 경우에만)
+
+			foreach (var pair in sequence.Header.FlagDeclarations)        // 플래그 선언
+			{
+				if (!session.FlagIsDeclared(pair.Key))                          // 아직 선언되지 않은 경우만 세팅
+				{
+					bool value  = string.IsNullOrEmpty(pair.Value)?
+						false : FSNUtils.StringToValue<bool>(pair.Value);   // 초기값까지 선언한 경우 값 해독, 아니면 기본값 false
+					session.SetFlagValue(pair.Key, value, true);
+				}
+			}
+
+			foreach (var pair in sequence.Header.ValueDeclarations)       // 값 선언
+			{
+				if (!session.ValueIsDeclared(pair.Key))                         // 아직 선언되지 않은 경우만 세팅
+				{
+					float value = string.IsNullOrEmpty(pair.Value)?
+						0 : FSNUtils.StringToValue<float>(pair.Value);      // 초기값까지 선언한 경우 값 해독, 아니면 기본값 false
+					session.SetNumberValue(pair.Key, value, true);
+				}
+			}
+		}
+
+		/// <summary>
 		/// 문자열으로 스크립트 파싱
 		/// </summary>
 		/// <param name="scriptData"></param>
 		/// <returns></returns>
-		public static FSNScriptSequence FromString(string scriptData)
+		public static FSNScriptSequence FromString(string scriptData, FSNSession session)
 		{
 			// 디버깅 세션 세팅
 			FSNDebug.currentRuntimeStage = FSNDebug.RuntimeStage.Compile;
 
 			var sequence				= new FSNScriptSequence();
-			var strstream				= new System.IO.StringReader(scriptData);
 			sequence.OriginalScriptPath	= "(string)";
-			sequence.ScriptHashKey		= GenerateHashKeyFromScript(scriptData);	// 해시키 생성해두기 (세이브 파일과 스크립트 파일 버전 체크용)
+			sequence.ScriptHashKey		= GenerateHashKeyFromScript(scriptData);    // 해시키 생성해두기 (세이브 파일과 스크립트 파일 버전 체크용)
+
+			// ===== FIRST PASS : 헤더 파일 먼저 해석 ==================================
+
+			ProcessHeaders(scriptData, sequence, session);
+
+
+			// ===== SECOND PASS : 나머지 스크립트 요소들 해석 =========================
+			var strstream               = new System.IO.StringReader(scriptData);
 
 			// 스크립트 해석 상태값들
 			CommandGenerateProtocol protocol	= new CommandGenerateProtocol();
@@ -438,21 +502,7 @@ public class FSNScriptSequence
 							break;
 
 						case c_token_PreProcessor:							// * 전처리 구문
-							{
-								var commandAndParam	= line.Substring(1).Split(c_whiteSpaceArray, 2);			// 명령어 파라미터 구분
-								var command			= commandAndParam[0];
-								var paramStr		= commandAndParam.Length > 1? commandAndParam[1] : "";
-
-								// 아직까지는 header 커맨드밖에 없으므로 간단하게 if로만 체크한다. 더 늘어나면 리팩토링이 필요해질듯...
-								if (command == "헤더" || command == "header")
-								{
-									sequence.Header.FromAsset(paramStr.Trim());
-								}
-								else
-								{
-									Debug.LogErrorFormat("[FSNSequence] line {0} : unknown preprocessor command {1}", linenumber, command);
-								}
-							}
+							// 프리프로세서는 첫번째 패스에서 처리함.
 							break;
 
 						case c_token_Command:								// * 명령
@@ -603,7 +653,7 @@ public class FSNScriptSequence
 		/// Asset에 포함된 텍스트 파일에서 스크립트를 읽는다
 		/// </summary>
 		/// <returns></returns>
-		public static FSNScriptSequence FromAsset(string assetPath)
+		public static FSNScriptSequence FromAsset(string assetPath, FSNSession session)
 		{
 			FSNDebug.currentProcessingScript = assetPath;	// 디버깅 정보 세팅
 
@@ -612,7 +662,7 @@ public class FSNScriptSequence
 			{
 				Debug.LogErrorFormat("[FSNSequence] Cannot open script asset : {0}", assetPath);
 			}
-			var sequence	= FromString(textfile.text);
+			var sequence	= FromString(textfile.text, session);
 			sequence.OriginalScriptPath	= assetPath;	// 경로를 기록해둔다
 			return sequence;
 		}

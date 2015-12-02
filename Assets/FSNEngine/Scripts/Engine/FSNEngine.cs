@@ -16,6 +16,16 @@ public sealed class FSNEngine : MonoBehaviour
 		//Object,
 	}
 
+	/// <summary>
+	/// 스크립트 실행 종류
+	/// </summary>
+	public enum ExecuteType
+	{
+		NewStart,				// 새로 실행
+		LoadFromOtherScript,	// 다른 스크립트에서 호출하여 실행
+		LoadFromSession,		// 세션 로드 (불러오기)
+	}
+
 	//===========================================================================
 
 	// Properties
@@ -252,12 +262,16 @@ public sealed class FSNEngine : MonoBehaviour
 	/// <param name="filepath"></param>
 	/// <param name="session">실행 중에 사용할 Session. 지정하지 않을 경우 새 세션을 사용</param>
 	/// <param name="snapshotIndex">불러오기 시에만 사용. 시작할 Snapshot Index를 지정</param>
-	public void RunScript(string filepath, int snapshotIndex = 0)
+	public void RunScript(string filepath, ExecuteType exeType = ExecuteType.NewStart, int snapshotIndex = 0)
 	{
-		FSNResourceCache.StartLoadingSession(FSNResourceCache.Category.Script);				// 리소스 로딩 세션 시작
+		FSNResourceCache.StartLoadingSession(FSNResourceCache.Category.Script);             // 리소스 로딩 세션 시작
+		
+		if (exeType == ExecuteType.NewStart)												// 새 세션을 열어야하는 경우 미리 세션 생성하기 (새 게임)
+		{
+			m_seqEngine.PrepareNewSession();
+		}
 
-
-		FSNScriptSequence scriptSeq	= FSNScriptSequence.Parser.FromAsset(filepath);			// 스크립트 해석
+		FSNScriptSequence scriptSeq	= FSNScriptSequence.Parser.FromAsset(filepath, m_seqEngine.CurrentSession);	// 스크립트 해석
 
 		// TODO : header 적용, 여기에 코드를 삽입하는 것이 맞는지는 잘 모르겠음. 리팩토링이 필요할수도.
 
@@ -274,9 +288,10 @@ public sealed class FSNEngine : MonoBehaviour
 
 		var sshotSeq = FSNSnapshotSequence.Builder.BuildSnapshotSequence(scriptSeq);		// Snapshot 시퀀스 생성
 
-		FSNResourceCache.EndLoadingSession();												// 리소스 로딩 세션 종료
+		FSNResourceCache.EndLoadingSession();                                               // 리소스 로딩 세션 종료
 
-		m_seqEngine.StartSnapshotSequence(sshotSeq, snapshotIndex);							// 실행
+		bool overwriteScriptInfoToSession   = exeType != ExecuteType.LoadFromSession;		// 불러오기한 경우가 아니면 스크립트 정보를 세션에 덮어써야한다.
+        m_seqEngine.StartSnapshotSequence(sshotSeq, overwriteScriptInfoToSession, snapshotIndex);	// 실행
 
 
 		ControlSystem.ScriptLoadComplete();													// 스크립트 로딩 완료 이벤트

@@ -240,44 +240,28 @@ public class FSNSequenceEngine : MonoBehaviour
 	}
 
 	/// <summary>
+	/// 새 게임시 Session 오브젝트를 준비한다.
+	/// </summary>
+	public void PrepareNewSession()
+	{
+		CurrentSession  = new FSNSession();
+	}
+
+	/// <summary>
 	/// Snapshot 시퀀스 시작
 	/// </summary>
 	/// <param name="sequence"></param>
-	public void StartSnapshotSequence(FSNSnapshotSequence sequence, int snapshotIndex = 0)
+	/// <param name="overwriteScriptInfoToSession">현재 스크립트 정보를 세션에 덮어써야 하는 경우 true</param>
+	public void StartSnapshotSequence(FSNSnapshotSequence sequence, bool overwriteScriptInfoToSession, int snapshotIndex = 0)
 	{
 		FSNDebug.currentProcessingScript	= sequence.OriginalScriptPath;	// 디버깅 정보 설정
 
 		m_snapshotSeq		= sequence;
 		m_snapshotTraveler	= FSNSnapshotSequence.Traveler.GenerateFrom(sequence, snapshotIndex);
 		m_snapshotTraveler.ScriptLoadRequested += OnScriptNeedToBeLoaded;	// 스크립트 로딩 이벤트 등록
-
-		if(CurrentSession == null)
-			CurrentSession	= new FSNSession();								// 진행중이던 세션이 없을 시엔 새 세션 생성. 세이브한 세션을 로드하는 경우라면 다시 여기에 덮어써야한다.
-
-
-		var session	= CurrentSession;
-
-		foreach (var pair in sequence.ScriptHeader.FlagDeclarations)		// 플래그 선언
-		{
-			if (!session.FlagIsDeclared(pair.Key))							// 아직 선언되지 않은 경우만 세팅
-			{
-				bool value	= string.IsNullOrEmpty(pair.Value)?
-						false : FSNUtils.StringToValue<bool>(pair.Value);	// 초기값까지 선언한 경우 값 해독, 아니면 기본값 false
-				session.SetFlagValue(pair.Key, value, true);
-			}	
-		}
-
-		foreach (var pair in sequence.ScriptHeader.ValueDeclarations)		// 값 선언
-		{
-			if (!session.ValueIsDeclared(pair.Key))							// 아직 선언되지 않은 경우만 세팅
-			{
-				float value	= string.IsNullOrEmpty(pair.Value)?
-						0 : FSNUtils.StringToValue<float>(pair.Value);		// 초기값까지 선언한 경우 값 해독, 아니면 기본값 false
-				session.SetNumberValue(pair.Key, value, true);
-			}
-		}
-
-		SaveToCurrentSession();												// 현재 스크립트 진행 정보를 세션쪽에 기록
+		
+		if (overwriteScriptInfoToSession)
+			SaveToCurrentSession();											// 새 게임을 시작하는 경우에만 현재 스크립트 진행 정보를 세션쪽에 기록
 	}
 
 	/// <summary>
@@ -373,7 +357,7 @@ public class FSNSequenceEngine : MonoBehaviour
 	/// <param name="scriptFile"></param>
 	void OnScriptNeedToBeLoaded(string scriptFile)
 	{
-		FSNEngine.Instance.RunScript(scriptFile);
+		FSNEngine.Instance.RunScript(scriptFile, FSNEngine.ExecuteType.LoadFromOtherScript);
 		m_snapshotTraveler.ExecuteSnapshotFunctions();						// 첫째 스냅샷의 함수 실행은 자동으로 되지 않으므로, 수동으로 호출
 	}
 
@@ -386,8 +370,8 @@ public class FSNSequenceEngine : MonoBehaviour
 	{
 		bool fullSuccess	= false;
 
-		FSNEngine.Instance.RunScript(session.ScriptName);					// 스크립트 로드
-		CurrentSession		= session;										// 로딩시의 세션 정보를 사용하도록 지정
+		CurrentSession      = session;                                      // 로딩시의 세션 정보를 사용하도록 지정
+		FSNEngine.Instance.RunScript(session.ScriptName, FSNEngine.ExecuteType.LoadFromSession);// 스크립트 로드
 		
 		if (m_snapshotSeq.ScriptHashKey == session.ScriptHashKey)			// 저장 당시의 hashkey가 일치한다면, 저장 당시의 snapshot index로 점프
 		{
