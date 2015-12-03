@@ -9,22 +9,23 @@ Properties{
 }
 
 SubShader{
-	Tags{ "Queue" = "Geometry+1" "RenderType" = "Opaque" }
+	Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 
-	Cull Back
+	Cull Off
 	Lighting Off
-	//ZWrite Off
+	ZWrite Off
 	//ZTest[unity_GUIZTestMode]
-	//ZTest Off
-	Blend SrcAlpha OneMinusSrcAlpha
+	//ZTest Always
+	//Blend SrcAlpha OneMinusSrcAlpha
 	
-
+	//*
 	Pass 
 	{
 		Name "ZWrite"
-		Tags { "LightMode" = "ShadowCaster" "RenderType" = "Opaque" }
+		//Tags{ "LightMode" = "ShadowCaster" "IgnoreProjector" = "True" "RenderType" = "Opaque" }
+		Tags{ "LightMode" = "ShadowCaster" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 		ZWrite On
-		ZTest Off
+		//ZTest Always
 		ColorMask 0
 		Blend Off
 		//AlphaTest Greater [_DepthCutOff]
@@ -63,20 +64,27 @@ SubShader{
 
 	fixed4 frag(v2f i) : SV_Target
 	{
-		fixed4 col = tex2D(_MainTex, i.texcoord) * i.color;
-		clip(col.a - _DepthCutOff);
+		fixed alpha = tex2D(_MainTex, i.texcoord).a * i.color.a;
+		clip(alpha - _DepthCutOff);
+		fixed4 col = fixed4(0, 0, 0, 0);
+
+		//fixed4 col = tex2D(_MainTex, i.texcoord) * i.color;
+
 		return col;
 	}
 		ENDCG
 	}
-	/*
+	//*/
+	
 	Pass 
 	{
 		Name "ActualRender"
-		Tags{ "RenderType" = "Opaque" }
+		Tags{ "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 		ZWrite Off
-		ZTest Off
+		ZTest Always
 		Lighting Off
+		//Blend SrcAlpha OneMinusSrcAlpha
+		Blend Off
 
 		CGPROGRAM
 #pragma vertex vert
@@ -116,9 +124,9 @@ SubShader{
 			return col;
 		}
 		ENDCG
-	}*/
+	}
 }
-	Fallback "Legacy Shaders/VertexLit"
+	//Fallback "Legacy Shaders/VertexLit"
 	//Fallback "Diffuse"
 
 }
