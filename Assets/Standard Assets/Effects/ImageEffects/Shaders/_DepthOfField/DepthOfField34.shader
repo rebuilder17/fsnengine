@@ -33,7 +33,8 @@
 	};	 
 			
 	sampler2D _MainTex;
-	sampler2D_float _CameraDepthTexture;
+	//sampler2D_half _CameraDepthTexture;
+	sampler2D _CameraDepthTexture;
 	sampler2D _TapLowBackground;	
 	sampler2D _TapLowForeground;
 	sampler2D _TapMedium;

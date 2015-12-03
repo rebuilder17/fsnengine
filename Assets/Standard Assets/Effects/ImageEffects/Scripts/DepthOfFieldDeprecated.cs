@@ -89,7 +89,7 @@ namespace UnityStandardAssets.ImageEffects
         void CreateMaterials () {
             dofBlurMaterial = CheckShaderAndCreateMaterial (dofBlurShader, dofBlurMaterial);
             dofMaterial = CheckShaderAndCreateMaterial (dofShader,dofMaterial);
-            bokehSupport = bokehShader.isSupported;
+            bokehSupport = bokehShader && bokehShader.isSupported;
 
             if (bokeh && bokehSupport && bokehShader)
                 bokehMaterial = CheckShaderAndCreateMaterial (bokehShader, bokehMaterial);
@@ -101,7 +101,7 @@ namespace UnityStandardAssets.ImageEffects
 
             dofBlurMaterial = CheckShaderAndCreateMaterial (dofBlurShader, dofBlurMaterial);
             dofMaterial = CheckShaderAndCreateMaterial (dofShader,dofMaterial);
-            bokehSupport = bokehShader.isSupported;
+            bokehSupport = bokehShader && bokehShader.isSupported;
 
             if (bokeh && bokehSupport && bokehShader)
                 bokehMaterial = CheckShaderAndCreateMaterial (bokehShader, bokehMaterial);
@@ -292,9 +292,41 @@ namespace UnityStandardAssets.ImageEffects
             ReleaseTextures ();
         }
 
+		// Optimizations
+		System.Collections.Generic.Dictionary<int, RenderTexture> _tmpTextures  = new System.Collections.Generic.Dictionary<int, RenderTexture>();
+
+		static int GenTempTextureKey(int w, int h)
+		{
+			return w << 16 | h;
+		}
+
+		RenderTexture GetTempTexture(int w, int h)
+		{
+			var key = GenTempTextureKey(w, h);
+			RenderTexture tx = null;
+			if (!_tmpTextures.TryGetValue(key, out tx))
+			{
+				tx  = RenderTexture.GetTemporary(w, h, 16);
+				_tmpTextures[key] = tx;
+            }
+			return tx;
+        }
+
+		void ReleaseAllTempTexture()
+		{
+			foreach(var tx in _tmpTextures.Values)
+			{
+				RenderTexture.ReleaseTemporary(tx);
+			}
+			_tmpTextures.Clear();
+		}
+
+		//
+
         void Blur ( RenderTexture from, RenderTexture to, DofBlurriness iterations, int blurPass, float spread) {
-            RenderTexture tmp = RenderTexture.GetTemporary (to.width, to.height);
-            if ((int)iterations > 1) {
+			RenderTexture tmp = RenderTexture.GetTemporary (to.width, to.height);
+			//RenderTexture tmp = GetTempTexture(to.width, to.height);
+			if ((int)iterations > 1) {
                 BlurHex (from, to, blurPass, spread, tmp);
                 if ((int)iterations > 2) {
                     dofBlurMaterial.SetVector ("offsets", new Vector4 (0.0f, spread * oneOverBaseSize, 0.0f, 0.0f));
@@ -316,8 +348,9 @@ namespace UnityStandardAssets.ImageEffects
             // we want a nice, big coc, hence we need to tap once from this (higher resolution) texture
             dofBlurMaterial.SetTexture ("_TapHigh", from);
 
-            RenderTexture tmp = RenderTexture.GetTemporary (to.width, to.height);
-            if ((int)iterations > 1) {
+			RenderTexture tmp = RenderTexture.GetTemporary (to.width, to.height);
+			//RenderTexture tmp = GetTempTexture (to.width, to.height);
+			if ((int)iterations > 1) {
                 BlurHex (from, to, blurPass, spread, tmp);
                 if ((int)iterations > 2) {
                     dofBlurMaterial.SetVector ("offsets", new Vector4 (0.0f, spread * oneOverBaseSize, 0.0f, 0.0f));
@@ -394,20 +427,22 @@ namespace UnityStandardAssets.ImageEffects
             if (lowRezWorkTexture) RenderTexture.ReleaseTemporary (lowRezWorkTexture);
             if (bokehSource) RenderTexture.ReleaseTemporary (bokehSource);
             if (bokehSource2) RenderTexture.ReleaseTemporary (bokehSource2);
+
+			//ReleaseAllTempTexture();
         }
 
         void AllocateTextures ( bool blurForeground,  RenderTexture source, int divider, int lowTexDivider) {
             foregroundTexture = null;
             if (blurForeground)
-                foregroundTexture = RenderTexture.GetTemporary (source.width, source.height, 0);
-            mediumRezWorkTexture = RenderTexture.GetTemporary (source.width / divider, source.height / divider, 0);
-            finalDefocus = RenderTexture.GetTemporary (source.width / divider, source.height / divider, 0);
-            lowRezWorkTexture  = RenderTexture.GetTemporary (source.width / lowTexDivider, source.height / lowTexDivider, 0);
+                foregroundTexture = RenderTexture.GetTemporary (source.width, source.height, 16);
+            mediumRezWorkTexture = RenderTexture.GetTemporary (source.width / divider, source.height / divider, 16);
+            finalDefocus = RenderTexture.GetTemporary (source.width / divider, source.height / divider, 16);
+            lowRezWorkTexture  = RenderTexture.GetTemporary (source.width / lowTexDivider, source.height / lowTexDivider, 16);
             bokehSource = null;
             bokehSource2 = null;
             if (bokeh) {
-                bokehSource  = RenderTexture.GetTemporary (source.width / (lowTexDivider * bokehDownsample), source.height / (lowTexDivider * bokehDownsample), 0, RenderTextureFormat.ARGBHalf);
-                bokehSource2  = RenderTexture.GetTemporary (source.width / (lowTexDivider * bokehDownsample), source.height / (lowTexDivider * bokehDownsample), 0,  RenderTextureFormat.ARGBHalf);
+                bokehSource  = RenderTexture.GetTemporary (source.width / (lowTexDivider * bokehDownsample), source.height / (lowTexDivider * bokehDownsample), 16, RenderTextureFormat.ARGBHalf);
+                bokehSource2  = RenderTexture.GetTemporary (source.width / (lowTexDivider * bokehDownsample), source.height / (lowTexDivider * bokehDownsample), 16,  RenderTextureFormat.ARGBHalf);
                 bokehSource.filterMode = FilterMode.Bilinear;
                 bokehSource2.filterMode = FilterMode.Bilinear;
                 RenderTexture.active = bokehSource2;
