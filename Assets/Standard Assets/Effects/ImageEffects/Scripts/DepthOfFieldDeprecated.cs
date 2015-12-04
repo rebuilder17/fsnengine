@@ -191,7 +191,7 @@ namespace UnityStandardAssets.ImageEffects
 
             dofMaterial.SetFloat ("_ForegroundBlurExtrude", foregroundBlurExtrude);
             dofMaterial.SetVector ("_CurveParams", new Vector4 (simpleTweakMode ? 1.0f / focalStartCurve : focalStartCurve, simpleTweakMode ? 1.0f / focalEndCurve : focalEndCurve, focal01Size * 0.5f, focalDistance01));
-            dofMaterial.SetVector ("_InvRenderTargetSize", new Vector4 (1.0f / (1.0f * source.width), 1.0f / (1.0f * source.height),0.0f,0.0f));
+            dofMaterial.SetVector ("_InvSourceSize", new Vector4 (1.0f / (1.0f * source.width), 1.0f / (1.0f * source.height),0.0f,0.0f));
 
             int divider =  GetDividerBasedOnQuality ();
             int lowTexDivider = GetLowResolutionDividerBasedOnQuality (divider);

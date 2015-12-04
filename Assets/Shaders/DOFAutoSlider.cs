@@ -16,7 +16,8 @@ public class DOFAutoSlider : MonoBehaviour
 	void Update ()
 	{
 		var curtime     = Time.time;
-		var dof			= GetComponent<UnityStandardAssets.ImageEffects.DepthOfFieldDeprecated>();
+		var dof			= GetComponent<FSNDepthOfField>();
+		//var dof			= GetComponent<UnityStandardAssets.ImageEffects.DepthOfFieldDeprecated>();
 		//var dof         = GetComponent<UnityStandardAssets.ImageEffects.DepthOfField>();
 		dof.focalPoint	= Mathf.Sin(curtime / c_timecycle * 2 * Mathf.PI) * (700 / 2) + 450;
 		fpoint			= dof.focalPoint;
