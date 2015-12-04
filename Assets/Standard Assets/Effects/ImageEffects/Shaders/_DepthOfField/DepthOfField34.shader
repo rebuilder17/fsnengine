@@ -33,8 +33,8 @@
 	};	 
 			
 	sampler2D _MainTex;
-	//sampler2D_half _CameraDepthTexture;
-	sampler2D _CameraDepthTexture;
+	sampler2D_half _CameraDepthTexture;
+	//sampler2D _CameraDepthTexture;
 	sampler2D _TapLowBackground;	
 	sampler2D _TapLowForeground;
 	sampler2D _TapMedium;
@@ -417,7 +417,7 @@ Subshader {
 
  // pass 7
  // not being used atm
- 
+ /*
  Pass { 
 	  ZTest Always Cull Off ZWrite Off
 	  ColorMask RGBA
@@ -430,7 +430,7 @@ Subshader {
   	} 
 
  // pass 8
- 
+
  Pass {
 	  ZTest Always Cull Off ZWrite Off
 	  Blend SrcAlpha OneMinusSrcAlpha
@@ -480,6 +480,7 @@ Subshader {
 
       ENDCG
   	}   	
+	//*/
   }
   
 Fallback off

@@ -83,8 +83,8 @@ SubShader{
 		ZWrite Off
 		ZTest Always
 		Lighting Off
-		//Blend SrcAlpha OneMinusSrcAlpha
-		Blend Off
+		Blend SrcAlpha OneMinusSrcAlpha
+		//Blend Off
 
 		CGPROGRAM
 #pragma vertex vert
