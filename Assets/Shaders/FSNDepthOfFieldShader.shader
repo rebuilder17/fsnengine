@@ -152,11 +152,15 @@
 			dcur = Linear01Depth(dcur);
 
 			// BG
-			half fd01_bg = _CurveParams.w + _CurveParams.z;
 			half coc_bg = 0.0;
-			if (dcur > fd01_bg)
-				coc_bg = (dcur - fd01_bg);
-			coc_bg = saturate(coc_bg * _CurveParams.y);
+			if (dcur < 0.999)	// 뎁스값이 없는 부분은 블러를 먹이지 않는다. (배경, 이쪽은 따로 처리하는 게 나음)
+			{
+				half fd01_bg = _CurveParams.w + _CurveParams.z;
+
+				if (dcur > fd01_bg)
+					coc_bg = (dcur - fd01_bg);
+				coc_bg = saturate(coc_bg * _CurveParams.y);
+			}
 
 			half coc = coc_bg;
 			
