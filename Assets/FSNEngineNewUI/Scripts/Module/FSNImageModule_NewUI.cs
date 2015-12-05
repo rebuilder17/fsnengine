@@ -22,6 +22,12 @@ namespace LayerObjects
 			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 0);
 			m_rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 0);
 			m_rectTrans.pivot	= Vector2.one / 2f;
+
+			var mat				= (parent as FSNImageModule_NewUI).imageMaterial;
+			if (mat != null)										// 사용자 지정 마테리얼 설정
+			{
+				m_image.material= mat;
+			}
 		}
 
 		public override void UpdatePivot(Vector2 pivot)
@@ -62,6 +68,14 @@ namespace LayerObjects
 
 public class FSNImageModule_NewUI : FSNImageModule<LayerObjects.Image_NewUI>
 {
+	[SerializeField]
+	Material		m_imageMaterial	= null;		// 이미지에 특별히 사용할 마테리얼. 지정하지 않아도 된다 (기본값)
+
+	public Material imageMaterial
+	{
+		get { return m_imageMaterial; }
+	}
+
 	public override void Initialize()
 	{
 

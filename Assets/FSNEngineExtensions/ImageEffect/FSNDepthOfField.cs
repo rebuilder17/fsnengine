@@ -21,8 +21,9 @@ public class FSNDepthOfField : PostEffectsBase
 	RenderTexture m_rtFgTemp;
 	RenderTexture m_rtFgBlur;
 	RenderTexture m_rtFgActual;
-	RenderTexture m_rtComplete1;
-	RenderTexture m_rtComplete2;
+	RenderTexture m_rtComplete;
+	RenderTexture m_rtCompleteBlur1;
+	RenderTexture m_rtCompleteBlur2;
 
 	void Awake()
 	{
@@ -59,8 +60,9 @@ public class FSNDepthOfField : PostEffectsBase
 		CheckSingleRT(ref m_rtFgTemp, 4, 0, RenderTextureFormat.RGB565);
 		CheckSingleRT(ref m_rtFgBlur, 4, 0, RenderTextureFormat.RGB565);
 		CheckSingleRT(ref m_rtFgActual, 4, 0, RenderTextureFormat.RGB565);
-		CheckSingleRT(ref m_rtComplete1);
-		CheckSingleRT(ref m_rtComplete2);
+		CheckSingleRT(ref m_rtComplete);
+		CheckSingleRT(ref m_rtCompleteBlur1, 2);
+		CheckSingleRT(ref m_rtCompleteBlur2, 2);
 	}
 	
 	private void ReleaseRenderTextures()
@@ -71,8 +73,9 @@ public class FSNDepthOfField : PostEffectsBase
 		ReleaseSingleRT(ref m_rtFgTemp);
 		ReleaseSingleRT(ref m_rtFgBlur);
 		ReleaseSingleRT(ref m_rtFgActual);
-		ReleaseSingleRT(ref m_rtComplete1);
-		ReleaseSingleRT(ref m_rtComplete2);
+		ReleaseSingleRT(ref m_rtComplete);
+		ReleaseSingleRT(ref m_rtCompleteBlur1);
+		ReleaseSingleRT(ref m_rtCompleteBlur2);
     }
 
 	public override bool CheckResources()
@@ -114,11 +117,12 @@ public class FSNDepthOfField : PostEffectsBase
 		m_dofMaterial.SetVector("_CurveParams", new Vector4(1.0f / focalStartCurve, 1.0f / focalEndCurve, focal01Size * 0.5f, focalDistance01));
 
 		// 1. 백그라운드
-		SetInvSourceSize(source.width, source.height);
+		SetInvSourceSize(source.width / 2, source.height / 2);
         Graphics.Blit(source, m_rtBgTemp, m_dofMaterial, 0);
 		Graphics.Blit(m_rtBgTemp, m_rtBgFinal, m_dofMaterial, 1);
 
 		// 2. 전경
+		SetInvSourceSize(source.width / 4, source.height / 4);
 		Graphics.Blit(source, m_rtFgOrig, m_dofMaterial, 3);
 		Graphics.Blit(m_rtFgOrig, m_rtFgTemp, m_dofMaterial, 0);
 		Graphics.Blit(m_rtFgTemp, m_rtFgBlur, m_dofMaterial, 1);
@@ -126,15 +130,23 @@ public class FSNDepthOfField : PostEffectsBase
 		m_dofMaterial.SetTexture("_FgBlurTex", m_rtFgBlur);
 		Graphics.Blit(m_rtFgOrig, m_rtFgActual, m_dofMaterial, 4);
 
-		// 3. 합치기
+		// 3. 백그라운드 DoF
 		m_dofMaterial.SetTexture("_BlurTex", m_rtBgFinal);
 		m_dofMaterial.SetTexture("_FgTex", m_rtFgActual);
-		SetInvSourceSize(source.width, source.height);
-		
-		Graphics.Blit(source, m_rtComplete1, m_dofMaterial, 2);
-		Graphics.Blit(m_rtComplete1, m_rtComplete2, m_dofMaterial, 5);
-		Graphics.Blit(m_rtComplete2, destination, m_dofMaterial, 6);
+		//m_dofMaterial.SetTexture("_FgTex", m_rtFgOrig);
 
+		SetInvSourceSize(source.width / 2, source.height / 2);
+		Graphics.Blit(source, m_rtComplete, m_dofMaterial, 2);
+
+		// 4. 백그라운드 DoF를 블러 처리한 후 전경 DoF
+		//Graphics.Blit(m_rtComplete, m_rtCompleteBlur1, m_dofMaterial, 5);
+		//Graphics.Blit(m_rtCompleteBlur1, m_rtCompleteBlur2, m_dofMaterial, 6);
+		Graphics.Blit(m_rtComplete, m_rtCompleteBlur1, m_dofMaterial, 0);
+		Graphics.Blit(m_rtCompleteBlur1, m_rtCompleteBlur2, m_dofMaterial, 1);
+
+		m_dofMaterial.SetTexture("_FgBlurTex2", m_rtCompleteBlur2);
+		Graphics.Blit(m_rtComplete, destination, m_dofMaterial, 7);
+		
 		ReleaseRenderTextures();
 	}
 }

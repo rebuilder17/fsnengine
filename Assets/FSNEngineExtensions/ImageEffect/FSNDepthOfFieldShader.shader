@@ -32,6 +32,7 @@
 		sampler2D		_BlurTex;
 		sampler2D		_FgTex;
 		sampler2D		_FgBlurTex;
+		sampler2D		_FgBlurTex2;
 
 		half4 _CurveParams;
 		half4 _InvSourceSize;
@@ -44,10 +45,10 @@
 
 			const float2 uvOffset[4] =
 			{
-				float2(-3, +1),
-				float2(-1, +1),
-				float2(+1, -1),
-				float2(+3, -1)
+				float2(-2.5, +0.5),
+				float2(-0.5, +0.5),
+				float2(+0.5, -0.5),
+				float2(+2.5, -0.5)
 			};
 
 			float2 uv = v.uv;
@@ -67,10 +68,10 @@
 
 			const float2 uvOffset[4] =
 			{
-				float2(-1, +3),
-				float2(-1, +1),
-				float2(+1, -1),
-				float2(+1, -3)
+				float2(+0.5, +2.5),
+				float2(+0.5, +0.5),
+				float2(-0.5, -0.5),
+				float2(-0.5, -2.5)
 			};
 
 			float2 uv = v.uv;
@@ -79,6 +80,52 @@
 			{
 				o.uvSample[i] = uv + uvOffset[i] * _InvSourceSize;
 			}
+
+			return o;
+		}
+
+		v2f vert2Smp1(appdata v)
+		{
+			v2f o;
+			o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+
+			const float2 uvOffset[2] =
+			{
+				float2(-0.0, +0.5),
+				float2(+0.0, -0.5)
+			};
+
+			float2 uv = v.uv;
+				o.uv = uv;
+			for (int i = 0; i < 2; i++)
+			{
+				o.uvSample[i] = uv + uvOffset[i] * _InvSourceSize;
+			}
+			o.uvSample[2] = float2(0, 0);
+			o.uvSample[3] = float2(0, 0);
+
+			return o;
+		}
+
+		v2f vert2Smp2(appdata v)
+		{
+			v2f o;
+			o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+
+			const float2 uvOffset[2] =
+			{
+				float2(+0.5, +0.0),
+				float2(-0.5, -0.0)
+			};
+
+			float2 uv = v.uv;
+				o.uv = uv;
+			for (int i = 0; i < 2; i++)
+			{
+				o.uvSample[i] = uv + uvOffset[i] * _InvSourceSize;
+			}
+			o.uvSample[2] = float2(0, 0);
+			o.uvSample[3] = float2(0, 0);
 
 			return o;
 		}
@@ -94,13 +141,32 @@
 
 		fixed3 fragCommon(v2f inp) : SV_Target
 		{
-			const float weight[4] = { 0.5, 1.5, 1.5, 0.5 };
+			const float weight[4] = { 0.3, 1.0, 1.0, 0.3 };
 
 			float2 uvcur = inp.uv;
-			fixed3 col = tex2D(_MainTex, uvcur).rgb;
-			float weightSum = 1.0;
+			fixed3 col = fixed3(0,0,0);
+			float weightSum = 0.0;
 
 			for (int i = 0; i < 4; i++)
+			{
+				float w = weight[i];
+				float2 uvsmp = inp.uvSample[i].xy;
+				col += tex2D(_MainTex, uvsmp).rgb * w;
+				weightSum += w;
+			}
+
+			return col / weightSum;
+		}
+
+		fixed3 fragCommonHalf(v2f inp) : SV_Target
+		{
+			const float weight[2] = { 1, 1 };
+
+			float2 uvcur = inp.uv;
+			fixed3 col = fixed3(0,0,0);
+			float weightSum = 0.0;
+
+			for (int i = 0; i < 2; i++)
 			{
 				float w = weight[i];
 				float2 uvsmp = inp.uvSample[i].xy;
@@ -160,27 +226,49 @@
 			fixed colFgBlur = tex2D(_FgBlurTex, uvcur).r;
 
 			fixed coc = 2 * max(colFgBlur, colFgOrig) - colFgOrig;
+			//fixed coc = saturate(colFgBlur + colFgOrig);
 			return fixed3(coc, coc, coc);
 		}
 
 		fixed3 fragFGDOF(v2f inp) : SV_Target
 		{
-			const float weight[4] = { 0.5, 1.5, 1.5, 0.5 };
+			const float weight[4] = { 0.8, 1.0, 1.0, 0.8 };
 
 			float2 uvcur = inp.uv;
 
-			fixed3 colBlur = tex2D(_MainTex, uvcur).rgb;
+			fixed3 colOrig = tex2D(_MainTex, uvcur).rgb;
+			fixed3 colBlur = fixed3(0,0,0);
 			float cocWeight = tex2D(_FgTex, uvcur).r;
-			float weightSum = 1.0;
-			for (int i = 0; i < 4; i++)
+
+			if (cocWeight > 0.001)
 			{
-				float w = cocWeight * weight[i];
-				colBlur += tex2D(_MainTex, inp.uvSample[i]) * w;
-				weightSum += w;
+				float weightSum = 0.0;
+				for (int i = 0; i < 4; i++)
+				{
+					float w = weight[i];
+					colBlur += tex2D(_MainTex, inp.uvSample[i]) * w;
+					weightSum += w;
+				}
+				colBlur = saturate(colOrig * (1 - cocWeight) + colBlur / weightSum * cocWeight);
 			}
-			colBlur = saturate(colBlur / weightSum);
+			else
+			{
+				colBlur = colOrig;
+			}
+			
 
 			return colBlur.rgb;
+		}
+
+		fixed3 fragFGDOF_New(v2f inp) : SV_Target
+		{
+			float2 uvcur = inp.uv;
+
+			fixed3 colOrig = tex2D(_MainTex, uvcur).rgb;
+			fixed3 colBlur = tex2D(_FgBlurTex2, uvcur).rgb;
+			float cocWeight = tex2D(_FgTex, uvcur).r;
+
+			return lerp(colOrig, colBlur, cocWeight);
 		}
 		ENDCG
 
@@ -272,5 +360,18 @@
 				ENDCG
 
 		}
+
+		Pass
+			{
+				Name "8. DoF (FG) - New"
+
+				ColorMask RGB
+
+				CGPROGRAM
+				#pragma vertex vert
+				#pragma fragment fragFGDOF_New
+				ENDCG
+
+			}
 	}
 }
