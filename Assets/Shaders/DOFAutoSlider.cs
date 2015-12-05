@@ -20,6 +20,9 @@ public class DOFAutoSlider : MonoBehaviour
 		//var dof			= GetComponent<UnityStandardAssets.ImageEffects.DepthOfFieldDeprecated>();
 		//var dof         = GetComponent<UnityStandardAssets.ImageEffects.DepthOfField>();
 		dof.focalPoint	= Mathf.Sin(curtime / c_timecycle * 2 * Mathf.PI) * (700 / 2) + 450;
+
+		GetComponent<Camera>().transform.localPosition = new Vector3(Mathf.Sin(curtime / (10) * 2 * Mathf.PI) * 10, 0, 0);
+
 		fpoint			= dof.focalPoint;
 		fps             = (1 / (curtime - oldtime));
 		oldtime         = curtime;
