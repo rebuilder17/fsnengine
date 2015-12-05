@@ -44,19 +44,19 @@
 
 			const float2 uvOffset[6] =
 			{
-				float2(-2.8, -0.8),
-				float2(-1.5, -0.4),
+				float2(-2.4, -0.8),
+				float2(-1.2, -0.4),
 				float2(-0.5, 0),
 				float2(0.5, 0),
-				float2(1.5, 0.4),
-				float2(2.8, 0.8)
+				float2(1.2, 0.4),
+				float2(2.4, 0.8)
 			};
 
 			float2 uv = v.uv;
 			o.uv = uv;
 			for (int i = 0; i < 6; i++)
 			{
-				o.uvSample[i] = uv + uvOffset[i] * 3 * _InvSourceSize;
+				o.uvSample[i] = uv + uvOffset[i] * 2 * _InvSourceSize;
 			}
 
 			return o;
@@ -69,18 +69,22 @@
 
 			const float2 uvOffset[4] =
 			{
-				float2(-1.8, +1.2),
-				float2(+1.2, +1.8),
-				float2(+1.8, -1.2),
-				float2(-1.2, -1.8)
+				float2(-1.2, +0.8),
+				float2(+0.8, +1.2),
+				float2(+1.2, -0.8),
+				float2(-0.8, -1.2)
 			};
 
 			float2 uv = v.uv;
 				o.uv = uv;
 			for (int i = 0; i < 4; i++)
 			{
-				o.uvSample[i] = uv + uvOffset[i] * _InvSourceSize;
+				o.uvSample[i] = uv + uvOffset[i] * 2 * _InvSourceSize;
 			}
+			// dummy values
+			o.uvSample[4] = float2(0, 0);
+			o.uvSample[5] = float2(0, 0);
+			//
 
 			return o;
 		}
@@ -101,53 +105,48 @@
 
 			const float2 uvOffset[6] =
 			{
-				float2(-0.8, -2.8),
-				float2(-0.4, -1.5),
+				float2(-0.8, -2.4),
+				float2(-0.4, -1.2),
 				float2(0, -0.5),
 				float2(0, 0.5),
-				float2(0.4, 1.5),
-				float2(0.8, 2.8)
+				float2(0.4, 1.2),
+				float2(0.8, 2.4)
 			};
 
 			float2 uv = v.uv;
 			o.uv = uv;
 			for (int i = 0; i < 6; i++)
 			{
-				o.uvSample[i] = uv + uvOffset[i] * 3 * _InvSourceSize;
+				o.uvSample[i] = uv + uvOffset[i] * 2 * _InvSourceSize;
 			}
 
 			return o;
 		}
 
-		fixed4 fragCommon(v2f inp) : SV_Target
+		fixed3 fragCommon(v2f inp) : SV_Target
 		{
-			const float weight[6] = { 0.35, 0.65, 1.0, 1.0, 0.65, 0.35 };
+			const float weight[6] = { 0.35, 0.65, 1, 1, 0.65, 0.35 };
 
 			float2 uvcur = inp.uv;
-			fixed4 col = tex2D(_MainTex, uvcur);
+			fixed3 col = tex2D(_MainTex, uvcur).rgb;
 			float weightSum = 1.0;
 
 			for (int i = 0; i < 6; i++)
 			{
 				float w = weight[i];
 				float2 uvsmp = inp.uvSample[i].xy;
-				col += tex2D(_MainTex, uvsmp) * w;
+				col += tex2D(_MainTex, uvsmp).rgb * w;
 				weightSum += w;
 			}
 
 			return col / weightSum;
 		}
 
-		fixed4 fragDOF(v2f inp) : SV_Target
+		fixed3 fragDOF(v2f inp) : SV_Target
 		{
 			float2 uvcur = inp.uv;
-			fixed4 colOrig = tex2D(_MainTex, uvcur);
-			fixed4 colBlur = tex2D(_BlurTex, uvcur);
-			for (int i = 0; i < 4; i++)
-			{
-				colBlur += tex2D(_BlurTex, inp.uvSample[i]);
-			}
-			colBlur = saturate(colBlur / 5.0);
+			fixed3 colOrig = tex2D(_MainTex, uvcur).rgb;
+			fixed3 colBlur = tex2D(_BlurTex, uvcur).rgb;
 
 			float dcur = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvcur);
 			dcur = Linear01Depth(dcur);
@@ -161,30 +160,13 @@
 
 			half coc = coc_bg;
 			
-			half3 bgfinal = lerp(colOrig, colBlur, coc).rgb;
-
-			// FG
-			//fixed colFgA = tex2D(_FgTex, uvcur).a;
-			fixed colFgA = tex2D(_FgTex, uvcur).r;
-			//fixed4 colFgBlur = tex2D(_FgBlurTex, uvcur);
-			/*
-			for (int i = 0; i < 4; i++)
-			{
-				colFgA += tex2D(_FgTex, inp.uvSample[i]).a;
-			}
-			colFgA = saturate(colFgA / 5.0);
-			*/
-
-			half4 final = half4(lerp(bgfinal, colBlur.rgb, colFgA).rgb, 1);
-			//half4 final = half4(bgfinal.rgb, 1);
-			//half4 final = half4(colFg.rgb, 1);
-			return final;
+			return lerp(colOrig, colBlur, coc);
 		}
 
-		fixed4 fragFG(v2f inp) : SV_Target
+		fixed3 fragFG(v2f inp) : SV_Target
 		{
 			float2 uvcur = inp.uv;
-			fixed4 colOrig = tex2D(_MainTex, uvcur);
+			fixed3 colOrig = tex2D(_MainTex, uvcur).rgb;
 
 			float dcur = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvcur);
 			dcur = Linear01Depth(dcur);
@@ -195,21 +177,34 @@
 				coc_fg = (fd01_fg - dcur);
 			coc_fg = saturate(coc_fg * _CurveParams.x);
 
-			//return half4(colOrig.rgb, coc_fg);
-			return half4(coc_fg, coc_fg, coc_fg, coc_fg);
+			return fixed3(coc_fg, coc_fg, coc_fg);
 		}
 
-		fixed4 fragActualFG(v2f inp) : SV_Target
+		fixed3 fragActualFG(v2f inp) : SV_Target
 		{
 			float2 uvcur = inp.uv;
-			//fixed4 colFgOrig = tex2D(_FgTex, uvcur);
-			fixed4 colFgOrig = tex2D(_MainTex, uvcur);	// _MainTex == _FgTex
-			fixed4 colFgBlur = tex2D(_FgBlurTex, uvcur);
+			fixed colFgOrig = tex2D(_MainTex, uvcur).r;	// _MainTex == _FgTex
+			fixed colFgBlur = tex2D(_FgBlurTex, uvcur).r;
 
-			//fixed coc = 2 * max(colFgBlur.a, colFgOrig.a) - colFgOrig.a;
-			fixed coc = 2 * max(colFgBlur.r, colFgOrig.r) - colFgOrig.r;
-			//return fixed4(colFgOrig.rgb, coc);
-			return fixed4(coc, coc, coc, coc);
+			fixed coc = 2 * max(colFgBlur, colFgOrig) - colFgOrig;
+			return fixed3(coc, coc, coc);
+		}
+
+		fixed3 fragFGDOF(v2f inp) : SV_Target
+		{
+			float2 uvcur = inp.uv;
+
+			fixed3 colBlur = tex2D(_MainTex, uvcur).rgb;
+			float weight = tex2D(_FgTex, uvcur).r * 0.8;
+			float weightSum = 1.0;
+			for (int i = 0; i < 4; i++)
+			{
+				colBlur += tex2D(_MainTex, inp.uvSample[i]) * weight;
+				weightSum += weight;
+			}
+			colBlur = saturate(colBlur / weightSum);
+
+			return colBlur.rgb;
 		}
 		ENDCG
 
@@ -246,7 +241,7 @@
 			ColorMask RGB
 
 			CGPROGRAM
-			#pragma vertex vert4Smp
+			#pragma vertex vert
 			#pragma fragment fragDOF
 			ENDCG
 
@@ -274,6 +269,19 @@
 			#pragma vertex vert
 			#pragma fragment fragActualFG
 			ENDCG
+		}
+
+		Pass
+		{
+			Name "6. DoF (FG)"
+
+				ColorMask RGB
+
+				CGPROGRAM
+				#pragma vertex vert4Smp
+				#pragma fragment fragFGDOF
+				ENDCG
+
 		}
 	}
 }

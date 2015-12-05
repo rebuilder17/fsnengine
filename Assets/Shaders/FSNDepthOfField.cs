@@ -20,12 +20,16 @@ public class FSNDepthOfField : PostEffectsBase
 		m_camera = GetComponent<Camera>();
 		m_camera.depthTextureMode |= DepthTextureMode.Depth;
 
+		// TEST
+
+		/*
 		var formats = System.Enum.GetValues(typeof(RenderTextureFormat));
 		for (int i = 0; i < formats.Length; i++)
 		{
 			if (SystemInfo.SupportsRenderTextureFormat((RenderTextureFormat)formats.GetValue(i)))
 				Debug.Log("format supported : " + formats.GetValue(i));
 		}
+		*/
 	}
 
 	public override bool CheckResources()
@@ -44,6 +48,11 @@ public class FSNDepthOfField : PostEffectsBase
 		return m_camera.WorldToViewportPoint((worldDist-m_camera.nearClipPlane) * m_camera.transform.forward + m_camera.transform.position).z / (m_camera.farClipPlane-m_camera.nearClipPlane);
 	}
 
+	void SetInvSourceSize(int width, int height)
+	{
+		m_dofMaterial.SetVector("_InvSourceSize", new Vector4(1.0f / (1.0f * width), 1.0f / (1.0f * height), 0.0f, 0.0f));
+	}
+
 	void OnRenderImage(RenderTexture source, RenderTexture destination)
 	{
 		if (CheckResources()==false)
@@ -52,6 +61,7 @@ public class FSNDepthOfField : PostEffectsBase
 			return;
 		}
 
+		source.filterMode = FilterMode.Bilinear;
 		
 		float focalDistance01 = FocalDistance01(focalPoint);
 		float focalStartCurve = focalDistance01 * smoothness;
@@ -61,44 +71,49 @@ public class FSNDepthOfField : PostEffectsBase
 		m_dofMaterial.SetVector("_CurveParams", new Vector4(1.0f / focalStartCurve, 1.0f / focalEndCurve, focal01Size * 0.5f, focalDistance01));
 
 		// 1. 백그라운드
-		int sizediv	= 2;
-		var temp    = RenderTexture.GetTemporary(source.width / sizediv, source.height / sizediv, 0);
-		var temp2    = RenderTexture.GetTemporary(source.width / sizediv, source.height / sizediv, 0);
-		//var temp3    = RenderTexture.GetTemporary(source.width / sizediv, source.height / sizediv);
-		//var temp4    = RenderTexture.GetTemporary(source.width / sizediv, source.height / sizediv);
-
-		m_dofMaterial.SetVector("_InvSourceSize", new Vector4(1.0f / (1.0f * source.width), 1.0f / (1.0f * source.height), 0.0f, 0.0f));
-		Graphics.Blit(source, temp, m_dofMaterial, 0);
+		var temp    = RenderTexture.GetTemporary(source.width / 2, source.height / 2, 0);
+		var temp2    = RenderTexture.GetTemporary(source.width / 2, source.height / 2, 0);
+		
+		SetInvSourceSize(source.width, source.height);
+        Graphics.Blit(source, temp, m_dofMaterial, 0);
 		Graphics.Blit(temp, temp2, m_dofMaterial, 1);
-		//Graphics.Blit(temp2, temp3, m_dofMaterial, 0);
-		//Graphics.Blit(temp3, temp4, m_dofMaterial, 1);
+		temp2.filterMode = FilterMode.Bilinear;
 
 		// 2. 전경
-		var fgtex_orig	= RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.RGB565);
-		var fgtex1		= RenderTexture.GetTemporary(source.width / 2, source.height / 2, 0, RenderTextureFormat.RGB565);
-		var fgtex2		= RenderTexture.GetTemporary(source.width / 2, source.height / 2, 0, RenderTextureFormat.RGB565);
-		var fgtex_actual= RenderTexture.GetTemporary(source.width / 2, source.height / 2, 0, RenderTextureFormat.RGB565);
+		var fgtex_orig	= RenderTexture.GetTemporary(source.width / 4, source.height / 4, 0, RenderTextureFormat.RGB565);
+		var fgtex1		= RenderTexture.GetTemporary(source.width / 4, source.height / 4, 0, RenderTextureFormat.RGB565);
+		var fgtex2		= RenderTexture.GetTemporary(source.width / 4, source.height / 4, 0, RenderTextureFormat.RGB565);
+		var fgtex_actual= RenderTexture.GetTemporary(source.width / 4, source.height / 4, 0, RenderTextureFormat.RGB565);
+		
 		Graphics.Blit(source, fgtex_orig, m_dofMaterial, 3);
 		Graphics.Blit(fgtex_orig, fgtex1, m_dofMaterial, 0);
 		Graphics.Blit(fgtex1, fgtex2, m_dofMaterial, 1);
 
-		//m_dofMaterial.SetTexture("_FgTex", fgtex_orig);
+		m_dofMaterial.SetTexture("_FgTex", fgtex_actual);
 		m_dofMaterial.SetTexture("_FgBlurTex", fgtex2);
 		Graphics.Blit(fgtex_orig, fgtex_actual, m_dofMaterial, 4);
+		fgtex_actual.filterMode = FilterMode.Bilinear;
 
 		// 3. 합치기
 		m_dofMaterial.SetTexture("_BlurTex", temp2);
 		m_dofMaterial.SetTexture("_FgTex", fgtex_actual);
-		m_dofMaterial.SetTexture("_FgBlurTex", fgtex2);
-		Graphics.Blit(source, destination, m_dofMaterial, 2);
-		
+		SetInvSourceSize(source.width, source.height);
+
+		var bgcomplete  = RenderTexture.GetTemporary(source.width, source.height, 0);
+		var bgcomplete2  = RenderTexture.GetTemporary(source.width, source.height, 0);
+		bgcomplete.filterMode = FilterMode.Bilinear;
+		bgcomplete2.filterMode = FilterMode.Bilinear;
+		Graphics.Blit(source, bgcomplete, m_dofMaterial, 2);
+		Graphics.Blit(bgcomplete, bgcomplete2, m_dofMaterial, 5);
+		Graphics.Blit(bgcomplete2, destination, m_dofMaterial, 5);
+
 		RenderTexture.ReleaseTemporary(temp);
 		RenderTexture.ReleaseTemporary(temp2);
-		//RenderTexture.ReleaseTemporary(temp3);
-		//RenderTexture.ReleaseTemporary(temp4);
 		RenderTexture.ReleaseTemporary(fgtex_orig);
 		RenderTexture.ReleaseTemporary(fgtex1);
 		RenderTexture.ReleaseTemporary(fgtex2);
 		RenderTexture.ReleaseTemporary(fgtex_actual);
+		RenderTexture.ReleaseTemporary(bgcomplete);
+		RenderTexture.ReleaseTemporary(bgcomplete2);
 	}
 }
