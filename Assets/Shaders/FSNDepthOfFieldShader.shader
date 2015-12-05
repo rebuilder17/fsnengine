@@ -22,7 +22,7 @@
 		struct v2f
 		{
 			float2 uv			: TEXCOORD0;
-			float2 uvSample[6]	: TEXCOORD1;
+			float2 uvSample[4]	: TEXCOORD1;
 			float4 vertex		: SV_POSITION;
 		};
 
@@ -37,54 +37,48 @@
 		half4 _InvSourceSize;
 
 
-		v2f vertHorizontal(appdata v)
-		{
-			v2f o;
-			o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
-
-			const float2 uvOffset[6] =
-			{
-				float2(-2.4, -0.8),
-				float2(-1.2, -0.4),
-				float2(-0.5, 0),
-				float2(0.5, 0),
-				float2(1.2, 0.4),
-				float2(2.4, 0.8)
-			};
-
-			float2 uv = v.uv;
-			o.uv = uv;
-			for (int i = 0; i < 6; i++)
-			{
-				o.uvSample[i] = uv + uvOffset[i] * 2 * _InvSourceSize;
-			}
-
-			return o;
-		}
-
-		v2f vert4Smp(appdata v)
+		v2f vert4Smp1(appdata v)
 		{
 			v2f o;
 			o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
 
 			const float2 uvOffset[4] =
 			{
-				float2(-1.2, +0.8),
-				float2(+0.8, +1.2),
-				float2(+1.2, -0.8),
-				float2(-0.8, -1.2)
+				float2(-3, +1),
+				float2(-1, +1),
+				float2(+1, -1),
+				float2(+3, -1)
 			};
 
 			float2 uv = v.uv;
 				o.uv = uv;
 			for (int i = 0; i < 4; i++)
 			{
-				o.uvSample[i] = uv + uvOffset[i] * 2 * _InvSourceSize;
+				o.uvSample[i] = uv + uvOffset[i] * _InvSourceSize;
 			}
-			// dummy values
-			o.uvSample[4] = float2(0, 0);
-			o.uvSample[5] = float2(0, 0);
-			//
+
+			return o;
+		}
+
+		v2f vert4Smp2(appdata v)
+		{
+			v2f o;
+			o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+
+			const float2 uvOffset[4] =
+			{
+				float2(-1, +3),
+				float2(-1, +1),
+				float2(+1, -1),
+				float2(+1, -3)
+			};
+
+			float2 uv = v.uv;
+			o.uv = uv;
+			for (int i = 0; i < 4; i++)
+			{
+				o.uvSample[i] = uv + uvOffset[i] * _InvSourceSize;
+			}
 
 			return o;
 		}
@@ -98,40 +92,15 @@
 			return o;
 		}
 
-		v2f vertVertical(appdata v)
-		{
-			v2f o;
-			o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
-
-			const float2 uvOffset[6] =
-			{
-				float2(-0.8, -2.4),
-				float2(-0.4, -1.2),
-				float2(0, -0.5),
-				float2(0, 0.5),
-				float2(0.4, 1.2),
-				float2(0.8, 2.4)
-			};
-
-			float2 uv = v.uv;
-			o.uv = uv;
-			for (int i = 0; i < 6; i++)
-			{
-				o.uvSample[i] = uv + uvOffset[i] * 2 * _InvSourceSize;
-			}
-
-			return o;
-		}
-
 		fixed3 fragCommon(v2f inp) : SV_Target
 		{
-			const float weight[6] = { 0.35, 0.65, 1, 1, 0.65, 0.35 };
+			const float weight[4] = { 0.5, 1.5, 1.5, 0.5 };
 
 			float2 uvcur = inp.uv;
 			fixed3 col = tex2D(_MainTex, uvcur).rgb;
 			float weightSum = 1.0;
 
-			for (int i = 0; i < 6; i++)
+			for (int i = 0; i < 4; i++)
 			{
 				float w = weight[i];
 				float2 uvsmp = inp.uvSample[i].xy;
@@ -153,14 +122,14 @@
 
 			// BG
 			half coc_bg = 0.0;
-			if (dcur < 0.999)	// 뎁스값이 없는 부분은 블러를 먹이지 않는다. (배경, 이쪽은 따로 처리하는 게 나음)
-			{
+			//if (dcur < 0.999)	// 뎁스값이 없는 부분은 블러를 먹이지 않는다. (배경, 이쪽은 따로 처리하는 게 나음)
+			//{
 				half fd01_bg = _CurveParams.w + _CurveParams.z;
 
 				if (dcur > fd01_bg)
 					coc_bg = (dcur - fd01_bg);
 				coc_bg = saturate(coc_bg * _CurveParams.y);
-			}
+			//}
 
 			half coc = coc_bg;
 			
@@ -196,15 +165,18 @@
 
 		fixed3 fragFGDOF(v2f inp) : SV_Target
 		{
+			const float weight[4] = { 0.5, 1.5, 1.5, 0.5 };
+
 			float2 uvcur = inp.uv;
 
 			fixed3 colBlur = tex2D(_MainTex, uvcur).rgb;
-			float weight = tex2D(_FgTex, uvcur).r * 0.8;
+			float cocWeight = tex2D(_FgTex, uvcur).r;
 			float weightSum = 1.0;
 			for (int i = 0; i < 4; i++)
 			{
-				colBlur += tex2D(_MainTex, inp.uvSample[i]) * weight;
-				weightSum += weight;
+				float w = cocWeight * weight[i];
+				colBlur += tex2D(_MainTex, inp.uvSample[i]) * w;
+				weightSum += w;
 			}
 			colBlur = saturate(colBlur / weightSum);
 
@@ -219,7 +191,7 @@
 			ColorMask RGB
 
 			CGPROGRAM
-			#pragma vertex vertHorizontal
+			#pragma vertex vert4Smp1
 			#pragma fragment fragCommon
 
 			ENDCG
@@ -232,7 +204,7 @@
 			ColorMask RGB
 
 			CGPROGRAM
-			#pragma vertex vertVertical
+			#pragma vertex vert4Smp2
 			#pragma fragment fragCommon
 
 			ENDCG
@@ -282,7 +254,20 @@
 				ColorMask RGB
 
 				CGPROGRAM
-				#pragma vertex vert4Smp
+				#pragma vertex vert4Smp1
+				#pragma fragment fragFGDOF
+				ENDCG
+
+		}
+
+		Pass
+		{
+			Name "7. DoF (FG) - 2"
+
+				ColorMask RGB
+
+				CGPROGRAM
+				#pragma vertex vert4Smp2
 				#pragma fragment fragFGDOF
 				ENDCG
 
