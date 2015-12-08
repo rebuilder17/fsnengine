@@ -19,6 +19,8 @@ public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptL
 	const float		c_fadeInTime		= 1.0f;
 	const float		c_fadeOutTime		= 0.15f;
 
+	const float     c_screenFadeTime    = 2.0f;		// 화면 페이드인/아웃 기본 시간
+
 
 	// Properties
 
@@ -47,7 +49,11 @@ public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptL
 	float			m_swipeInvalidIndicatorTime	= 2f;	// swipe 불가능 표시의 최대 라이프타임
 
 	[SerializeField]
-	FSNBaseOverlayDialog[]	m_dialogs;					// OverlayUI에서 관리할 다이얼로그들
+	FSNBaseOverlayDialog[]	m_dialogs;                  // OverlayUI에서 관리할 다이얼로그들
+
+	[SerializeField]
+	FSNScreenFade   m_screenFade;						// 화면 페이드 오브젝트
+
 
 	// NOTE
 	// swipe 가능 표시는 inactive 상태로 두다가 가능해질 경우 active로 전환한다.
@@ -306,7 +312,9 @@ public partial class FSNOverlayUI : MonoBehaviour, IFSNSwipeHandler, IFSNScriptL
 		m_idleUIVisible			= false;
 		m_swipeIndicatorVisible	= false;
 
-		StartCoroutine(CheckIdle());	// 조건이 완전히 성립할 때까지 계속 Idle 체크
+		StartCoroutine(CheckIdle());    // 조건이 완전히 성립할 때까지 계속 Idle 체크
+
+		m_screenFade.StartLoadingFade(c_screenFadeTime);	// 로딩 직후 페이드인
 	}
 
 	/// <summary>
