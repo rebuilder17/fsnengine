@@ -7,39 +7,93 @@ using System.Collections.Generic;
 /// </summary>
 public class FSNNewUISort : MonoBehaviour
 {
-	List<RectTransform> m_tempTrList    = new List<RectTransform>();	// 임시로 오브젝트들을 두는 리스트
+	[SerializeField]
+	bool			m_exactCanvasRendererCheck = false; // Canvas Renderer가 있는 것만 체크
+	
+	System.Action	m_updateRoutine;
+
+	void Awake()
+	{
+		if (m_exactCanvasRendererCheck)
+		{
+			var tempTrList  = new List<RectTransform>();
+			m_updateRoutine = () =>
+			{
+				tempTrList.Clear();
+
+				var root    = transform;
+				int count   = root.childCount;
+
+				for (int i = 0; i < count; i++)                                 // 자식 순회
+				{
+					var tr  = root.GetChild(i);
+					if (tr.GetComponent<CanvasRenderer>())                      // CanvasRenderer가 있는 경우에만 RectTransform을 얻어온다
+					{
+						tempTrList.Add(tr.GetComponent<RectTransform>());
+					}
+				}
+
+				tempTrList.Sort((a, b) =>                                     // Z 값에 따라 정렬하기
+				{
+					var az      = a.anchoredPosition3D.z;
+					var bz      = b.anchoredPosition3D.z;
+					var diff    = az - bz;
+
+					if (diff < Mathf.Epsilon && diff > -Mathf.Epsilon)
+						return 0;
+					else
+						//return diff < 0 ? -1 : 1;
+						return diff > 0 ? -1 : 1;
+				});
+
+				int listcount   = tempTrList.Count;
+				for (int i = 0; i < listcount; i++)                             // 정렬한 순서에 따라서 자식 순서 맞추기
+				{
+					tempTrList[i].SetAsLastSibling();
+				}
+			};
+        }
+		else
+		{
+			var tempTrList  = new List<Transform>();
+			m_updateRoutine = () =>
+			{
+				tempTrList.Clear();
+
+				var root    = transform;
+				int count   = root.childCount;
+
+				for (int i = 0; i < count; i++)                                 // 자식 순회
+				{
+					var tr  = root.GetChild(i);
+					tempTrList.Add(tr);
+				}
+
+				tempTrList.Sort((a, b) =>                                     // Z 값에 따라 정렬하기
+				{
+					var az      = a.localPosition.z;
+					var bz      = b.localPosition.z;
+					var diff    = az - bz;
+
+					if (diff < Mathf.Epsilon && diff > -Mathf.Epsilon)
+						return 0;
+					else
+						//return diff < 0 ? -1 : 1;
+						return diff > 0 ? -1 : 1;
+				});
+
+				int listcount   = tempTrList.Count;
+				for (int i = 0; i < listcount; i++)                             // 정렬한 순서에 따라서 자식 순서 맞추기
+				{
+					tempTrList[i].SetAsLastSibling();
+				}
+			};
+        }
+	}
+
+	
 	void Update()
 	{
-		m_tempTrList.Clear();
-
-		var root	= transform;
-		int count	= root.childCount;
-		for (int i = 0; i < count; i++)									// 자식 순회
-		{
-			var tr	= root.GetChild(i);
-			if (tr.GetComponent<CanvasRenderer>())						// CanvasRenderer가 있는 경우에만 RectTransform을 얻어온다
-			{
-				m_tempTrList.Add(tr.GetComponent<RectTransform>());
-			}
-		}
-
-		m_tempTrList.Sort((a, b) =>										// Z 값에 따라 정렬하기
-		{
-			var az		= a.anchoredPosition3D.z;
-			var bz		= b.anchoredPosition3D.z;
-			var diff    = az - bz;
-			
-			if (diff < Mathf.Epsilon && diff > -Mathf.Epsilon)
-				return 0;
-			else
-				//return diff < 0 ? -1 : 1;
-				return diff > 0 ? -1 : 1;
-		});
-
-		int listcount   = m_tempTrList.Count;
-		for(int i = 0; i < listcount; i++)								// 정렬한 순서에 따라서 자식 순서 맞추기
-		{
-			m_tempTrList[i].SetAsLastSibling();
-		}
+		m_updateRoutine();
 	}
 }

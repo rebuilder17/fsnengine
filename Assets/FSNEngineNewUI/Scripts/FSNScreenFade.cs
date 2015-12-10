@@ -30,10 +30,14 @@ public class FSNScreenFade : MonoBehaviour
 		set { m_controlFadeColor = value; }
 	}
 
+	public static FSNScreenFade instance { get; private set; }
+
 	void Awake()
 	{
 		m_loadingFadeColor  = new Color(0, 0, 0, 0);
 		m_controlFadeColor  = new Color(0, 0, 0, 0);
+
+		instance    = this;
 	}
 
 	void Update()

@@ -15,6 +15,8 @@ public class FSNCameraControl : MonoBehaviour
 	float           m_gyroMovementFactor = 0.5f;   // 자이로 센서에 따라 반응하여 움직이는 최대 거리
 	[SerializeField]
 	bool            m_useControlMovement = true;    // 외부 컨트롤을 통해 움직일 수 있는지
+	[SerializeField]
+	Canvas          m_referenceCanvas;				// 카메라 컨트롤 좌표 계산용 캔버스
 
 
 	// Static Members
@@ -64,8 +66,8 @@ public class FSNCameraControl : MonoBehaviour
 
 	Transform           m_tr;
 	Vector3             m_originalPosition;
-	protected Vector3	m_controlPosition;		// 컨트롤로 조종되는 좌표
-
+	protected Vector3	m_controlPosition;      // 컨트롤로 조종되는 좌표
+	RectTransform       m_canvasTr;				// 레퍼런스 캔버스의 트랜스폼
 
 	void Awake()
 	{
@@ -75,7 +77,10 @@ public class FSNCameraControl : MonoBehaviour
 		m_tr				= transform;
 		m_originalPosition  = m_tr.localPosition;
 		RegisterInstance(this);
-	}
+
+		if (m_useControlMovement)
+			m_canvasTr      = m_referenceCanvas.GetComponent<RectTransform>();
+    }
 
 	void OnDestroy()
 	{
@@ -89,7 +94,7 @@ public class FSNCameraControl : MonoBehaviour
 
 		if (m_useControlMovement)					// 외부 컨트롤 좌표 추가
 		{
-			finalPosition		+= m_controlPosition;
+			finalPosition		+= m_controlPosition  * m_canvasTr.localScale.x;
 		}
 
 		if (m_useGyroMovement)						// 자이로 센서 계산 추가
@@ -103,7 +108,7 @@ public class FSNCameraControl : MonoBehaviour
 		}
 
 		m_tr.localPosition      = finalPosition;
-		_testpos = finalPosition;
+		//_testpos = finalPosition;
     }
 
 	/// <summary>
@@ -121,9 +126,9 @@ public class FSNCameraControl : MonoBehaviour
 		return Quaternion.AngleAxis(euler.x, rotXAxis) * Quaternion.AngleAxis(euler.y, rotYAxis);
 	}
 
-	Vector3 _testpos = Vector3.zero;
-	void OnGUI()
-	{
-		GUI.Label(new Rect(10, 100, 300, 50), _testpos.ToString());
-	}
+	//Vector3 _testpos = Vector3.zero;
+	//void OnGUI()
+	//{
+	//	GUI.Label(new Rect(10, 100, 300, 50), _testpos.ToString());
+	//}
 }

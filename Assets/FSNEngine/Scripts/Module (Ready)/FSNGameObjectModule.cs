@@ -9,11 +9,22 @@ namespace LayerObjects
 		// Members
 		FSNBaseGameObjectEventListener m_listener;
 
-		public GObject(FSNModule parent, GameObject gameObj, IInGameSetting setting)
-			: base(parent, gameObj, setting)
+		protected override bool useInnerObject
 		{
+			get { return false; }		// 내부 오브젝트는 사용하지 않는다.
+		}
+
+		public GObject(FSNModule parent, GameObject outerGameObj, GameObject realGameObj, IInGameSetting setting)
+			: base(parent, outerGameObj, setting)
+		{
+			var newObjTr			= realGameObj.transform;
+			newObjTr.SetParent(outerGameObj.transform);
+			newObjTr.localPosition  = Vector3.zero;
+			newObjTr.localRotation  = Quaternion.identity;
+			newObjTr.localScale     = Vector3.one;
+
 			// 리스너 구하기 (null이어도 무관)
-			m_listener	= gameObj.GetComponent<FSNBaseGameObjectEventListener>();
+			m_listener      = realGameObj.GetComponent<FSNBaseGameObjectEventListener>();
 		}
 
 		protected override void UpdateColor(Color color)
@@ -41,6 +52,10 @@ public class FSNGameObjectModule : FSNBaseObjectModule<Segments.GObject, Snapsho
 		base.OnCreateElement(segment, layer, elemCreated);
 
 		var prefab							= FSNResourceCache.Load<GameObject>(FSNResourceCache.Category.Script, segment.prefabPath);
+		if (prefab == null)
+		{
+			Debug.LogErrorFormat("프리팹을 열 수 없습니다. : {0}", segment.prefabPath);
+		}
 		elemCreated.prefab					= prefab;
 		elemCreated.InitialState.prefab		= prefab;					// 실행 순서 문제 때문에 initial/finalstate의 프리팹을 직접 세팅해줘야함
 		elemCreated.FinalState.prefab		= prefab;
@@ -54,9 +69,10 @@ public class FSNGameObjectModule : FSNBaseObjectModule<Segments.GObject, Snapsho
 	protected override LayerObjects.GObject MakeNewLayerObject(SnapshotElems.GObject elem, IInGameSetting setting)
 	{
 		GameObject prefab	= elem.prefab;
+		GameObject outerObj = new GameObject("(Outer)");
 		GameObject newObj	= Instantiate<GameObject>(prefab);
-		var lobj			= new LayerObjects.GObject(this, newObj, setting);
-		newObj.transform.SetParent(ObjectRoot, false);
+		var lobj			= new LayerObjects.GObject(this, outerObj, newObj, setting);
+		outerObj.transform.SetParent(ObjectRoot, false);
 
 		return lobj;
 	}

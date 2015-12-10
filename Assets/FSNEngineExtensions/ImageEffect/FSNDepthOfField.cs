@@ -7,6 +7,9 @@ using System.ComponentModel;
 [RequireComponent(typeof(Camera))]
 public class FSNDepthOfField : PostEffectsBase
 {
+	[SerializeField]
+	Canvas          m_referenceCanvas;
+
 	public Shader dofShader;
 	public float focalPoint = 1f;
 	public float focalSize	= 1.0f;
@@ -14,6 +17,7 @@ public class FSNDepthOfField : PostEffectsBase
 
 	Camera m_camera;
 	Material m_dofMaterial;
+	RectTransform m_canvasTr;
 
 	RenderTexture m_rtBgTemp;
 	RenderTexture m_rtBgFinal;
@@ -25,10 +29,22 @@ public class FSNDepthOfField : PostEffectsBase
 	RenderTexture m_rtCompleteBlur1;
 	RenderTexture m_rtCompleteBlur2;
 
+
+
+	public static FSNDepthOfField instance { get; private set; }
+	/// <summary>
+	/// 외부에서 조종하는 초점 오프셋
+	/// </summary>
+	public float zOffset { get; set; }
+
 	void Awake()
 	{
 		m_camera = GetComponent<Camera>();
 		m_camera.depthTextureMode |= DepthTextureMode.Depth;
+
+		m_canvasTr    = m_referenceCanvas.GetComponent<RectTransform>();
+
+		instance    = this;
 
 		// TEST
 
@@ -109,7 +125,7 @@ public class FSNDepthOfField : PostEffectsBase
 
 		CheckRenderTextures();
 		
-		float focalDistance01 = FocalDistance01(focalPoint);
+		float focalDistance01 = FocalDistance01(focalPoint + zOffset * m_canvasTr.localScale.z);
 		float focalStartCurve = focalDistance01 * smoothness;
 		float focalEndCurve = focalStartCurve * 4f;
 		float focal01Size = focalSize / (m_camera.farClipPlane - m_camera.nearClipPlane);

@@ -82,6 +82,10 @@ public abstract class FSNImageModule<ObjT> : FSNBaseObjectModule<Segments.Image,
 		base.OnCreateElement(segment, layer, elemCreated);
 
 		var texture							= FSNResourceCache.Load<Texture2D>(FSNResourceCache.Category.Script, segment.texturePath);
+		if (texture == null)
+		{
+			Debug.LogErrorFormat("텍스쳐 파일을 열 수 없습니다. : {0}", segment.texturePath);
+		}
 		elemCreated.texture					= texture;
 		// 실행 순서 문제 때문에 initial/finalstate의 텍스쳐를 직접 세팅해줘야함 (initial state가 이미 초기화된 상태, 값이 자동으로 복사되지 않음)
 		elemCreated.InitialState.texture	= texture;

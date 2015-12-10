@@ -39,20 +39,27 @@ namespace LayerObjects
 		/// 추가 컴포넌트
 		/// </summary>
 		protected FSNBaseComponent component { get; private set; }
+		/// <summary>
+		/// 내부 오브젝트를 따로 생성해서 쓸 지 여부
+		/// </summary>
+		protected virtual bool useInnerObject { get { return true; } }
 
 
 		public BaseObjectLayerObject(FSNModule parent, GameObject gameObj, IInGameSetting setting)
 			: base(parent, gameObj, setting)
 		{
 			// 내부 게임 오브젝트 생성
-			var inner			= new GameObject();
-			inner.name			= "(Inner)";
-			var tr				= inner.transform;
-			tr.parent			= transform;
-			tr.localPosition	= Vector3.zero;
-			tr.localRotation	= Quaternion.identity;
-			tr.localScale		= Vector3.one;
-			innerGO				= inner;
+			if (useInnerObject)
+			{
+				var inner           = new GameObject();
+				inner.name          = "(Inner)";
+				var tr              = inner.transform;
+				tr.parent           = transform;
+				tr.localPosition    = Vector3.zero;
+				tr.localRotation    = Quaternion.identity;
+				tr.localScale       = Vector3.one;
+				innerGO             = inner;
+			}
 		}
 
 		public override void SetStateFully(ImageElem to)
