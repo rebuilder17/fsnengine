@@ -16,6 +16,10 @@ namespace LibSequentia.Data
 		/// 오디오 클립 반환
 		/// </summary>
 		void Return();
+		/// <summary>
+		/// 해제하기
+		/// </summary>
+		void Release();
 	}
 
 	/// <summary>

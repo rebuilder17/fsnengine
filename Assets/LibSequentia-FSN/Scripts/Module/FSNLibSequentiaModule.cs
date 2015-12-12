@@ -434,6 +434,9 @@ namespace LibSequentia
 		}
 	}
 
+	/// <summary>
+	/// 리소스 커스텀 로더 - 트랙 커스텀 
+	/// </summary>
 	class TrackLoader : FSNResourceCache.ICustomLoader
 	{
 		public object LoadResource(string path)
@@ -447,6 +450,9 @@ namespace LibSequentia
 		}
 	}
 
+	/// <summary>
+	/// 리소스 커스텀 로더 - 트랜지션 시나리오 
+	/// </summary>
 	class TransitionScenarioLoader : FSNResourceCache.ICustomLoader
 	{
 		public object LoadResource(string path)

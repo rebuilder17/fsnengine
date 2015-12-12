@@ -140,14 +140,22 @@ public static class FSNResourceCache
 
 			foreach(var resname in oldDepot.m_resourceDict.Keys)
 			{
-				if (!s_tempDepot.m_resourceDict.ContainsKey(resname))	// 새로 로딩된 리소스 중에 없는 것은 해제한다.
+				if (!s_tempDepot.m_resourceDict.ContainsKey(resname))	// 새로 로딩된 리소스 중에 없는 것은 해제한다. (해제 목록에 넣는다)
 				{
 					removeList.Add(resname);
 				}
 			}
 
-			foreach (var resname in removeList)
+			foreach (var resname in removeList)							// 해제 목록을 순회
+			{
+				var box = oldDepot.m_resourceDict[resname];
+				if (box.type != null)									// 만약 로더 구현이 존재하는 경우, 리소스 언로드를 실행
+				{
+					var loader	= s_loader[box.type];
+					loader.UnloadResource(box.res);
+				}
 				oldDepot.m_resourceDict.Remove(resname);
+			}
 		}
 
 		s_tempDepot	= null;		// 임시 저장소 해제

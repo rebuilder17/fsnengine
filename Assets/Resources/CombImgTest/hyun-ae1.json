@@ -1,0 +1,11 @@
+{
+	"SpriteSheet"	:"CombImgTest/Sprite/hyun-ae packed",
+	"BaseSprite"	:"hyun-ae body",
+	"SubSprite"		:
+	[
+		{
+			"Name"		:"hyun-ae face1",
+			"Position"	:[250, 1099]
+		}
+	]
+}

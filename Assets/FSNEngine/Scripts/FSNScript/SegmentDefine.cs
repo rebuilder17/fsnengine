@@ -440,9 +440,11 @@ namespace Segments
 		}
 
 		public const string		c_property_TexturePath	= "Texture";
+		public const string		c_property_CombImgPath	= "Combined";
 		public const string		c_property_Pivot		= "Pivot";	// 중심점
 
 		public string			texturePath;
+		public string			combinedImgPath;
 		public PivotPreset		pivot;
 		protected override string ConvertAliasPropertyName(string name)
 		{
@@ -453,6 +455,10 @@ namespace Segments
 			else if(name == "중점")
 			{
 				return c_property_Pivot;
+			}
+			else if (name == "묶음")
+			{
+				return c_property_CombImgPath;
 			}
 			return base.ConvertAliasPropertyName(name);
 		}
@@ -467,6 +473,11 @@ namespace Segments
 			else if (name == c_property_Pivot)
 			{
 				pivot	= FSNUtils.StringToValue<PivotPreset>(param);
+				return true;
+			}
+			else if (name == c_property_CombImgPath)
+			{
+				combinedImgPath = param;
 				return true;
 			}
 			return base.SetPropertyImpl(name, param);

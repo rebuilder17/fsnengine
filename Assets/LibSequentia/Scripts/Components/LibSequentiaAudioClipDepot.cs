@@ -45,6 +45,11 @@ public class LibSequentiaAudioClipDepot : MonoBehaviour
 				m_depot.Return(m_clippath);
 			}
 		}
+
+		public void Release()
+		{
+			m_depot.Unload(m_clippath);
+		}
 	}
 
 	/// <summary>
@@ -70,6 +75,18 @@ public class LibSequentiaAudioClipDepot : MonoBehaviour
 		public IAudioClipHandle GetHandle(string path)
 		{
 			return m_handleDict[path];
+		}
+
+		/// <summary>
+		/// 오디오 클립 팩을 더이상 사용하지 않게 되었을 때 핸들마다 실제 오디오 데이터 해제해주기
+		/// </summary>
+		~AudioClipPack()
+		{
+			foreach (var pair in m_handleDict)
+			{
+				Debug.Log("[LibSequentia] AudioClipHandle.Release() for " + pair.Key);
+				pair.Value.Release();
+			}
 		}
 	}
 
@@ -144,7 +161,8 @@ public class LibSequentiaAudioClipDepot : MonoBehaviour
 		var info	= m_audioClipDict[clippath];
 		if (info.refcount == 0)					// ref가 없던 상태에서 새로 로딩할 경우
 		{
-
+			if (info.clip == null)
+				info.clip	= Resources.Load<AudioClip>(clippath);
 		}
 		info.refcount++;						// 레퍼런스 카운터 증가
 
@@ -156,8 +174,18 @@ public class LibSequentiaAudioClipDepot : MonoBehaviour
 		var info	= m_audioClipDict[clippath];
 		if(info.refcount == 1)					// ref가 0으로 감소할 때 (언로딩?)
 		{
-
+			//info.clip		= null;
 		}
 		info.refcount--;							// 레퍼런스 카운터 감소
+	}
+
+	/// <summary>
+	/// 해당 클립 언로드 (데이터 내려놓기)
+	/// </summary>
+	/// <param name="clippath"></param>
+	void Unload(string clippath)
+	{
+		var info	= m_audioClipDict[clippath];
+		info.clip	= null;
 	}
 }

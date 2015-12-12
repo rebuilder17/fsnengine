@@ -51,7 +51,7 @@ public class FSNScreenFade : MonoBehaviour
         }
 		else
 		{
-			var colorMix	= (m_loadingFadeColor * lalpha + m_controlFadeColor * (1 - lalpha))
+			var colorMix	= (m_loadingFadeColor * lalpha + m_controlFadeColor * calpha * (1 - lalpha))
 								/ (1 - (1 - calpha) * (1 - lalpha));							// 페이드 색상 합성
 			cpenable		= colorMix.a > 0.01;												// 알파값이 거의 0이라면 비활성화해야한다.
 			

@@ -34,6 +34,11 @@ namespace LayerObjects
 			m_realTex	= texture;
 		}
 
+		public override void UpdateCombinedImage(FSNCombinedImage combimg)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		protected override void UpdatePosition(Vector3 position)
 		{
 			//float toRealRatio	= Screen.height / FSNEngine.Instance.ScreenYSize;	// 가상 좌표를 실제 스크린 좌표로 변환
