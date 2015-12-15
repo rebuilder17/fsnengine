@@ -18,12 +18,9 @@ public class TestPackerData : FSNRectPacker.IData
 
 class TestPacker : FSNRectPacker.BaseRectPacker<TestPackerData>
 {
-	const int		c_packWidth		= 512;
-	const int		c_packHeight	= 512;
-
-	protected override void OnSuccess(Output[] output)
+	protected override void OnSuccess(int width, int height, Output[] output)
 	{
-		var texture = new Texture2D(c_packWidth, c_packHeight, TextureFormat.RGB24, false);
+		var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
 		int count   = output.Length;
 		for(int i = 0; i < count; i++)
 		{

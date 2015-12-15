@@ -20,4 +20,10 @@ public static class FSNEngineEditorMenu
 			tagManager.ApplyModifiedProperties();
 		}
 	}
+
+	[MenuItem("FSN Engine/조합 이미지 만들기")]
+	static void BuildAllCombinedImages()
+	{
+		FSNCombinedImageGenerator.BuildCombinedImageSources();
+	}
 }

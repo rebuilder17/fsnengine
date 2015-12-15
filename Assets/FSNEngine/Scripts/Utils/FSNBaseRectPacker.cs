@@ -26,24 +26,28 @@ namespace FSNRectPacker
 			struct RectSpace
 			{
 				public int xMin, yMin, xMax, yMax;
+				public int padding;
 
-				public int width { get { return xMax - xMin; } }
-				public int height {  get { return yMax - yMin; } }
+				public int width { get { return xMax - xMin + padding; } }
+				public int height {  get { return yMax - yMin + padding; } }
+
+				public int widthNoPad { get { return xMax - xMin; } }
+				public int heightNoPad { get { return yMax - yMin; } }
 
 				/// <summary>
 				/// 특정 width, height를 지닌 사각형을 포함할 수 있는지 여부
 				/// </summary>
-				/// <param name="width"></param>
-				/// <param name="height"></param>
+				/// <param name="tw"></param>
+				/// <param name="th"></param>
 				/// <returns></returns>
-				public bool CanContain(int width, int height)
+				public bool CanContain(int tw, int th)
 				{
-					return ((xMax - xMin) >= width) && ((yMax - yMin) >= height);
+					return (width >= tw) && (height >= th);
 				}
 
-				public bool FitsCorrectly(int width, int height)
+				public bool FitsCorrectly(int tw, int th)
 				{
-					return ((xMax - xMin) == width) && ((yMax - yMin) == height);
+					return (width == tw) && (height == th);
 				}
 
 				/// <summary>
@@ -58,7 +62,7 @@ namespace FSNRectPacker
 					remainRect		= this;
 
 					int divline		= divRect.xMin + divideLength;
-					divRect.xMax    = divline;
+					divRect.xMax    = divline - padding;	// Padding이 포함되어있으므로 제거해야한다.
 					remainRect.xMin = divline;
                 }
 
@@ -74,7 +78,7 @@ namespace FSNRectPacker
 					remainRect      = this;
 
 					int divline     = divRect.yMin + divideLength;
-					divRect.yMax    = divline;
+					divRect.yMax    = divline - padding;    // Padding이 포함되어있으므로 제거해야한다.
 					remainRect.yMin = divline;
 				}
 			}
@@ -96,14 +100,14 @@ namespace FSNRectPacker
 
 			//
 
-			public Node(int width, int height) : this(0, 0, width, height)
+			public Node(int width, int height, int padding) : this(0, 0, width, height, padding)
 			{
 
 			}
 
-			public Node(int xMin, int yMin, int xMax, int yMax)
+			public Node(int xMin, int yMin, int xMax, int yMax, int padding)
 			{
-				m_rect  = new RectSpace() { xMin = xMin, yMin = yMin, xMax = xMax, yMax = yMax };
+				m_rect  = new RectSpace() { xMin = xMin, yMin = yMin, xMax = xMax, yMax = yMax, padding = padding };
             }
 
 			private Node(RectSpace rect)
@@ -170,7 +174,13 @@ namespace FSNRectPacker
 				{
 					if (m_data != null)		//  데이터가 있는 경우 리스트로 출력한다.
 					{
-						list.AddLast(new Output() { data = m_data, xMin = m_rect.xMin, xMax = m_rect.xMax - 1, yMin = m_rect.yMin, yMax = m_rect.yMax - 1 });
+						var output  = new Output();
+						output.data = m_data;
+						output.xMin = m_rect.xMin;
+						output.xMax = output.xMin + m_rect.widthNoPad - 1;
+						output.yMin = m_rect.yMin;
+						output.yMax = output.yMin + m_rect.heightNoPad - 1;
+                        list.AddLast(output);
 					}
 				}
 			}
@@ -217,7 +227,9 @@ namespace FSNRectPacker
 		// Members
 
 		Node						m_rootNode;				// 패킹 계산에 사용할 데이터 노드
-		LinkedList<DataListItem>	m_dataList;				// 패킹 계산 전에 데이터를 모아둘 리스트
+		LinkedList<DataListItem>	m_dataList;             // 패킹 계산 전에 데이터를 모아둘 리스트
+
+		int m_outWidth, m_outHeight;						// 출력할 패킹 데이터 크기
 
 		public BaseRectPacker()
 		{
@@ -270,9 +282,11 @@ namespace FSNRectPacker
 		/// </summary>
 		/// <param name="packWidth"></param>
 		/// <param name="packHeight"></param>
-		public bool Pack(int packWidth, int packHeight)
+		public bool Pack(int packWidth, int packHeight, int padding = 1)
 		{
-			m_rootNode  = new Node(packWidth, packHeight);
+			m_outWidth  = packWidth;
+			m_outHeight = packHeight;
+			m_rootNode  = new Node(packWidth, packHeight, padding);
 
 			foreach (var entry in m_dataList)					// 데이터를 하나씩 넣는다.
 			{
@@ -289,7 +303,7 @@ namespace FSNRectPacker
 			var outputArray = new Output[output.Count];
 			output.CopyTo(outputArray, 0);
 
-			OnSuccess(outputArray);
+			OnSuccess(m_outWidth, m_outHeight, outputArray);
 
 			return true;
 		}
@@ -298,7 +312,7 @@ namespace FSNRectPacker
 		/// 성공시 콜백. 여기에서 외부 데이터로 출력해야 한다.
 		/// </summary>
 		/// <param name="output"></param>
-		protected abstract void OnSuccess(Output[] output);
+		protected abstract void OnSuccess(int width, int height, Output[] output);
 		/// <summary>
 		/// 실패시 콜백
 		/// </summary>
