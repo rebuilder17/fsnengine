@@ -26,7 +26,8 @@ namespace LayerObjects
 			var mat				= (parent as FSNImageModule_NewUI).imageMaterial;
 			if (mat != null)										// 사용자 지정 마테리얼 설정
 			{
-				m_image.material= mat;
+				m_image.material= new Material(mat);
+				m_image.material.renderQueue = 2000;	// 강제 렌더큐 설정 (Depth Write를 작동시키기 위해)
 			}
 		}
 
@@ -75,7 +76,7 @@ namespace LayerObjects
 					w	= targetUVRect.yMax
 				};
 
-				m_image.material	= (ParentModule as FSNImageModule_NewUI).combinedImageMaterial;	// 조합 이미지 전용 마테리얼로 세팅
+				m_image.material	= new Material((ParentModule as FSNImageModule_NewUI).combinedImageMaterial);	// 조합 이미지 전용 마테리얼로 세팅
 				m_image.material.renderQueue = 2000;	// 강제 렌더큐 설정 (Depth Write를 작동시키기 위해)
 				//m_image.material	= new Material((ParentModule as FSNImageModule_NewUI).combinedImageMaterial);
 				m_image.material.SetVector("_SubTexSourceUVs1", vSourceUV);							// 서브 이미지 UV값들 보내기

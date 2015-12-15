@@ -339,4 +339,42 @@ public static class FSNUtils
 		var dateTime	= System.DateTime.Now;
 		return dateTime.ToString();
 	}
+
+
+	/// <summary>
+	/// 경로를 분리하여 디렉토리 부분과 파일 이름으로 나눈다
+	/// </summary>
+	/// <param name="origpath"></param>
+	/// <param name="path"></param>
+	/// <param name="name"></param>
+	public static void StripPathAndName(string origpath, out string path, out string name)
+	{
+		var pathdel = origpath.LastIndexOf('/');
+		if (pathdel != -1)
+		{
+			path    = origpath.Substring(0, pathdel);
+			name    = origpath.Substring(pathdel + 1);
+		}
+		else
+		{
+			path    = "";
+			name    = origpath;
+		}
+	}
+	
+	/// <summary>
+	/// 파일 확장자 삭제
+	/// </summary>
+	/// <param name="origpath"></param>
+	/// <returns></returns>
+	public static string RemoveFileExt(string origpath)
+	{
+		var pos	= origpath.LastIndexOf('.');
+		if (pos == -1)
+			return origpath;
+		else
+		{
+			return origpath.Substring(0, pos);
+		}
+	}
 }

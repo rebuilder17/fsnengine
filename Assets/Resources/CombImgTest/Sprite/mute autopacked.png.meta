@@ -1,14 +1,14 @@
 fileFormatVersion: 2
-guid: 9ac6f2ab1acbd3a468c059b84b589fef
-timeCreated: 1449946124
+guid: 97ada403752bf4444a60780b50eb0c2a
+timeCreated: 1450204562
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: hyun-ae body
-    21300002: hyun-ae face1
-    21300004: hyun-ae face2
-    21300006: hyun-ae face3
-    21300008: hyun-ae face4
+    21300000: mute body
+    21300002: mute face1
+    21300004: mute face2
+    21300006: mute face3
+    21300008: mute face4
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -24,7 +24,7 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: .25
     normalMapFilter: 0
-  isReadable: 0
+  isReadable: 1
   grayScaleToAlpha: 0
   generateCubemap: 0
   cubemapConvolution: 0
@@ -34,13 +34,13 @@ TextureImporter:
   textureFormat: -3
   maxTextureSize: 2048
   textureSettings:
-    filterMode: -1
+    filterMode: 1
     aniso: 0
     mipBias: -1
     wrapMode: 1
   nPOTScale: 0
   lightmap: 0
-  rGBM: 0
+  rGBM: 2
   compressionQuality: 50
   allowsAlphaSplitting: 0
   spriteMode: 2
@@ -55,53 +55,53 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: hyun-ae body
+    - name: mute body
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 650
-        height: 1300
+        width: 800
+        height: 1600
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: hyun-ae face1
+    - name: mute face1
       rect:
         serializedVersion: 2
-        x: 650
+        x: 801
         y: 0
         width: 150
-        height: 101
+        height: 100
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: hyun-ae face2
+    - name: mute face2
       rect:
         serializedVersion: 2
-        x: 650
+        x: 801
         y: 101
         width: 150
-        height: 101
+        height: 100
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: hyun-ae face3
+    - name: mute face3
       rect:
         serializedVersion: 2
-        x: 650
+        x: 801
         y: 202
         width: 150
-        height: 101
+        height: 100
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: hyun-ae face4
+    - name: mute face4
       rect:
         serializedVersion: 2
-        x: 650
+        x: 801
         y: 303
         width: 150
-        height: 101
+        height: 100
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}

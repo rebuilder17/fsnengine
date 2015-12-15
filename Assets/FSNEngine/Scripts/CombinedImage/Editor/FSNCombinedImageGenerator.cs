@@ -43,6 +43,16 @@ class FSNSpritePacker : FSNRectPacker.BaseRectPacker<FSNSpritePackerData>
 	protected override void OnSuccess(int width, int height, Output[] output)
 	{
 		var outtex	= new Texture2D(width, height, TextureFormat.ARGB32, false);
+
+		var pixels	= outtex.GetPixels32();						// 텍스쳐를 0으로 채우기
+		var pixcnt	= pixels.Length;
+		var zeroCol	= new Color32(0, 0, 0, 0);
+		for (int i = 0; i < pixcnt; i++)
+		{
+			pixels[i]	= zeroCol;
+		}
+		outtex.SetPixels32(pixels);
+
 		int count   = output.Length;
 		for(int i = 0; i < count; i++)							// 텍스쳐를 조립한다.
 		{
@@ -51,26 +61,32 @@ class FSNSpritePacker : FSNRectPacker.BaseRectPacker<FSNSpritePackerData>
 			outtex.SetPixels32(entry.xMin, entry.yMin, texture.width, texture.height, texture.GetPixels32());
 		}
 
-		var textureOutRealPath  = Application.dataPath + "/Resources/" + outputPath + ".png";   // 실제 출력할 텍스쳐 경로
+		var textureOutAssetPath	= "Resources/" + outputPath + ".png";							// 실제 출력할 텍스쳐 경로 (asset)
+		var textureOutRealPath  = Application.dataPath + "/" + textureOutAssetPath;				// 실제 출력할 텍스쳐 경로 (절대경로)
 		string outPath, outName;
-		FSNEditorUtils.StripPathAndName(textureOutRealPath, out outPath, out outName);
+		FSNUtils.StripPathAndName(textureOutAssetPath, out outPath, out outName);
 		FSNEditorUtils.MakeTargetDirectory(outPath);											// 타겟 디렉토리 확보
 		System.IO.File.WriteAllBytes(textureOutRealPath, outtex.EncodeToPNG());                 // 텍스쳐를 파일로 기록한다.
+		AssetDatabase.Refresh();
 
-		var importer            = AssetImporter.GetAtPath(textureOutRealPath) as TextureImporter;
+		var importer            = AssetImporter.GetAtPath("Assets/" + textureOutAssetPath) as TextureImporter;
 		var settings            = new TextureImporterSettings();
 		importer.ReadTextureSettings(settings);
-
-		settings.ApplyTextureType(TextureImporterType.Sprite, true);                            // 출력한 텍스쳐의 임포트 옵션 설정
-		settings.aniso          = 0;
-		settings.filterMode     = FilterMode.Bilinear;
-		settings.mipmapEnabled  = false;
-		settings.npotScale      = TextureImporterNPOTScale.None;
-		settings.readable       = true;
-		settings.spriteMeshType = SpriteMeshType.FullRect;
-		settings.spriteMode     = 2;
-		settings.textureFormat  = TextureImporterFormat.AutomaticTruecolor;
+		settings.ApplyTextureType(TextureImporterType.Sprite, false);
+		settings.spriteMeshType	= SpriteMeshType.FullRect;
+		settings.spriteExtrude	= 0;
+		settings.rgbm			= TextureImporterRGBMMode.Off;
 		importer.SetTextureSettings(settings);
+
+		importer.textureType	= TextureImporterType.Advanced;		                           // 출력한 텍스쳐의 임포트 옵션 설정
+		importer.anisoLevel		= 0;
+		importer.filterMode     = FilterMode.Bilinear;
+		importer.mipmapEnabled  = false;
+		importer.npotScale      = TextureImporterNPOTScale.None;
+		importer.isReadable		= true;
+		importer.spriteImportMode	= SpriteImportMode.Single;	// 어떤 경우, Single로 바꾼 다음 다시 Multi로 바꿔야한다.
+		importer.textureFormat  = TextureImporterFormat.AutomaticTruecolor;
+		importer.linearTexture	= true;
 
 		var spritesheet			= new List<SpriteMetaData>();                                   // 스프라이트 시트 생성 (각 스프라이트 영역 구분)
 		for (int i = 0; i < count; i++)
@@ -84,8 +100,9 @@ class FSNSpritePacker : FSNRectPacker.BaseRectPacker<FSNSpritePackerData>
 				rect            = new Rect(entry.xMin, entry.yMin, entry.data.width, entry.data.height)
 			});
 		}
+		importer.spriteImportMode	= SpriteImportMode.Multiple;
 		importer.spritesheet    = spritesheet.ToArray();
-
+		
 		importer.SaveAndReimport();
 	}
 }
@@ -95,7 +112,7 @@ class FSNSpritePacker : FSNRectPacker.BaseRectPacker<FSNSpritePackerData>
 /// </summary>
 public static class FSNCombinedImageGenerator
 {
-	const string        c_combinedImageConfigFileName   = ".combinedimage.json";	// 조합 이미지 빌드용 설정 파일
+	const string        c_combinedImageConfigFileName   = "combinedimage";	// 조합 이미지 빌드용 설정 파일
 
 
 	class Config
@@ -122,6 +139,7 @@ public static class FSNCombinedImageGenerator
 
 		public Config(string configPath)
 		{
+			Debug.Log("Config file read : " + configPath);
 			var data		= AssetDatabase.LoadAssetAtPath<TextAsset>(configPath).text;
 			var json		= new JSONObject(data);
 
@@ -133,7 +151,7 @@ public static class FSNCombinedImageGenerator
 
 			// 설정파일과 같은 경로에 있는 텍스쳐들을 검색
 			string dir, filename;
-			FSNEditorUtils.StripPathAndName(outputPath, out dir, out filename);
+			FSNUtils.StripPathAndName(configPath, out dir, out filename);
 			var textureGUIDs    = AssetDatabase.FindAssets("t:Texture2D", new string[] { dir });
 			var texcount        = textureGUIDs.Length;
 			var texturePaths    = new string[texcount];
@@ -156,6 +174,8 @@ public static class FSNCombinedImageGenerator
 		for(int i = 0; i < count; i++)
 		{
 			var path    = AssetDatabase.GUIDToAssetPath(configGUIDs[i]);
+			if (!path.EndsWith("/" + c_combinedImageConfigFileName + ".json"))	// 확실하게 combinedimage.json 파일인지 체크한다
+				continue;
 			var config  = new Config(path);
 
 			if (!BuildCombinedImage(config))					// 패킹 시도
@@ -167,6 +187,7 @@ public static class FSNCombinedImageGenerator
 				successCount++;
             }
 		}
+		AssetDatabase.Refresh();
 
 		Debug.LogFormat("조합 이미지 생성 완료. 총 {0} 개 조합 이미지를 생성했습니다.", successCount);
 	}
@@ -188,10 +209,10 @@ public static class FSNCombinedImageGenerator
 
 			var origpath    = paths[i];
 			string path, name;
-			FSNEditorUtils.StripPathAndName(origpath, out path, out name);
+			FSNUtils.StripPathAndName(origpath, out path, out name);
 
 			var texture     = AssetDatabase.LoadAssetAtPath<Texture2D>(origpath);
-			var data        = new FSNSpritePackerData(texture, name);
+			var data        = new FSNSpritePackerData(texture, FSNUtils.RemoveFileExt(name));
 			packer.PushData(data);										// 팩커에 텍스쳐 하나씩 밀어넣기
 		}
 
@@ -210,8 +231,10 @@ public static class FSNCombinedImageGenerator
 		settings.readable   = true;                                     // 읽기 가능하게
 		settings.textureFormat = TextureImporterFormat.AutomaticTruecolor;
 		settings.spriteMode = 1;
+		settings.mipmapEnabled	= false;
 		settings.ApplyTextureType(TextureImporterType.Sprite, false);	// 나머지는 Sprite 설정으로
 		importer.SetTextureSettings(settings);
+		importer.isReadable	= true;
 		importer.SaveAndReimport();
 	}
 }

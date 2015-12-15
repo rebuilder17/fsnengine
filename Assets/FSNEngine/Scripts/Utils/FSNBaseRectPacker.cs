@@ -42,12 +42,12 @@ namespace FSNRectPacker
 				/// <returns></returns>
 				public bool CanContain(int tw, int th)
 				{
-					return (width >= tw) && (height >= th);
+					return (widthNoPad >= tw) && (heightNoPad >= th);
 				}
 
 				public bool FitsCorrectly(int tw, int th)
 				{
-					return (width == tw) && (height == th);
+					return (widthNoPad == tw) && (heightNoPad == th);
 				}
 
 				/// <summary>
@@ -145,11 +145,11 @@ namespace FSNRectPacker
 						int remainh	= m_rect.height - data.height;
 						if (remainw > remainh)						// 가로방향을 나눠야함
 						{
-							m_rect.DivideHorizontally(data.width, out divRect, out remainRect);
+							m_rect.DivideHorizontally(data.width + m_rect.padding, out divRect, out remainRect);
 						}
 						else
 						{                                           // 세로방향을 나눠야함
-							m_rect.DivideVertically(data.height, out divRect, out remainRect);
+							m_rect.DivideVertically(data.height + m_rect.padding, out divRect, out remainRect);
 						}
 						m_child[0]  = new Node(divRect);
 						m_child[1]  = new Node(remainRect);

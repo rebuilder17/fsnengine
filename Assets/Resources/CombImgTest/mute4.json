@@ -1,0 +1,11 @@
+{
+	"SpriteSheet"	:"CombImgTest/Sprite/mute autopacked",
+	"BaseSprite"	:"mute body",
+	"SubSprite"		:
+	[
+		{
+			"Name"		:"mute face4",
+			"Position"	:[350, 1250]
+		}
+	]
+}
