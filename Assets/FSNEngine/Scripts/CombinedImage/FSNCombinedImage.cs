@@ -136,6 +136,8 @@ public class FSNCombinedImage
 	/// </summary>
 	class Data : IData
 	{
+		const float             c_subSpritePadding  = 1f;		// 모서리 artifact를 방지하기 위해 이만큼(픽셀) 영역을 잡게 덮어쓴다.
+
 		public Texture2D		texture { get; private set; }
 		public int				pixelWidth { get; private set; }
 		public int				pixelHeight { get; private set; }
@@ -215,8 +217,8 @@ public class FSNCombinedImage
 
 				m_cooked.Add(new SubSpriteData()				// 전부 UV 좌표료 변경해서 넣는다
 				{
-					sourceUVRect	= ConvertSpriteRectToUVRect(sourcerect, texture),
-					targetUVRect	= ConvertSpriteRectToUVRect(targetrect, texture),
+					sourceUVRect	= ConvertSpriteRectToUVRect(sourcerect, texture, c_subSpritePadding),
+					targetUVRect	= ConvertSpriteRectToUVRect(targetrect, texture, c_subSpritePadding),
 				});
 			}
 
@@ -229,10 +231,19 @@ public class FSNCombinedImage
 		/// </summary>
 		/// <param name="sprite"></param>
 		/// <returns></returns>
-		Rect ConvertSpriteRectToUVRect(Rect rect, Texture texture)
+		Rect ConvertSpriteRectToUVRect(Rect rect, Texture texture, float padding = 0)
 		{
 			var width	= texture.width;
 			var height	= texture.height;
+
+			if (padding > 0)
+			{
+				rect.xMin   += padding;
+				rect.yMin   += padding;
+				rect.xMax   -= padding;
+				rect.yMax   -= padding;
+			}
+
 			rect.x		/= width;
 			rect.width	/= width;
 			rect.y		/= height;
