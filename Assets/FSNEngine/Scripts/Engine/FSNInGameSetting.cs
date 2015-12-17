@@ -318,14 +318,14 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 			CurrentFlowDirection	= FlowDirection.Up;
 			BackwardFlowDirection	= FlowDirection.Down;
 			SwipeWeight				= 0.24f;
-			FontSize				= 24;
+			FontSize				= 36;
 			ScreenCenterText		= false;
 			StackTexts				= true;
 
-			TextMarginTop			= 10;
-			TextMarginBottom		= 10;
-			TextMarginLeft			= 10;
-			TextMarginRight			= 10;
+			TextMarginTop			= 30;
+			TextMarginBottom		= 30;
+			TextMarginLeft			= 30;
+			TextMarginRight			= 30;
 
 			TextAlign				= TextAlignType.Left;
 			TextLineSpacing			= 1.2f;

@@ -99,12 +99,21 @@ public class FSNCameraControl : MonoBehaviour
 
 		if (m_useGyroMovement)						// 자이로 센서 계산 추가
 		{
-			var rotEuler        = RotateEulerAxisAroundZ(Input.gyro.attitude).eulerAngles;
-			Vector3 movement    = new Vector3();
-			movement.x          = CalcGyroTangentDiff(rotEuler.y) * m_gyroMovementFactor;	// Landscape Left 에 맞춰서 x, y 를 넣는다.
-			movement.y          = CalcGyroTangentDiff(-rotEuler.x) * m_gyroMovementFactor;
+			var gravityDir		= -Input.gyro.gravity.normalized;
+			var xzVector        = new Vector2(gravityDir.x, gravityDir.z);
+			var yzVector        = new Vector2(gravityDir.y, gravityDir.z);
+
+			// 각각 X축, Y축 회전에 대해서 각도를 구한다. (xz 2차원 벡터와 yz 2차원 벡터로 쪼개서 계산한다)
+			var xangle          = Mathf.Rad2Deg * Mathf.Acos(xzVector.x / (xzVector.magnitude));
+			var yangle          = Mathf.Rad2Deg * Mathf.Acos(yzVector.x / (yzVector.magnitude));
 			
-			finalPosition       += movement;
+			Vector3 movement    = new Vector3();
+			movement.x          = CalcGyroTangentDiff(xangle) * m_gyroMovementFactor;
+			movement.y          = CalcGyroTangentDiff(yangle) * m_gyroMovementFactor;
+
+			//_testpos            = new Vector3(xangle, yangle);
+			_testpos            = gravityDir * 100;
+            finalPosition       += movement;
 		}
 
 		m_tr.localPosition      = finalPosition;
