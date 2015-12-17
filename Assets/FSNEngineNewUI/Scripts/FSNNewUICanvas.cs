@@ -20,7 +20,7 @@ public class FSNNewUICanvas : MonoBehaviour
 	RectTransform	m_rectTrans;
 
 	bool			m_awake	= false;
-
+	float			m_cameraToCanvas;		// 카메라 좌표계에서, 카메라에서 캔버스까지 거리
 
 
 	public void CheckAndDoInit()
@@ -74,6 +74,8 @@ public class FSNNewUICanvas : MonoBehaviour
 				canvPlane.Raycast(new Ray(Vector3.zero, Vector3.forward), out enter);
 				var intersectP	= Vector3.forward * enter;
 
+				m_cameraToCanvas	= intersectP.magnitude;			// 카메라 -> 캔버스까지 거리 저장해두기
+
 				// 2. 그 만나는 점을 포함하고 카메라의 방향 벡터와는 수직한 평면(= 카메라와 마주보는)을 가정하고,
 				var paralPlane	= new Plane(Vector3.back, intersectP);
 
@@ -92,5 +94,23 @@ public class FSNNewUICanvas : MonoBehaviour
 				m_rectTrans.localScale	= Vector3.one * scale;
 			}
 		}
+	}
+
+	/// <summary>
+	/// 캔버스 상의 특정 Z 좌표에 대해서, 어느 정도 비율을 곱해야 Z=0일 때의 (Screen 상에서의) 크기와 같아지는지 계산한다.
+	/// </summary>
+	/// <param name="zOnCanvas"></param>
+	/// <returns></returns>
+	public float CalculateAdaptScale(float zOnCanvas)
+	{
+		var actualZ			= m_cameraToCanvas + zOnCanvas * m_rectTrans.localScale.x;
+
+		//var zeroHeight		= 2.0f * m_cameraToCanvas * Mathf.Tan(m_camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+		//var targetHeight	= 2.0f * actualZ * Mathf.Tan(m_camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+		var zeroHeight		= m_cameraToCanvas;
+		var targetHeight	= actualZ;
+		var ratio			= targetHeight / zeroHeight;
+
+		return ratio;
 	}
 }

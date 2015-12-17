@@ -14,7 +14,7 @@ SubShader{
 	Cull Off
 	Lighting Off
 	ZWrite Off
-	//ZTest[unity_GUIZTestMode]
+	ZTest[unity_GUIZTestMode]
 	//ZTest Always
 	//Blend SrcAlpha OneMinusSrcAlpha
 	
@@ -81,7 +81,6 @@ SubShader{
 		Name "ActualRender"
 		Tags{ "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 		ZWrite Off
-		ZTest Always
 		Lighting Off
 		Blend SrcAlpha OneMinusSrcAlpha
 		//Blend Off

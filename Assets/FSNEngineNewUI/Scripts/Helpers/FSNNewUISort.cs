@@ -9,6 +9,8 @@ public class FSNNewUISort : MonoBehaviour
 {
 	[SerializeField]
 	bool			m_exactCanvasRendererCheck = false; // Canvas Renderer가 있는 것만 체크
+	[SerializeField]
+	int				m_baseSortOrder	= 0;				// sort order를 오버라이드하는 방식을 사용하는 경우, 그 베이스값
 	
 	System.Action	m_updateRoutine;
 
@@ -85,7 +87,11 @@ public class FSNNewUISort : MonoBehaviour
 				int listcount   = tempTrList.Count;
 				for (int i = 0; i < listcount; i++)                             // 정렬한 순서에 따라서 자식 순서 맞추기
 				{
-					tempTrList[i].SetAsLastSibling();
+					//tempTrList[i].SetAsLastSibling();
+					
+					var canvas	= tempTrList[i].GetComponentInChildren<Canvas>();
+					canvas.overrideSorting	= true;
+					canvas.sortingOrder = m_baseSortOrder + i;
 				}
 			};
         }

@@ -17,7 +17,7 @@ SubShader{
 	Cull Off
 	Lighting Off
 	ZWrite Off
-	//ZTest[unity_GUIZTestMode]
+	ZTest[unity_GUIZTestMode]
 	//ZTest Always
 	//Blend SrcAlpha OneMinusSrcAlpha
 	
@@ -27,7 +27,6 @@ SubShader{
 		Name "ZWrite"
 		Tags{ "LightMode" = "ShadowCaster" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 		ZWrite On
-		//ZTest Always
 		ColorMask 0
 		Blend Off
 		//AlphaTest Greater [_DepthCutOff]
@@ -82,7 +81,6 @@ SubShader{
 		Name "ActualRender"
 		Tags{ "IgnoreProjector" = "True" "RenderType" = "Transparent" }
 		ZWrite Off
-		ZTest Always
 		Lighting Off
 		Blend SrcAlpha OneMinusSrcAlpha
 		//Blend Off

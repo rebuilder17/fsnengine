@@ -15,6 +15,7 @@ namespace LayerObjects
 		Texture2D	m_texture;
 		FSNCombinedImage m_combImg;
 		Vector2		m_pivot	= c_pivot_center;
+		bool		m_adaptToPerspective	= false;
 
 
 		public Vector2 Pivot
@@ -47,6 +48,19 @@ namespace LayerObjects
 			}
 		}
 
+		public bool AdaptToPerspective
+		{
+			get { return m_adaptToPerspective; }
+			set
+			{
+				if (m_adaptToPerspective != value)		// 값이 바뀔 때만 실행
+				{
+					m_adaptToPerspective = value;
+					UpdateAdaptToPerspective(value);
+				}
+			}
+		}
+
 		/// <summary>
 		/// 텍스쳐 변경
 		/// </summary>
@@ -65,12 +79,22 @@ namespace LayerObjects
 		/// <param name="pivot"></param>
 		public abstract void UpdatePivot(Vector2 pivot);
 
+		/// <summary>
+		/// 원근에 적응하기
+		/// </summary>
+		/// <param name="adapt"></param>
+		public virtual void UpdateAdaptToPerspective(bool adapt)
+		{
+
+		}
+
 		public override void SetStateFully(SnapshotElems.Image to)
 		{
 			base.SetStateFully(to);
-			Pivot	= to.pivot;
-			Texture	= to.texture;
-			CombinedImage = to.combimg;
+			Pivot				= to.pivot;
+			Texture				= to.texture;
+			CombinedImage		= to.combimg;
+			AdaptToPerspective	= to.adaptToPerspective;
 		}
 
 
@@ -129,5 +153,20 @@ public abstract class FSNImageModule<ObjT> : FSNBaseObjectModule<Segments.Image,
 		elemCreated.pivot					= pivotVec;
 		elemCreated.InitialState.pivot		= pivotVec;
 		elemCreated.FinalState.pivot		= pivotVec;
+	}
+
+	protected override void SetElemBySegProperties(SnapshotElems.Image elem, Segments.Image seg)
+	{
+		base.SetElemBySegProperties(elem, seg);
+
+		foreach(var pname in seg.PropertyNames)
+		{
+			switch(pname)
+			{
+				case Segments.Image.c_property_AdaptToPerspective:
+					elem.adaptToPerspective	= seg.adaptToPerspective;
+					break;
+			}
+		}
 	}
 }

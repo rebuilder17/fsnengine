@@ -442,43 +442,48 @@ namespace Segments
 		public const string		c_property_TexturePath	= "Texture";
 		public const string		c_property_CombImgPath	= "Combined";
 		public const string		c_property_Pivot		= "Pivot";	// 중심점
+		public const string		c_property_AdaptToPerspective	= "AdaptToPerspective";	// 원근에 적응하여 비율 설정해두기
 
 		public string			texturePath;
 		public string			combinedImgPath;
 		public PivotPreset		pivot;
+		public bool				adaptToPerspective;
 		protected override string ConvertAliasPropertyName(string name)
 		{
-			if(name == "파일")
+			switch(name)
 			{
-				return c_property_TexturePath;
+				case "파일":
+					return c_property_TexturePath;
+				case "중점":
+					return c_property_Pivot;
+				case "묶음":
+					return c_property_CombImgPath;
+				case "원근적응":
+					return c_property_AdaptToPerspective;
 			}
-			else if(name == "중점")
-			{
-				return c_property_Pivot;
-			}
-			else if (name == "묶음")
-			{
-				return c_property_CombImgPath;
-			}
+			
 			return base.ConvertAliasPropertyName(name);
 		}
 
 		protected override bool SetPropertyImpl(string name, string param)
 		{
-			if (name == c_property_TexturePath)
-			{
-				texturePath	= param;
-				return true;
-			}
-			else if (name == c_property_Pivot)
-			{
-				pivot	= FSNUtils.StringToValue<PivotPreset>(param);
-				return true;
-			}
-			else if (name == c_property_CombImgPath)
-			{
-				combinedImgPath = param;
-				return true;
+			switch(name)
+			{ 
+				case c_property_TexturePath:
+					texturePath	= param;
+					return true;
+
+				case c_property_Pivot:
+					pivot	= FSNUtils.StringToValue<PivotPreset>(param);
+					return true;
+
+				case c_property_CombImgPath:
+					combinedImgPath = param;
+					return true;
+
+				case c_property_AdaptToPerspective:
+					adaptToPerspective	= FSNUtils.StringToValue<bool>(param);
+					return true;
 			}
 			return base.SetPropertyImpl(name, param);
 		}

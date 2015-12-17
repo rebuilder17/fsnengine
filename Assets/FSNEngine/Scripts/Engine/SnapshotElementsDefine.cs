@@ -123,6 +123,7 @@ namespace SnapshotElems
 		public Texture2D	texture;
 		public FSNCombinedImage combimg;
 		public Vector2		pivot	= c_pivot_center;
+		public bool			adaptToPerspective = false;
 
 		public override void CopyDataTo(Image to)
 		{
@@ -130,6 +131,7 @@ namespace SnapshotElems
 			to.texture	= texture;
 			to.combimg	= combimg;
 			to.pivot	= pivot;
+			to.adaptToPerspective = adaptToPerspective;
 		}
 	}
 
