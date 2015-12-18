@@ -47,7 +47,7 @@ class TestPacker : FSNRectPacker.BaseRectPacker<TestPackerData>
 
 public class PackerTest
 {
-	[MenuItem("FSN Engine/Packer Test")]
+	//[MenuItem("FSN Engine/Packer Test")]
 	static void Start()
 	{
 		var packer = new TestPacker();

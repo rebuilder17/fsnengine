@@ -119,7 +119,6 @@ SubShader{
 		fixed4 frag(v2f i) : SV_Target
 		{
 			fixed4 col = tex2D(_MainTex, i.texcoord) * i.color;
-			clip(col.a - 0.01);
 			return col;
 		}
 		ENDCG

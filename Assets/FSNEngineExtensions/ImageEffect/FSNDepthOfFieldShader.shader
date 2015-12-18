@@ -188,14 +188,12 @@
 
 			// BG
 			half coc_bg = 0.0;
-			//if (dcur < 0.999)	// 뎁스값이 없는 부분은 블러를 먹이지 않는다. (배경, 이쪽은 따로 처리하는 게 나음)
-			//{
-				half fd01_bg = _CurveParams.w + _CurveParams.z;
+			half fd01_bg = _CurveParams.w + _CurveParams.z;
 
-				if (dcur > fd01_bg)
-					coc_bg = (dcur - fd01_bg);
-				coc_bg = saturate(coc_bg * _CurveParams.y);
-			//}
+			//if (dcur > fd01_bg)
+			//	coc_bg = (dcur - fd01_bg);
+			coc_bg = max(0, dcur - fd01_bg);
+			coc_bg	= saturate(coc_bg * _CurveParams.y);
 
 			half coc = coc_bg;
 			
@@ -212,8 +210,9 @@
 
 			half fd01_fg = (_CurveParams.w - _CurveParams.z);
 			half coc_fg = 0.0;
-			if (dcur < fd01_fg)
-				coc_fg = (fd01_fg - dcur);
+			//if (dcur < fd01_fg)
+			//	coc_fg = (fd01_fg - dcur);
+			coc_fg = max(0, fd01_fg - dcur);
 			coc_fg = saturate(coc_fg * _CurveParams.x);
 
 			return fixed3(coc_fg, coc_fg, coc_fg);
@@ -240,23 +239,15 @@
 			fixed3 colBlur = fixed3(0,0,0);
 			float cocWeight = tex2D(_FgTex, uvcur).r;
 
-			if (cocWeight > 0.001)
+			float weightSum = 0.0;
+			for (int i = 0; i < 4; i++)
 			{
-				float weightSum = 0.0;
-				for (int i = 0; i < 4; i++)
-				{
-					float w = weight[i];
-					colBlur += tex2D(_MainTex, inp.uvSample[i]) * w;
-					weightSum += w;
-				}
-				colBlur = saturate(colOrig * (1 - cocWeight) + colBlur / weightSum * cocWeight);
+				float w = weight[i];
+				colBlur += tex2D(_MainTex, inp.uvSample[i]) * w;
+				weightSum += w;
 			}
-			else
-			{
-				colBlur = colOrig;
-			}
+			colBlur = saturate(colOrig * (1 - cocWeight) + colBlur / weightSum * cocWeight);
 			
-
 			return colBlur.rgb;
 		}
 

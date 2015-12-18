@@ -1,19 +1,14 @@
 fileFormatVersion: 2
-guid: 69b50bbeeea8239409a4560bbbb6b1a8
-timeCreated: 1450204560
+guid: 4c25297bb67a0814698c97a8a92b7388
+timeCreated: 1450425231
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: hyun-ae body.png
-    21300002: hyun-ae face1.png
-    21300004: hyun-ae face2.png
-    21300006: hyun-ae face3.png
-    21300008: hyun-ae face4.png
-    21300010: hyun-ae body
-    21300012: hyun-ae face1
-    21300014: hyun-ae face2
-    21300016: hyun-ae face3
-    21300018: hyun-ae face4
+    21300000: mute body
+    21300002: mute face1
+    21300004: mute face2
+    21300006: mute face3
+    21300008: mute face4
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -60,51 +55,51 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: hyun-ae body
+    - name: mute body
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 650
-        height: 1300
+        width: 800
+        height: 1600
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: hyun-ae face1
+    - name: mute face1
       rect:
         serializedVersion: 2
-        x: 651
+        x: 801
         y: 0
         width: 150
         height: 100
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: hyun-ae face2
+    - name: mute face2
       rect:
         serializedVersion: 2
-        x: 802
-        y: 0
-        width: 150
-        height: 100
-      alignment: 0
-      pivot: {x: .5, y: .5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-    - name: hyun-ae face3
-      rect:
-        serializedVersion: 2
-        x: 651
+        x: 801
         y: 101
         width: 150
         height: 100
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: hyun-ae face4
+    - name: mute face3
       rect:
         serializedVersion: 2
-        x: 802
-        y: 101
+        x: 801
+        y: 202
+        width: 150
+        height: 100
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: mute face4
+      rect:
+        serializedVersion: 2
+        x: 801
+        y: 303
         width: 150
         height: 100
       alignment: 0

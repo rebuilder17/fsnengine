@@ -61,11 +61,12 @@ class FSNSpritePacker : FSNRectPacker.BaseRectPacker<FSNSpritePackerData>
 			outtex.SetPixels32(entry.xMin, entry.yMin, texture.width, texture.height, texture.GetPixels32());
 		}
 
-		var textureOutAssetPath	= "Resources/" + outputPath + ".png";							// 실제 출력할 텍스쳐 경로 (asset)
+		//var textureOutAssetPath	= "Resources/" + outputPath + ".png";							// 실제 출력할 텍스쳐 경로 (asset)
+		var textureOutAssetPath = outputPath + ".png";
 		var textureOutRealPath  = Application.dataPath + "/" + textureOutAssetPath;				// 실제 출력할 텍스쳐 경로 (절대경로)
 		string outPath, outName;
 		FSNUtils.StripPathAndName(textureOutAssetPath, out outPath, out outName);
-		FSNEditorUtils.MakeTargetDirectory(outPath);											// 타겟 디렉토리 확보
+		FSNEditorUtils.MakeTargetDirectory("Assets/" + outPath);											// 타겟 디렉토리 확보
 		System.IO.File.WriteAllBytes(textureOutRealPath, outtex.EncodeToPNG());                 // 텍스쳐를 파일로 기록한다.
 		AssetDatabase.Refresh();
 
@@ -139,7 +140,7 @@ public static class FSNCombinedImageGenerator
 
 		public Config(string configPath)
 		{
-			Debug.Log("Config file read : " + configPath);
+			//Debug.Log("Config file read : " + configPath);
 			var data		= AssetDatabase.LoadAssetAtPath<TextAsset>(configPath).text;
 			var json		= new JSONObject(data);
 

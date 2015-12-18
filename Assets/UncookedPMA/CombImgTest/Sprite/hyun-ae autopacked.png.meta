@@ -1,14 +1,14 @@
 fileFormatVersion: 2
-guid: 97ada403752bf4444a60780b50eb0c2a
-timeCreated: 1450204562
+guid: 1076440f7637fc3418242310c9f4371d
+timeCreated: 1450425226
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: mute body
-    21300002: mute face1
-    21300004: mute face2
-    21300006: mute face3
-    21300008: mute face4
+    21300000: hyun-ae body
+    21300002: hyun-ae face1
+    21300004: hyun-ae face2
+    21300006: hyun-ae face3
+    21300008: hyun-ae face4
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -55,51 +55,51 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: mute body
+    - name: hyun-ae body
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 800
-        height: 1600
+        width: 650
+        height: 1300
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: mute face1
+    - name: hyun-ae face1
       rect:
         serializedVersion: 2
-        x: 801
+        x: 651
         y: 0
         width: 150
         height: 100
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: mute face2
+    - name: hyun-ae face2
       rect:
         serializedVersion: 2
-        x: 801
+        x: 802
+        y: 0
+        width: 150
+        height: 100
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: hyun-ae face3
+      rect:
+        serializedVersion: 2
+        x: 651
         y: 101
         width: 150
         height: 100
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}
-    - name: mute face3
+    - name: hyun-ae face4
       rect:
         serializedVersion: 2
-        x: 801
-        y: 202
-        width: 150
-        height: 100
-      alignment: 0
-      pivot: {x: .5, y: .5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-    - name: mute face4
-      rect:
-        serializedVersion: 2
-        x: 801
-        y: 303
+        x: 802
+        y: 101
         width: 150
         height: 100
       alignment: 0

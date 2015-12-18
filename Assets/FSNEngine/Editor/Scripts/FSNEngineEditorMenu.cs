@@ -26,4 +26,10 @@ public static class FSNEngineEditorMenu
 	{
 		FSNCombinedImageGenerator.BuildCombinedImageSources();
 	}
+
+	[MenuItem("FSN Engine/UncookedPMA 경로 안의 텍스쳐를 변경하여 Resources로 복제")]
+	static void BuildPremultipliedAlphaTexture()
+	{
+		FSNPremultipliedTextureGenerator.ConvertWithinPath("Assets/UncookedPMA", "Assets/Resources");
+	}
 }

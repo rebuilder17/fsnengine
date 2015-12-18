@@ -141,8 +141,6 @@ SubShader{
 			{
 				col = tex2D(_MainTex, texcoord) * i.color;
 			}
-			
-			clip(col.a - 0.01);
 			return col;
 		}
 		ENDCG
