@@ -141,7 +141,8 @@ public sealed class FSNControlSystem : MonoBehaviour
 		{
 			m_swipeRatio	*= 0.5f;
 			if (m_swipeRatio < 0.01f) m_swipeRatio = 0;
-			m_seqEngine.PartialSwipe(m_swipeDirection, m_swipeRatio * c_partialSwipeLimit);
+			//m_seqEngine.PartialSwipe(m_swipeDirection, m_swipeRatio * c_partialSwipeLimit);
+			m_seqEngine.PartialSwipe(m_swipeDirection, m_swipeRatio);
 		}
 
 		if(Input.GetKeyUp(KeyCode.Escape))							// ESC (Andoid 백버튼) - 토글 메뉴 대응
@@ -308,10 +309,11 @@ public sealed class FSNControlSystem : MonoBehaviour
 									engine.ScreenXSize : engine.ScreenYSize;	// 해당 방향으로 최대한 밀 수 있는 거리
 
 				float fullDist		= weight * maxdist;
-				float curSwipeRatio	= distance / fullDist;
+				float curSwipeRatio	= Mathf.Pow(distance / fullDist, 0.5f);		// 드래그할 때 약간 저항을 주기 위해
 				if (curSwipeRatio < 1.0f)										// 아직 덜 밀었을 때
 				{
-					m_seqEngine.PartialSwipe(direction, curSwipeRatio * c_partialSwipeLimit);// Partial swipe
+					//m_seqEngine.PartialSwipe(direction, curSwipeRatio * c_partialSwipeLimit);// Partial swipe
+					m_seqEngine.PartialSwipe(direction,curSwipeRatio);			// Partial swipe
 					m_swipeRatio	= curSwipeRatio;
 
 

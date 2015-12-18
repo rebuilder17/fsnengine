@@ -45,21 +45,12 @@ public class FSNScreenFade : MonoBehaviour
 		bool cpenable;
 		var lalpha      = m_loadingFadeColor.a;
 		var calpha      = m_controlFadeColor.a;
-		if (lalpha < Mathf.Epsilon && calpha < Mathf.Epsilon)									// 알파값이 모두 0에 근접한다면 끈다
-		{
-			cpenable    = false;
-        }
-		else
-		{
-			var colorMix	= (m_loadingFadeColor * lalpha + m_controlFadeColor * calpha * (1 - lalpha))
-								/ (1 - (1 - calpha) * (1 - lalpha));							// 페이드 색상 합성
-			cpenable		= colorMix.a > 0.01;												// 알파값이 거의 0이라면 비활성화해야한다.
+
+		var colorMix	= (m_loadingFadeColor * lalpha + m_controlFadeColor * calpha * (1 - lalpha))
+							/ (1 - (1 - calpha) * (1 - lalpha));							// 페이드 색상 합성
+		cpenable		= colorMix.a > 0.01;												// 알파값이 거의 0이라면 비활성화해야한다.
 			
-			if (cpenable)																		// 활성화 상태일 때만 패널 색상 설정
-			{
-				m_colorPanel.color  = colorMix;
-			}
-		}
+		m_colorPanel.color  = colorMix;
 
 		if (cpenable != m_colorPanel.enabled)													// 실제 객체의 활성화 여부가 변경되어야할 때만 설정
 		{

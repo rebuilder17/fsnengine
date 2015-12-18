@@ -317,7 +317,7 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 		{
 			CurrentFlowDirection	= FlowDirection.Up;
 			BackwardFlowDirection	= FlowDirection.Down;
-			SwipeWeight				= 0.24f;
+			SwipeWeight				= 0.30f;
 			FontSize				= 36;
 			ScreenCenterText		= false;
 			StackTexts				= true;
@@ -332,7 +332,7 @@ public sealed class FSNInGameSetting : BaseInGameSetting
 			ParagraphSpacing		= 10f;
 
 			TransitionSpeedRatio	= 1f;
-			TextTransitionTime		= 1f;
+			TextTransitionTime		= 0.5f;
 
 			PreventSaveAndLoadMenu	= false;
 		}

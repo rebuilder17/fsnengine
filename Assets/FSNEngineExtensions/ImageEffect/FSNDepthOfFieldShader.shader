@@ -84,6 +84,29 @@
 			return o;
 		}
 
+		v2f vert4BoxSmp(appdata v)
+		{
+			v2f o;
+			o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+
+			const float2 uvOffset[4] =
+			{
+				float2(-0.5, +0.5),
+				float2(+0.5, +0.5),
+				float2(+0.5, -0.5),
+				float2(-0.5, -0.5)
+			};
+
+			float2 uv = v.uv;
+				o.uv = uv;
+			for (int i = 0; i < 4; i++)
+			{
+				o.uvSample[i] = uv + uvOffset[i] * _InvSourceSize;
+			}
+
+			return o;
+		}
+
 		v2f vert2Smp1(appdata v)
 		{
 			v2f o;
@@ -203,7 +226,7 @@
 		fixed3 fragFG(v2f inp) : SV_Target
 		{
 			float2 uvcur = inp.uv;
-			fixed3 colOrig = tex2D(_MainTex, uvcur).rgb;
+			//fixed3 colOrig = tex2D(_MainTex, uvcur).rgb;
 
 			float dcur = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uvcur);
 			dcur = Linear01Depth(dcur);
@@ -216,6 +239,31 @@
 			coc_fg = saturate(coc_fg * _CurveParams.x);
 
 			return fixed3(coc_fg, coc_fg, coc_fg);
+		}
+
+		fixed3 fragFG_Blur(v2f inp) : SV_Target
+		{
+			//float2 uvcur = inp.uv;
+			//fixed3 colOrig = tex2D(_MainTex, uvcur).rgb;
+
+			
+			half coc_fg_sum	= 0.0f;
+			for (int i = 0; i < 4; i++)
+			{
+				float dcur = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, inp.uvSample[i]);
+				dcur = Linear01Depth(dcur);
+
+				half fd01_fg = (_CurveParams.w - _CurveParams.z);
+				half coc_fg = 0.0;
+				//if (dcur < fd01_fg)
+				//	coc_fg = (fd01_fg - dcur);
+				coc_fg = max(0, fd01_fg - dcur);
+				coc_fg = saturate(coc_fg * _CurveParams.x);
+
+				coc_fg_sum += coc_fg;
+			}
+			coc_fg_sum /= 4.0;
+			return fixed3(coc_fg_sum, coc_fg_sum, coc_fg_sum);
 		}
 
 		fixed3 fragActualFG(v2f inp) : SV_Target
@@ -302,17 +350,29 @@
 
 		}
 
+		//Pass
+		//{
+		//	Name "4. Make Foreground"
+
+		//	ColorMask RGB
+
+		//	CGPROGRAM
+		//	#pragma vertex vert
+		//	#pragma fragment fragFG
+		//	ENDCG
+		//}
+
 		Pass
-		{
-			Name "4. Make Foreground"
+			{
+				Name "4. Make Foreground"
 
-			ColorMask RGB
+				ColorMask RGB
 
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragFG
-			ENDCG
-		}
+				CGPROGRAM
+				#pragma vertex vert4BoxSmp
+				#pragma fragment fragFG_Blur
+				ENDCG
+			}
 
 		Pass
 		{

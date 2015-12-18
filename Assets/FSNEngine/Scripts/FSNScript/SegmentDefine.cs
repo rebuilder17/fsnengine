@@ -147,7 +147,7 @@ namespace Segments
 		public Vector3			rotation;
 		public Color			color;
 		public float			alpha;
-		public float			transition	= 1;
+		public float			transition	= 0.5f;
 		/// <summary>
 		/// 이 오브젝트에 특별히 부착할 컴포넌트 네임 (생성 후 바뀌지 않는다)
 		/// </summary>

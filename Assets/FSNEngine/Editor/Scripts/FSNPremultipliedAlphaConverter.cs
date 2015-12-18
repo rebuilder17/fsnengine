@@ -22,13 +22,14 @@ public static class FSNPremultipliedTextureGenerator
 			var importer			= AssetImporter.GetAtPath(path) as TextureImporter; // 텍스쳐 타입을 제대로 설정한다.
 			importer.npotScale      = TextureImporterNPOTScale.None;
 			importer.textureFormat  = TextureImporterFormat.AutomaticTruecolor;
+			importer.isReadable		= true;
 			importer.SaveAndReimport();
 
 			
 			var completeDestPath    = destPath;
 			if (subdir.Length > 0 && subdir[0] != '/')
 			{
-				subdir = "/" + subdir.Substring(0, subdir.Length - 1);
+				subdir = "/" + subdir;
 			}
 			completeDestPath        += subdir;
 
@@ -46,23 +47,26 @@ public static class FSNPremultipliedTextureGenerator
 		var assetpath       = destpath + "/" + filename;
 		var absolutepath    = Application.dataPath + "/../" + assetpath;
 		Debug.LogFormat("asset path : {0}, absolute target path : {1}", assetpath, absolutepath);
+
+		if (AssetDatabase.AssetPathToGUID(assetpath) != null)			// 복사하려는 위치에 해당 어셋이 이미 존재한다면 기존 것은 삭제
+			AssetDatabase.DeleteAsset(assetpath);
 		AssetDatabase.CopyAsset(origpath, assetpath);                   // 변경하려는 어셋을 복제하여 타겟 경로에 넣는다.
 		AssetDatabase.Refresh();
 
 		var texture		= AssetDatabase.LoadAssetAtPath<Texture2D>(assetpath);
 		var converted   = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false);
-		var origcolors  = converted.GetPixels();
+		var origcolors  = texture.GetPixels32();
 		var len         = origcolors.Length;
-		for (int i = 0; i < len; i++)
+		for (int i = 0; i < len; i++)									// 픽셀마다 알파곱 계산
 		{
 			var color       = origcolors[i];
-			var alpha       = color.a;
-			color.r         = (color.r * alpha);
-			color.g			= (color.g * alpha);
-			color.b         = (color.b * alpha);
+			var alpha       = (int)color.a;
+			color.r         = (byte)(color.r * alpha / 255);
+			color.g			= (byte)(color.g * alpha / 255);
+			color.b         = (byte)(color.b * alpha / 255);
 			origcolors[i]   = color;
 		}
-		converted.SetPixels(origcolors);
+		converted.SetPixels32(origcolors);
 		
 		System.IO.File.WriteAllBytes(absolutepath, converted.EncodeToPNG());
 		AssetDatabase.ImportAsset(assetpath);

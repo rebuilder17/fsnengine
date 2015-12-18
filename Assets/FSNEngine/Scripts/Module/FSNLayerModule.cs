@@ -223,7 +223,9 @@ public abstract class FSNLayerObject<ElmT>
 		float elapsed;
 		while((elapsed = Time.time - startTime) <= duration)			// 지속시간동안 매 프레임마다 루프, 각 시점마다 진행율에 따라서 트랜지션
 		{
-			float t		= Mathf.Pow(elapsed / duration, 0.5f);		// TODO : Transition 애니메이션 시 t 곡선 커스터마이징 가능하게
+
+			//float t		= TimeRatioFunction(elapsed / duration);	// TODO : Transition 애니메이션 시 t 곡선 커스터마이징 가능하게
+			float t			= elapsed / duration;
 			TransitionWith(to, Mathf.Lerp(startRatio, 1, t));
 			yield return null;
 		}
@@ -267,7 +269,7 @@ public abstract class FSNLayerObject<ElmT>
 	/// <returns></returns>
 	protected static float TimeRatioFunction(float t)
 	{
-		return Mathf.Pow(t, 0.5f);
+		return Mathf.Pow(t, 0.7f);
 	}
 }
 

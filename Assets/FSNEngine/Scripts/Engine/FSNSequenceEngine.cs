@@ -40,7 +40,8 @@ public class FSNSequenceEngine : MonoBehaviour
 		// Constants
 
 		const float			c_timeRatio_normal				= 1.0f;
-		const float			c_timeRatio_skipUntilNextIdle	= 16.0f;
+		//const float			c_timeRatio_skipUntilNextIdle	= 16.0f;
+		const float			c_timeRatio_skipUntilNextIdle	= 4.0f;
 		const float			c_timeRatio_fastskip			= 8.0f;
 
 

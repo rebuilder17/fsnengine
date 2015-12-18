@@ -107,6 +107,11 @@ public sealed partial class FSNSnapshotSequence
 		/// <returns></returns>
 		public bool CanFlowTo(FSNInGameSetting.FlowDirection dir)
 		{
+			if (dir == FSNInGameSetting.FlowDirection.None)
+			{
+				Debug.LogWarning("dir is None??");
+				return false;
+			}
 			return Flows[(int)dir].Linked != null;
 		}
 		/// <summary>
@@ -337,9 +342,16 @@ public sealed partial class FSNSnapshotSequence
 		/// <returns></returns>
 		private FSNSnapshotSequence.Segment GetLinkedToDir(FSNInGameSetting.FlowDirection dir)
 		{
-			var condlink	= m_cachedConditionLinks[(int)dir];	// 조건부 링크 구하기
-			if (condlink != null)
-				return condlink;
+			if (dir != FSNInGameSetting.FlowDirection.None)
+			{
+				var condlink	= m_cachedConditionLinks[(int)dir];	// 조건부 링크 구하기
+				if (condlink != null)
+					return condlink;
+			}
+			else
+			{
+				Debug.LogWarning("dir is None??");
+			}
 
 			if(m_current.CanFlowTo(dir))						// 일반 링크 구하기
 			{

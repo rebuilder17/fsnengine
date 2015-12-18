@@ -19,15 +19,16 @@ public class FSNDepthOfField : PostEffectsBase
 	Material m_dofMaterial;
 	RectTransform m_canvasTr;
 
-	RenderTexture m_rtBgTemp;
-	RenderTexture m_rtBgFinal;
-	RenderTexture m_rtFgOrig;
-	RenderTexture m_rtFgTemp;
-	RenderTexture m_rtFgBlur;
-	RenderTexture m_rtFgActual;
+	RenderTexture m_rtDiv2Temp;
+	RenderTexture m_rtBlurFinal;
+	//RenderTexture m_rtFgOrig;
+	//RenderTexture m_rtFgTemp;
+	//RenderTexture m_rtDiv4Temp;
+	RenderTexture m_rtDiv8Temp;
+	//RenderTexture m_rtFgTempAndActual;
 	RenderTexture m_rtComplete;
-	RenderTexture m_rtCompleteBlur1;
-	RenderTexture m_rtCompleteBlur2;
+	//RenderTexture m_rtCompleteBlur1;
+	//RenderTexture m_rtCompleteBlur2;
 
 
 
@@ -42,7 +43,8 @@ public class FSNDepthOfField : PostEffectsBase
 		m_camera = GetComponent<Camera>();
 		m_camera.depthTextureMode |= DepthTextureMode.Depth;
 
-		m_canvasTr    = m_referenceCanvas.GetComponent<RectTransform>();
+		if (m_referenceCanvas != null)
+			m_canvasTr    = m_referenceCanvas.GetComponent<RectTransform>();
 
 		instance    = this;
 
@@ -60,7 +62,7 @@ public class FSNDepthOfField : PostEffectsBase
 
 	private static void CheckSingleRT(ref RenderTexture rt, int sizeDiv = 1, int depth = 0, RenderTextureFormat format = RenderTextureFormat.Default)
 	{
-		rt  = RenderTexture.GetTemporary(Screen.width / sizeDiv, Screen.height/sizeDiv, depth, format);
+		rt				= RenderTexture.GetTemporary(Screen.width / sizeDiv, Screen.height/sizeDiv, depth, format, RenderTextureReadWrite.Linear);
 	}
 
 	private static void ReleaseSingleRT(ref RenderTexture rt)
@@ -70,28 +72,24 @@ public class FSNDepthOfField : PostEffectsBase
 
 	private void CheckRenderTextures()
 	{
-		CheckSingleRT(ref m_rtBgTemp, 2);
-		CheckSingleRT(ref m_rtBgFinal, 2);
-		CheckSingleRT(ref m_rtFgOrig, 4, 0, RenderTextureFormat.RGB565);
-		CheckSingleRT(ref m_rtFgTemp, 4, 0, RenderTextureFormat.RGB565);
-		CheckSingleRT(ref m_rtFgBlur, 4, 0, RenderTextureFormat.RGB565);
-		CheckSingleRT(ref m_rtFgActual, 4, 0, RenderTextureFormat.RGB565);
+		CheckSingleRT(ref m_rtDiv2Temp, 2);
+		CheckSingleRT(ref m_rtBlurFinal, 2);
+		//CheckSingleRT(ref m_rtFgOrig, 4, 0, RenderTextureFormat.RGB565);
+		//CheckSingleRT(ref m_rtDiv4Temp, 4, 0, RenderTextureFormat.RGB565);
+		//CheckSingleRT(ref m_rtFgTempAndActual, 4, 0, RenderTextureFormat.RGB565);
+		CheckSingleRT(ref m_rtDiv8Temp, 8, 0, RenderTextureFormat.RGB565);
 		CheckSingleRT(ref m_rtComplete);
-		CheckSingleRT(ref m_rtCompleteBlur1, 2);
-		CheckSingleRT(ref m_rtCompleteBlur2, 2);
 	}
 	
 	private void ReleaseRenderTextures()
 	{
-		ReleaseSingleRT(ref m_rtBgTemp);
-		ReleaseSingleRT(ref m_rtBgFinal);
-		ReleaseSingleRT(ref m_rtFgOrig);
-		ReleaseSingleRT(ref m_rtFgTemp);
-		ReleaseSingleRT(ref m_rtFgBlur);
-		ReleaseSingleRT(ref m_rtFgActual);
+		ReleaseSingleRT(ref m_rtDiv2Temp);
+		ReleaseSingleRT(ref m_rtBlurFinal);
+		//ReleaseSingleRT(ref m_rtFgOrig);
+		//ReleaseSingleRT(ref m_rtDiv4Temp);
+		ReleaseSingleRT(ref m_rtDiv8Temp);
+		//ReleaseSingleRT(ref m_rtFgTempAndActual);
 		ReleaseSingleRT(ref m_rtComplete);
-		ReleaseSingleRT(ref m_rtCompleteBlur1);
-		ReleaseSingleRT(ref m_rtCompleteBlur2);
     }
 
 	public override bool CheckResources()
@@ -125,7 +123,7 @@ public class FSNDepthOfField : PostEffectsBase
 
 		CheckRenderTextures();
 		
-		float focalDistance01 = FocalDistance01(focalPoint + zOffset * m_canvasTr.localScale.z);
+		float focalDistance01 = FocalDistance01(focalPoint + zOffset * (m_canvasTr == null? 1f : m_canvasTr.localScale.z));
 		float focalStartCurve = focalDistance01 * smoothness;
 		float focalEndCurve = focalStartCurve * 4f;
 		float focal01Size = focalSize / (m_camera.farClipPlane - m_camera.nearClipPlane);
@@ -134,33 +132,36 @@ public class FSNDepthOfField : PostEffectsBase
 
 		// 1. 백그라운드
 		SetInvSourceSize(source.width / 2, source.height / 2);
-        Graphics.Blit(source, m_rtBgTemp, m_dofMaterial, 0);
-		Graphics.Blit(m_rtBgTemp, m_rtBgFinal, m_dofMaterial, 1);
+        Graphics.Blit(source, m_rtDiv2Temp, m_dofMaterial, 0);
+		Graphics.Blit(m_rtDiv2Temp, m_rtBlurFinal, m_dofMaterial, 1);
 
 		// 2. 전경
-		SetInvSourceSize(source.width / 4, source.height / 4);
-		Graphics.Blit(source, m_rtFgOrig, m_dofMaterial, 3);
-		Graphics.Blit(m_rtFgOrig, m_rtFgTemp, m_dofMaterial, 0);
-		Graphics.Blit(m_rtFgTemp, m_rtFgBlur, m_dofMaterial, 1);
+		SetInvSourceSize(source.width / 8, source.height / 8);
+		//Graphics.Blit(source, m_rtFgOrig, m_dofMaterial, 3);
+		//Graphics.Blit(m_rtFgOrig, m_rtFgTempAndActual, m_dofMaterial, 0);
+		//Graphics.Blit(m_rtFgTempAndActual, m_rtDiv4Temp, m_dofMaterial, 1);
+
+		//Graphics.Blit(m_rtFgOrig, m_rtDiv8Temp);
 		
-		m_dofMaterial.SetTexture("_FgBlurTex", m_rtFgBlur);
-		Graphics.Blit(m_rtFgOrig, m_rtFgActual, m_dofMaterial, 4);
+		//m_dofMaterial.SetTexture("_FgBlurTex", m_rtDiv4Temp);
+		//m_dofMaterial.SetTexture("_FgBlurTex", m_rtDiv8Temp);
+		//Graphics.Blit(m_rtFgOrig, m_rtFgTempAndActual, m_dofMaterial, 4);
+
+		Graphics.Blit(source, m_rtDiv8Temp, m_dofMaterial, 3);
 
 		// 3. 백그라운드 DoF
-		m_dofMaterial.SetTexture("_BlurTex", m_rtBgFinal);
-		m_dofMaterial.SetTexture("_FgTex", m_rtFgActual);
-		//m_dofMaterial.SetTexture("_FgTex", m_rtFgOrig);
+		m_dofMaterial.SetTexture("_BlurTex", m_rtBlurFinal);
+		//m_dofMaterial.SetTexture("_FgTex", m_rtFgTempAndActual);
+		m_dofMaterial.SetTexture("_FgTex", m_rtDiv8Temp);
 
 		SetInvSourceSize(source.width / 2, source.height / 2);
 		Graphics.Blit(source, m_rtComplete, m_dofMaterial, 2);
 
 		// 4. 백그라운드 DoF를 블러 처리한 후 전경 DoF
-		//Graphics.Blit(m_rtComplete, m_rtCompleteBlur1, m_dofMaterial, 5);
-		//Graphics.Blit(m_rtCompleteBlur1, m_rtCompleteBlur2, m_dofMaterial, 6);
-		Graphics.Blit(m_rtComplete, m_rtCompleteBlur1, m_dofMaterial, 0);
-		Graphics.Blit(m_rtCompleteBlur1, m_rtCompleteBlur2, m_dofMaterial, 1);
+		Graphics.Blit(m_rtComplete, m_rtDiv2Temp, m_dofMaterial, 0);
+		Graphics.Blit(m_rtDiv2Temp, m_rtBlurFinal, m_dofMaterial, 1);
 
-		m_dofMaterial.SetTexture("_FgBlurTex2", m_rtCompleteBlur2);
+		m_dofMaterial.SetTexture("_FgBlurTex2", m_rtBlurFinal);
 		Graphics.Blit(m_rtComplete, destination, m_dofMaterial, 7);
 		
 		ReleaseRenderTextures();
