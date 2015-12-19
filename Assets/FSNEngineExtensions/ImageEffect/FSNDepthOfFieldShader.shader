@@ -181,6 +181,24 @@
 			return col / weightSum;
 		}
 
+		fixed3 fragCommon2(v2f inp) : SV_Target
+		{
+			//const float weight[4] = { 0.3, 1.0, 1.0, 0.3 };
+
+			float2 uvcur = inp.uv;
+			fixed3 col = fixed3(0,0,0);
+			//float weightSum = 0.0;
+
+			for (int i = 0; i < 4; i++)
+			{
+				float2 uvsmp = inp.uvSample[i].xy;
+				col += tex2D(_MainTex, uvsmp).rgb;
+				//weightSum += w;
+			}
+
+			return col / 4.0;
+		}
+
 		fixed3 fragCommonHalf(v2f inp) : SV_Target
 		{
 			const float weight[2] = { 1, 1 };
@@ -263,6 +281,7 @@
 				coc_fg_sum += coc_fg;
 			}
 			coc_fg_sum /= 4.0;
+
 			return fixed3(coc_fg_sum, coc_fg_sum, coc_fg_sum);
 		}
 
@@ -320,6 +339,8 @@
 			CGPROGRAM
 			#pragma vertex vert4Smp1
 			#pragma fragment fragCommon
+			//#pragma vertex vert4BoxSmp
+			//#pragma fragment fragCommon2
 
 			ENDCG
 		}

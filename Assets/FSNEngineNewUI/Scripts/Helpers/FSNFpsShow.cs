@@ -6,12 +6,15 @@ using System.Collections;
 /// </summary>
 public class FSNFpsShow : MonoBehaviour
 {
+	[SerializeField]
+	bool            m_forceOn = false;
+
 	static float oldtime    = 0;
 	static float fps        = 0;
 
 	void Awake()
 	{
-		if (!Debug.isDebugBuild)			// 디버그 빌드가 아닐 때는 끄기
+		if (!Debug.isDebugBuild && !m_forceOn)	// 디버그 빌드가 아닐 때는 끄기
 			enabled = false;
 	}
 

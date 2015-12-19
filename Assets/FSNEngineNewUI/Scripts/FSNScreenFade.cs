@@ -40,21 +40,36 @@ public class FSNScreenFade : MonoBehaviour
 		instance    = this;
 	}
 
+	Color _temp;
 	void Update()
 	{
 		bool cpenable;
 		var lalpha      = m_loadingFadeColor.a;
 		var calpha      = m_controlFadeColor.a;
-
-		var colorMix	= (m_loadingFadeColor * lalpha + m_controlFadeColor * calpha * (1 - lalpha))
-							/ (1 - (1 - calpha) * (1 - lalpha));							// 페이드 색상 합성
-		cpenable		= colorMix.a > 0.01;												// 알파값이 거의 0이라면 비활성화해야한다.
+		Color colorMix  = new Color(0,0,0,0);
+		if (lalpha > 0 || calpha > 0)
+		{
+			colorMix    = (m_loadingFadeColor * lalpha + m_controlFadeColor * calpha * (1 - lalpha))
+							/ (1 - (1 - calpha) * (1 - lalpha));                                // 페이드 색상 합성
+																								//cpenable	= colorMix.a > 0.01;													// 알파값이 거의 0이라면 비활성화해야한다.
+			cpenable    = true;
+		}
+		else
+		{
+			cpenable    = false;
+		}
 			
 		m_colorPanel.color  = colorMix;
 
 		if (cpenable != m_colorPanel.enabled)													// 실제 객체의 활성화 여부가 변경되어야할 때만 설정
 		{
 			m_colorPanel.enabled = cpenable;
+		}
+
+		if (colorMix != _temp)
+		{
+			_temp = colorMix;
+			//	Debug.Log("Color change : " + _temp);
 		}
 	}
 

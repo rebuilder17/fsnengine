@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: d7cccf55fa33ae346b8f1c4633bd9d1f
-timeCreated: 1450455550
+guid: 7813cb7d6bebcc54983da4e96b89e2c4
+timeCreated: 1450524718
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName: {}
@@ -46,7 +46,7 @@ TextureImporter:
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spritePixelsToUnits: 100
   alphaIsTransparency: 0
-  textureType: 2
+  textureType: 5
   buildTargetSettings: []
   spriteSheet:
     sprites: []

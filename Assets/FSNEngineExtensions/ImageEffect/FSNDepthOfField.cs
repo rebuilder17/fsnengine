@@ -132,8 +132,9 @@ public class FSNDepthOfField : PostEffectsBase
 
 		// 1. 백그라운드
 		SetInvSourceSize(source.width / 2, source.height / 2);
-        Graphics.Blit(source, m_rtDiv2Temp, m_dofMaterial, 0);
+		Graphics.Blit(source, m_rtDiv2Temp, m_dofMaterial, 0);
 		Graphics.Blit(m_rtDiv2Temp, m_rtBlurFinal, m_dofMaterial, 1);
+		//Graphics.Blit(source, m_rtBlurFinal, m_dofMaterial, 0);
 
 		// 2. 전경
 		SetInvSourceSize(source.width / 8, source.height / 8);
@@ -160,6 +161,7 @@ public class FSNDepthOfField : PostEffectsBase
 		// 4. 백그라운드 DoF를 블러 처리한 후 전경 DoF
 		Graphics.Blit(m_rtComplete, m_rtDiv2Temp, m_dofMaterial, 0);
 		Graphics.Blit(m_rtDiv2Temp, m_rtBlurFinal, m_dofMaterial, 1);
+		//Graphics.Blit(m_rtComplete, m_rtBlurFinal, m_dofMaterial, 0);
 
 		m_dofMaterial.SetTexture("_FgBlurTex2", m_rtBlurFinal);
 		Graphics.Blit(m_rtComplete, destination, m_dofMaterial, 7);

@@ -24,7 +24,8 @@ public abstract class FSNLayerObject<ElmT>
 	GameObject	m_object;		// 이 FSNLayerObject가 맞물린 GameObject
 	Transform	m_trans;		// Transform 캐시
 	FSNModule	m_module;		// 이 오브젝트를 생성한 모듈
-	FSNCoroutineComponent m_coComp;	// 코루틴 컴포넌트
+	FSNCoroutineComponent m_coComp; // 코루틴 컴포넌트
+	bool        m_trCoroutineLock   = false;	// 코루틴이 여러 개 걸리더라도 한 번에 하나만 실행하도록 하기 위한 플래그
 
 	int			m_uId;			// Unique ID
 	KillDelegate	m_killedDel;	// 오브젝트 Kill 시 호출할 델리게이트
@@ -84,21 +85,21 @@ public abstract class FSNLayerObject<ElmT>
 	protected Color Color
 	{
 		get { return m_color; }
-		set
-		{
-			m_color	= value;
-			UpdateColor(FinalColor);
-		}
+		//set
+		//{
+		//	m_color	= value;
+		//	UpdateColor(FinalColor);
+		//}
 	}
 
 	protected float Alpha
 	{
 		get { return m_alpha; }
-		set
-		{
-			m_alpha	= value;
-			UpdateColor(FinalColor);
-		}
+		//set
+		//{
+		//	m_alpha	= value;
+		//	UpdateColor(FinalColor);
+		//}
 	}
 
 	protected void SetColorAndAlpha(Color color, float alpha)
@@ -203,8 +204,9 @@ public abstract class FSNLayerObject<ElmT>
 	public virtual void SetStateFully(ElmT to)
 	{
 		Position	= to.Position;
-		Color		= to.Color;
-		Alpha		= to.Alpha;
+		//Color		= to.Color;
+		//Alpha		= to.Alpha;
+		SetColorAndAlpha(to.Color, to.Alpha);
 		Scale		= to.Scale;
 		Rotate		= to.Rotate;
 	}
@@ -219,6 +221,10 @@ public abstract class FSNLayerObject<ElmT>
 
 	public IEnumerator Transition_co(ElmT to, float startRatio, float duration, bool killOrSet)
 	{
+		while (m_trCoroutineLock)									// 코루틴 대기
+			yield return null;
+		m_trCoroutineLock   = true;										// 코루틴 락 걸기
+
 		float startTime	= Time.time;								// 시작 시간 기록
 		float elapsed;
 		while((elapsed = Time.time - startTime) <= duration)			// 지속시간동안 매 프레임마다 루프, 각 시점마다 진행율에 따라서 트랜지션
@@ -238,7 +244,9 @@ public abstract class FSNLayerObject<ElmT>
 		{
 			SetStateFully(to);
 		}
-	}
+
+		m_trCoroutineLock   = false;								// 코루틴 락 해제
+    }
 
 	//============================================================================
 

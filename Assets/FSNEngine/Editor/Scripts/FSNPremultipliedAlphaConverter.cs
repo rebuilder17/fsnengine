@@ -12,6 +12,7 @@ public static class FSNPremultipliedTextureGenerator
 	{
 		var guids	= AssetDatabase.FindAssets("t:Texture2D", new string[] { searchPath });
 		var count   = guids.Length;
+		var processed   = 0;
 		for (var i = 0; i < count; i++)
 		{
 			var path    = AssetDatabase.GUIDToAssetPath(guids[i]);
@@ -33,12 +34,15 @@ public static class FSNPremultipliedTextureGenerator
 			}
 			completeDestPath        += subdir;
 
-			Debug.Log("completeDestPath : " + completeDestPath);
+			//Debug.Log("completeDestPath : " + completeDestPath);
 
 			Convert(path, name, completeDestPath);
+			processed++;
 		}
 
 		AssetDatabase.Refresh();
+
+		Debug.LogFormat("Premultiplied Alpha 텍스쳐 생성 완료. 총 {0} 개 처리했습니다.", processed);
 	}
 
 	static void Convert(string origpath, string filename, string destpath)
@@ -46,7 +50,7 @@ public static class FSNPremultipliedTextureGenerator
 		FSNEditorUtils.MakeTargetDirectory(destpath);					// 타겟 경로 확보
 		var assetpath       = destpath + "/" + filename;
 		var absolutepath    = Application.dataPath + "/../" + assetpath;
-		Debug.LogFormat("asset path : {0}, absolute target path : {1}", assetpath, absolutepath);
+		//Debug.LogFormat("asset path : {0}, absolute target path : {1}", assetpath, absolutepath);
 
 		if (AssetDatabase.AssetPathToGUID(assetpath) != null)			// 복사하려는 위치에 해당 어셋이 이미 존재한다면 기존 것은 삭제
 			AssetDatabase.DeleteAsset(assetpath);
@@ -68,9 +72,10 @@ public static class FSNPremultipliedTextureGenerator
 		}
 		converted.SetPixels32(origcolors);
 		
-		System.IO.File.WriteAllBytes(absolutepath, converted.EncodeToPNG());
+		System.IO.File.WriteAllBytes(absolutepath, converted.EncodeToPNG());	// 실제 파일로 write
 		AssetDatabase.ImportAsset(assetpath);
-		var importer        = AssetImporter.GetAtPath(assetpath) as TextureImporter;
+		var importer        = AssetImporter.GetAtPath(assetpath) as TextureImporter;    // 텍스쳐 옵션 설정
+		importer.textureType= TextureImporterType.Advanced;
 		importer.alphaIsTransparency    = false;            // premultiplied alpha texture는 이 옵션을 꺼줘야 한다.
 		importer.SaveAndReimport();
 	}

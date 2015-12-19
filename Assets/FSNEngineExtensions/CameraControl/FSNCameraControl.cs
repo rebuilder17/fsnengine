@@ -101,11 +101,17 @@ public class FSNCameraControl : MonoBehaviour
 		{
 			var gravityDir		= Input.gyro.gravity.normalized;
 			Vector3 movement    = new Vector3();
-			movement.x          = gravityDir.x * m_gyroMovementFactor;
-			movement.y          = gravityDir.y * m_gyroMovementFactor;
+			movement.x          = SineToTan(gravityDir.x) * m_gyroMovementFactor;
+			movement.y          = SineToTan(gravityDir.y) * m_gyroMovementFactor;
             finalPosition       += movement;
 		}
 
 		m_tr.localPosition      = finalPosition;
+    }
+
+	float SineToTan(float len)
+	{
+		var rad  = Mathf.Asin(len);
+		return rad * 2 / Mathf.PI;
     }
 }
